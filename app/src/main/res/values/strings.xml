@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CycleCare</string>
+    
+    <!-- Navigation -->
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_log">Log</string>
+    <string name="nav_insights">Insights</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Calendar Screen -->
+    <string name="calendar_title">Cycle Calendar</string>
+    <string name="next_period">Next Period</string>
+    <string name="fertile_window">Fertile Window</string>
+    <string name="ovulation">Ovulation</string>
+    <string name="log_period">Log Period</string>
+    <string name="track_periods_message">Track your periods to see predictions</string>
+    
+    <!-- Daily Log Screen -->
+    <string name="daily_log_title">Daily Log</string>
+    <string name="how_feeling">How are you feeling today?</string>
+    <string name="symptoms">Symptoms</string>
+    <string name="mood">Mood</string>
+    <string name="notes">Notes</string>
+    <string name="save_log">Save Log</string>
+    
+    <!-- Insights Screen -->
+    <string name="insights_title">Insights</string>
+    <string name="avg_cycle_length">Average Cycle Length</string>
+    <string name="avg_period_length">Average Period Length</string>
+    <string name="track_more_message">Track more cycles to see insights</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="privacy_data">Privacy &amp; Data</string>
+    <string name="data_local_message">Your data is stored locally and never shared</string>
+    <string name="export_data">Export Data</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+</resources>
