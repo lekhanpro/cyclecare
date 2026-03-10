@@ -21,13 +21,14 @@ class ReminderWorker(
         val title = inputData.getString("title") ?: "CycleCare Reminder"
         val message = inputData.getString("message") ?: "Time to log your data"
         val type = inputData.getString("type") ?: "general"
+        val hideContent = inputData.getBoolean("hideContent", false)
 
-        showNotification(title, message, type)
+        showNotification(title, message, type, hideContent)
         
         return Result.success()
     }
 
-    private fun showNotification(title: String, message: String, type: String) {
+    private fun showNotification(title: String, message: String, type: String, hideContent: Boolean) {
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
         // Create notification channel for Android O and above
@@ -57,7 +58,7 @@ class ReminderWorker(
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
-            .setContentText(message)
+            .setContentText(if (hideContent) "Open CycleCare for details" else message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)

@@ -10,6 +10,9 @@ interface PeriodDao {
     @Query("SELECT * FROM periods ORDER BY startDate DESC")
     fun getAllPeriods(): Flow<List<PeriodEntity>>
 
+    @Query("SELECT * FROM periods ORDER BY startDate DESC")
+    suspend fun getAllPeriodsList(): List<PeriodEntity>
+
     @Query("SELECT * FROM periods WHERE id = :id")
     suspend fun getPeriodById(id: Long): PeriodEntity?
 
@@ -30,4 +33,7 @@ interface PeriodDao {
     
     @Query("SELECT COUNT(*) FROM periods")
     suspend fun getPeriodsCount(): Int
+
+    @Query("DELETE FROM periods")
+    suspend fun deleteAll()
 }

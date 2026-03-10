@@ -10,6 +10,9 @@ interface DailyLogDao {
     @Query("SELECT * FROM daily_logs ORDER BY date DESC")
     fun getAllLogs(): Flow<List<DailyLogEntity>>
 
+    @Query("SELECT * FROM daily_logs ORDER BY date DESC")
+    suspend fun getAllLogsList(): List<DailyLogEntity>
+
     @Query("SELECT * FROM daily_logs WHERE date = :date")
     suspend fun getLogByDate(date: LocalDate): DailyLogEntity?
 
@@ -24,4 +27,7 @@ interface DailyLogDao {
     
     @Query("SELECT * FROM daily_logs WHERE date >= :startDate AND date <= :endDate ORDER BY date")
     suspend fun getLogsInRange(startDate: LocalDate, endDate: LocalDate): List<DailyLogEntity>
+
+    @Query("DELETE FROM daily_logs")
+    suspend fun deleteAll()
 }

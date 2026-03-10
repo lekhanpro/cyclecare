@@ -49,10 +49,13 @@ class ReminderRepositoryImpl @Inject constructor(
     private fun ReminderEntity.toDomain(): Reminder {
         return Reminder(
             id = id,
-            type = ReminderType.valueOf(type),
-            time = LocalTime.parse(time),
+            type = runCatching { ReminderType.valueOf(type) }.getOrDefault(ReminderType.DAILY_LOG),
+            time = runCatching { LocalTime.parse(time) }.getOrDefault(LocalTime.of(20, 0)),
             enabled = enabled,
             daysBeforePeriod = daysBeforePeriod,
+            quietHoursEnabled = quietHoursEnabled,
+            quietHoursStart = runCatching { LocalTime.parse(quietHoursStart) }.getOrDefault(LocalTime.of(22, 0)),
+            quietHoursEnd = runCatching { LocalTime.parse(quietHoursEnd) }.getOrDefault(LocalTime.of(7, 0)),
             title = title,
             message = message
         )
@@ -65,6 +68,9 @@ class ReminderRepositoryImpl @Inject constructor(
             time = time.toString(),
             enabled = enabled,
             daysBeforePeriod = daysBeforePeriod,
+            quietHoursEnabled = quietHoursEnabled,
+            quietHoursStart = quietHoursStart.toString(),
+            quietHoursEnd = quietHoursEnd.toString(),
             title = title,
             message = message
         )

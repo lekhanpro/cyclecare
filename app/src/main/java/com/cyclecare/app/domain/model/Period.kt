@@ -8,7 +8,18 @@ data class Period(
     val endDate: LocalDate?,
     val flow: FlowIntensity = FlowIntensity.MEDIUM,
     val symptoms: List<Symptom> = emptyList(),
-    val notes: String = ""
+    val notes: String = "",
+    val source: RecordSource = RecordSource.MANUAL
+)
+
+data class CycleRecord(
+    val id: Long = 0,
+    val startDate: LocalDate,
+    val endDate: LocalDate?,
+    val flow: FlowIntensity = FlowIntensity.MEDIUM,
+    val symptoms: List<Symptom> = emptyList(),
+    val notes: String = "",
+    val source: RecordSource = RecordSource.MANUAL
 )
 
 enum class FlowIntensity {
@@ -16,6 +27,12 @@ enum class FlowIntensity {
     LIGHT,
     MEDIUM,
     HEAVY
+}
+
+enum class RecordSource {
+    MANUAL,
+    IMPORT,
+    EDIT
 }
 
 enum class Symptom {
@@ -30,5 +47,9 @@ enum class Symptom {
     BREAST_TENDERNESS,
     ANXIETY,
     IRRITABILITY,
-    FOOD_CRAVINGS
+    FOOD_CRAVINGS,
+    LOWER_BACK_PAIN,
+    INSOMNIA,
+    LOW_ENERGY,
+    APPETITE_CHANGES
 }

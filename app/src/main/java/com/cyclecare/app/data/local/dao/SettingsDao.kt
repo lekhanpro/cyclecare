@@ -14,4 +14,7 @@ interface SettingsDao {
     
     @Update
     suspend fun updateSettings(settings: SettingsEntity)
+
+    @Query("DELETE FROM settings")
+    suspend fun clear()
 }

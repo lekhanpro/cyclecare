@@ -3,6 +3,7 @@ package com.cyclecare.app.domain.repository
 import com.cyclecare.app.domain.model.CycleInsights
 import com.cyclecare.app.domain.model.CyclePrediction
 import com.cyclecare.app.domain.model.Period
+import com.cyclecare.app.domain.model.PredictionResult
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -13,6 +14,8 @@ interface PeriodRepository {
     suspend fun updatePeriod(period: Period)
     suspend fun deletePeriod(period: Period)
     suspend fun predictNextCycle(): CyclePrediction?
+    suspend fun predict(referenceDate: LocalDate = LocalDate.now()): PredictionResult?
     suspend fun getCycleInsights(): CycleInsights?
     suspend fun getPeriodsInRange(startDate: LocalDate, endDate: LocalDate): List<Period>
+    suspend fun getAllPeriodsList(): List<Period>
 }

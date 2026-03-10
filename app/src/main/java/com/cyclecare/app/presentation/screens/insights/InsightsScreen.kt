@@ -1,243 +1,168 @@
 package com.cyclecare.app.presentation.screens.insights
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.cyclecare.app.domain.model.CycleInsights
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsightsScreen(
     viewModel: InsightsViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Insights",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { paddingValues ->
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    Scaffold(topBar = { TopAppBar(title = { Text("Insights") }) }) { padding ->
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                Text("Preparing insights...")
             }
-        } else if (uiState.insights == null) {
-            EmptyInsightsState(Modifier.padding(paddingValues))
         } else {
-            InsightsContent(
-                insights = uiState.insights!!,
-                modifier = Modifier.padding(paddingValues)
-            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Cycle analytics", fontWeight = FontWeight.Bold)
+                            Text("Avg cycle: ${uiState.insights?.averageCycleLength ?: "--"} days")
+                            Text("Avg period: ${uiState.insights?.averagePeriodLength ?: "--"} days")
+                            Text("Regularity: ${(((uiState.insights?.cycleRegularity ?: 0f) * 100).toInt())}%")
+                        }
+                    }
+                }
+                item {
+                    TrendCard("Cycle length trend", uiState.insights?.cycleLengthTrend?.map { it.toFloat() } ?: emptyList())
+                }
+                item {
+                    TrendCard("Period length trend", uiState.insights?.periodLengthTrend?.map { it.toFloat() } ?: emptyList())
+                }
+                item {
+                    TrendCard("Temperature trend", uiState.temperatureTrend)
+                }
+                item {
+                    TrendCard("Weight trend", uiState.weightTrend)
+                }
+                item {
+                    FrequencyCard(
+                        title = "Symptoms frequency",
+                        values = uiState.symptomFrequency.mapKeys { it.key.name.replace('_', ' ').lowercase() }
+                    )
+                }
+                item {
+                    FrequencyCard(
+                        title = "Mood patterns",
+                        values = uiState.moodPatterns.mapKeys { it.key.name.lowercase() }
+                    )
+                }
+                item {
+                    FrequencyCard(
+                        title = "Flow trends",
+                        values = uiState.flowTrends.mapKeys { it.key.name.lowercase() }
+                    )
+                }
+                item {
+                    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Human-readable insights", fontWeight = FontWeight.Bold)
+                            uiState.insightsText.forEach { insight -> Text("• $insight") }
+                        }
+                    }
+                }
+                item { Spacer(modifier = Modifier.height(32.dp)) }
+            }
         }
     }
 }
 
 @Composable
-fun InsightsContent(
-    insights: CycleInsights,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item { Spacer(modifier = Modifier.height(8.dp)) }
-        
-        // Cycle Stats
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Text(
-                        "Cycle Statistics",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    StatRow(
-                        label = "Average Cycle Length",
-                        value = "${insights.averageCycleLength} days"
-                    )
-                    StatRow(
-                        label = "Average Period Length",
-                        value = "${insights.averagePeriodLength} days"
-                    )
-                    StatRow(
-                        label = "Cycles Tracked",
-                        value = "${insights.totalCyclesTracked}"
-                    )
-                }
-            }
-        }
-        
-        // Regularity Card
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Text(
-                        "Cycle Regularity",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    LinearProgressIndicator(
-                        progress = insights.cycleRegularity,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp),
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        when {
-                            insights.cycleRegularity >= 0.8f -> "Very Regular"
-                            insights.cycleRegularity >= 0.6f -> "Fairly Regular"
-                            else -> "Irregular"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        
-        // Common Symptoms
-        if (insights.commonSymptoms.isNotEmpty()) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-                        Text(
-                            "Common Symptoms",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+private fun TrendCard(title: String, points: List<Float>) {
+    val lineColor = MaterialTheme.colorScheme.primary
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, fontWeight = FontWeight.Bold)
+            if (points.size < 2) {
+                Text("Track more entries to view trend")
+            } else {
+                Canvas(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)) {
+                    val max = points.maxOrNull() ?: 1f
+                    val min = points.minOrNull() ?: 0f
+                    val spread = (max - min).takeIf { it > 0f } ?: 1f
+                    val stepX = size.width / (points.size - 1)
+                    for (index in 0 until points.size - 1) {
+                        val x1 = stepX * index
+                        val y1 = size.height - ((points[index] - min) / spread * size.height)
+                        val x2 = stepX * (index + 1)
+                        val y2 = size.height - ((points[index + 1] - min) / spread * size.height)
+                        drawLine(
+                            color = lineColor,
+                            start = androidx.compose.ui.geometry.Offset(x1, y1),
+                            end = androidx.compose.ui.geometry.Offset(x2, y2),
+                            strokeWidth = 6f
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        insights.commonSymptoms.forEach { symptom ->
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer
-                            ) {
-                                Text(
-                                    symptom.name.replace("_", " ").lowercase()
-                                        .split(" ")
-                                        .joinToString(" ") { it.capitalize() },
-                                    modifier = Modifier.padding(12.dp),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
                     }
                 }
             }
         }
-        
-        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
 
 @Composable
-fun StatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    }
-}
-
-@Composable
-fun EmptyInsightsState(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            modifier = Modifier.padding(32.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "📊",
-                    style = MaterialTheme.typography.displayLarge
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Not Enough Data",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Track at least 2 cycles to see insights",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+private fun FrequencyCard(title: String, values: Map<String, Int>) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(title, fontWeight = FontWeight.Bold)
+            if (values.isEmpty()) {
+                Text("No entries yet")
+            } else {
+                val max = values.values.maxOrNull()?.coerceAtLeast(1) ?: 1
+                values.entries.forEach { (label, value) ->
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(label)
+                            Text(value.toString())
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth((value.toFloat() / max.toFloat()).coerceIn(0.1f, 1f))
+                                .height(8.dp)
+                                .background(Color(0xFFCE93D8), RoundedCornerShape(100))
+                        )
+                    }
+                }
             }
         }
     }

@@ -23,4 +23,7 @@ interface HealthDataDao {
     
     @Delete
     suspend fun deleteHealthData(healthData: HealthDataEntity)
+
+    @Query("DELETE FROM health_data")
+    suspend fun deleteAll()
 }

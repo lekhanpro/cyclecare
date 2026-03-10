@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.cyclecare.app.data.local.CycleCareDatabase
 import com.cyclecare.app.data.local.dao.*
 import com.cyclecare.app.data.repository.*
+import com.cyclecare.app.domain.engine.CyclePredictionEngine
 import com.cyclecare.app.domain.repository.*
 import dagger.Module
 import dagger.Provides
@@ -55,8 +56,21 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providePeriodRepository(periodDao: PeriodDao): PeriodRepository =
-        PeriodRepositoryImpl(periodDao)
+    fun providePregnancyDataDao(database: CycleCareDatabase): PregnancyDataDao =
+        database.pregnancyDataDao()
+
+    @Provides
+    @Singleton
+    fun provideBirthControlDao(database: CycleCareDatabase): BirthControlDao =
+        database.birthControlDao()
+
+    @Provides
+    @Singleton
+    fun providePeriodRepository(
+        periodDao: PeriodDao,
+        cyclePredictionEngine: CyclePredictionEngine
+    ): PeriodRepository =
+        PeriodRepositoryImpl(periodDao, cyclePredictionEngine)
 
     @Provides
     @Singleton

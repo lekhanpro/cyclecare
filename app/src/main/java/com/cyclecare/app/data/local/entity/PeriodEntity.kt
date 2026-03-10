@@ -12,5 +12,6 @@ data class PeriodEntity(
     val endDate: LocalDate?,
     val flow: String,
     val symptoms: List<String>,
-    val notes: String
+    val notes: String,
+    val source: String = "MANUAL"
 )

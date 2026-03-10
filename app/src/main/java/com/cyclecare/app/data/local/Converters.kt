@@ -12,10 +12,10 @@ class Converters {
         dateString?.let { LocalDate.parse(it) }
 
     @TypeConverter
-    fun fromStringList(list: List<String>?): String? = 
-        list?.joinToString(",")
+    fun fromStringList(list: List<String>?): String =
+        list.orEmpty().joinToString(",")
 
     @TypeConverter
-    fun toStringList(string: String?): List<String>? = 
-        string?.takeIf { it.isNotEmpty() }?.split(",")
+    fun toStringList(string: String?): List<String> =
+        string?.takeIf { it.isNotBlank() }?.split(",") ?: emptyList()
 }

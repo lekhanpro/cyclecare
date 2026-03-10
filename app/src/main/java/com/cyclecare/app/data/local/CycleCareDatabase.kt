@@ -16,7 +16,7 @@ import com.cyclecare.app.data.local.entity.*
         PregnancyDataEntity::class,
         BirthControlEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

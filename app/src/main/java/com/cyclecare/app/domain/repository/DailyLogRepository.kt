@@ -6,9 +6,11 @@ import java.time.LocalDate
 
 interface DailyLogRepository {
     fun getAllLogs(): Flow<List<DailyLog>>
+    suspend fun getAllLogsList(): List<DailyLog>
     suspend fun getLogByDate(date: LocalDate): DailyLog?
     suspend fun insertLog(log: DailyLog): Long
     suspend fun updateLog(log: DailyLog)
+    suspend fun upsertLog(log: DailyLog): Long
     suspend fun deleteLog(log: DailyLog)
     suspend fun getLogsInRange(startDate: LocalDate, endDate: LocalDate): List<DailyLog>
 }

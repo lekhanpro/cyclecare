@@ -20,4 +20,7 @@ interface PregnancyDataDao {
     
     @Delete
     suspend fun deletePregnancyData(data: PregnancyDataEntity)
+
+    @Query("DELETE FROM pregnancy_data")
+    suspend fun deleteAll()
 }

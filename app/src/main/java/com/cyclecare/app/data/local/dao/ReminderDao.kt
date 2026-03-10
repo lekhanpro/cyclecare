@@ -26,4 +26,7 @@ interface ReminderDao {
     
     @Query("DELETE FROM reminders")
     suspend fun deleteAllReminders()
+
+    @Query("SELECT * FROM reminders ORDER BY time ASC")
+    suspend fun getAllRemindersList(): List<ReminderEntity>
 }

@@ -20,4 +20,7 @@ interface BirthControlDao {
     
     @Delete
     suspend fun deleteBirthControl(data: BirthControlEntity)
+
+    @Query("DELETE FROM birth_control")
+    suspend fun deleteAll()
 }
