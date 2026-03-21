@@ -3,59 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CycleCare - A beautiful, privacy-first menstrual cycle tracking app for Android">
-    <meta name="keywords" content="period tracker, menstrual cycle, fertility tracking, ovulation, women's health">
+    <meta name="description" content="CycleCare - A beautiful, privacy-first menstrual cycle tracking app for Android. Track periods, fertility, symptoms and more.">
+    <meta name="keywords" content="period tracker, menstrual cycle, fertility tracking, ovulation, women's health, cycle calendar">
+    <meta name="theme-color" content="#E05D83">
     <title>CycleCare - Your Personal Cycle Companion</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="nav-content">
-                <div class="logo">
-                    <span class="logo-icon">🌸</span>
+                <a href="#" class="logo">
+                    <span class="logo-icon">&#127800;</span>
                     <span class="logo-text">CycleCare</span>
-                </div>
+                </a>
                 <ul class="nav-links">
                     <li><a href="#features">Features</a></li>
                     <li><a href="#about">About</a></li>
+                    <li><a href="https://github.com/lekhanpro/cyclecare" target="_blank">GitHub</a></li>
                     <li><a href="#download" class="btn-primary">Download</a></li>
                 </ul>
-                <button class="mobile-menu-btn" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <button class="mobile-menu-btn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero">
         <div class="container">
             <div class="hero-content">
                 <div class="hero-text">
                     <h1 class="hero-title">
-                        Track Your Cycle with
-                        <span class="gradient-text">Confidence</span>
+                        Track Your Cycle<br>
+                        with <span class="gradient-text">Confidence</span>
                     </h1>
                     <p class="hero-subtitle">
-                        A beautiful, privacy-first menstrual cycle tracking app designed for your wellbeing. 
-                        All your data stays on your device, always.
+                        Beautiful, private, and intelligent period tracking. AI-powered predictions,
+                        fertility insights, and comprehensive health logging - all stored locally on your device.
                     </p>
                     <div class="hero-buttons">
                         <a href="#download" class="btn-large btn-primary">
                             <span>Download APK</span>
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                                 <path d="M10 13L5 8H15L10 13Z" fill="currentColor"/>
                                 <path d="M4 15H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             </svg>
                         </a>
-                        <a href="#features" class="btn-large btn-secondary">Learn More</a>
+                        <a href="#features" class="btn-large btn-secondary">Explore Features</a>
                     </div>
                     <div class="hero-stats">
                         <div class="stat">
@@ -77,25 +75,31 @@
                         <div class="phone-screen">
                             <div class="app-preview">
                                 <div class="preview-header">
-                                    <div class="preview-title">Cycle Calendar</div>
+                                    <div class="preview-title">CycleCare</div>
+                                    <div class="preview-subtitle">Today's Overview</div>
+                                </div>
+                                <div class="preview-dashboard">
+                                    <div class="preview-cycle-label">Cycle Day</div>
+                                    <div class="preview-cycle-day">14</div>
+                                    <div class="preview-countdown">5 days until next period</div>
                                 </div>
                                 <div class="preview-card">
-                                    <div class="preview-card-title">Next Period Prediction</div>
+                                    <div class="preview-card-title">Upcoming</div>
                                     <div class="preview-items">
                                         <div class="preview-item">
                                             <span class="dot period"></span>
                                             <span>Period Start</span>
-                                            <span class="preview-date">Mar 15</span>
+                                            <span class="preview-date">Mar 28</span>
                                         </div>
                                         <div class="preview-item">
                                             <span class="dot ovulation"></span>
                                             <span>Ovulation</span>
-                                            <span class="preview-date">Mar 01</span>
+                                            <span class="preview-date">Apr 8</span>
                                         </div>
                                         <div class="preview-item">
                                             <span class="dot fertile"></span>
                                             <span>Fertile Window</span>
-                                            <span class="preview-date">Feb 26</span>
+                                            <span class="preview-date">Apr 5-10</span>
                                         </div>
                                     </div>
                                 </div>
@@ -107,130 +111,156 @@
         </div>
     </section>
 
-    <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Everything You Need</h2>
-                <p class="section-subtitle">Powerful features designed with your privacy in mind</p>
+                <p class="section-subtitle">Powerful, private cycle tracking with beautiful design</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">📅</div>
+                    <div class="feature-icon">&#128197;</div>
                     <h3 class="feature-title">Smart Calendar</h3>
                     <p class="feature-description">
-                        Visual cycle tracking with color-coded days for periods, fertile windows, and ovulation
+                        Visual cycle tracking with color-coded days for periods, fertile windows, and ovulation predictions
                     </p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🔮</div>
-                    <h3 class="feature-title">Cycle Prediction</h3>
+                    <div class="feature-icon">&#129302;</div>
+                    <h3 class="feature-title">AI Predictions</h3>
                     <p class="feature-description">
-                        AI-powered predictions based on your unique patterns with confidence indicators
+                        Machine learning-powered cycle predictions that adapt to your unique patterns with confidence scoring
                     </p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🌸</div>
+                    <div class="feature-icon">&#127800;</div>
                     <h3 class="feature-title">Fertility Tracking</h3>
                     <p class="feature-description">
-                        Know your fertile window and ovulation dates to plan or prevent pregnancy
+                        Know your fertile window and ovulation dates with BBT charting and cervical tracking
                     </p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📝</div>
+                    <div class="feature-icon">&#128221;</div>
                     <h3 class="feature-title">Daily Logging</h3>
                     <p class="feature-description">
-                        Track symptoms, mood, and health indicators to understand your body better
+                        Track 40+ symptoms, moods, temperature, weight, water intake, sleep, and more
                     </p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
+                    <div class="feature-icon">&#128200;</div>
                     <h3 class="feature-title">Insights Dashboard</h3>
                     <p class="feature-description">
-                        Understand your patterns with detailed analytics and cycle regularity scores
+                        Understand your patterns with cycle analytics, trend charts, and regularity scoring
                     </p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
+                    <div class="feature-icon">&#128274;</div>
                     <h3 class="feature-title">Privacy First</h3>
                     <p class="feature-description">
-                        Your data stays on your device, always. No cloud sync, no tracking, no sharing
+                        All data stored locally with PIN and biometric lock. No cloud, no tracking, no compromises
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128138;</div>
+                    <h3 class="feature-title">Birth Control</h3>
+                    <p class="feature-description">
+                        Pill reminders with streak tracking, IUD and injection schedule management
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128276;</div>
+                    <h3 class="feature-title">Smart Reminders</h3>
+                    <p class="feature-description">
+                        Customizable notifications for periods, pills, hydration, and health check-ins with quiet hours
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128229;</div>
+                    <h3 class="feature-title">Data Export</h3>
+                    <p class="feature-description">
+                        Export your complete health data in CSV or JSON format. Your data, your control
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- About Section -->
     <section id="about" class="about">
         <div class="container">
             <div class="about-content">
                 <div class="about-text">
                     <h2 class="section-title">Why CycleCare?</h2>
                     <p class="about-description">
-                        We believe in empowering individuals with knowledge about their bodies. 
-                        CycleCare is built with privacy, accuracy, and ease of use at its core.
+                        We believe cycle tracking should be private, beautiful, and intelligent.
+                        CycleCare gives you the features of premium apps with none of the privacy trade-offs.
                     </p>
                     <ul class="benefits-list">
                         <li>
                             <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>No account required</span>
+                            <span>No account required - start tracking instantly</span>
                         </li>
                         <li>
                             <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>All data stored locally</span>
+                            <span>100% local storage - data never leaves your phone</span>
                         </li>
                         <li>
                             <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>No ads or tracking</span>
+                            <span>No ads, no tracking, no data selling</span>
                         </li>
                         <li>
                             <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>Export your data anytime</span>
+                            <span>PIN + biometric security for your sensitive data</span>
                         </li>
                         <li>
                             <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>Beautiful, intuitive design</span>
+                            <span>Open source and transparent</span>
                         </li>
                         <li>
                             <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>Open source & transparent</span>
+                            <span>Built with Jetpack Compose + Material Design 3</span>
                         </li>
                     </ul>
                 </div>
                 <div class="about-image">
                     <div class="feature-showcase">
                         <div class="showcase-item">
-                            <div class="showcase-icon">🎨</div>
+                            <div class="showcase-icon">&#127912;</div>
                             <div class="showcase-text">
                                 <div class="showcase-title">Beautiful Design</div>
-                                <div class="showcase-desc">Material Design 3</div>
+                                <div class="showcase-desc">iOS-inspired watercolor theme</div>
                             </div>
                         </div>
                         <div class="showcase-item">
-                            <div class="showcase-icon">⚡</div>
+                            <div class="showcase-icon">&#9889;</div>
                             <div class="showcase-text">
                                 <div class="showcase-title">Fast & Smooth</div>
-                                <div class="showcase-desc">Built with Jetpack Compose</div>
+                                <div class="showcase-desc">60fps Jetpack Compose UI</div>
                             </div>
                         </div>
                         <div class="showcase-item">
-                            <div class="showcase-icon">🔐</div>
+                            <div class="showcase-icon">&#128272;</div>
                             <div class="showcase-text">
                                 <div class="showcase-title">Secure</div>
-                                <div class="showcase-desc">Local-only storage</div>
+                                <div class="showcase-desc">Biometric + PIN protection</div>
+                            </div>
+                        </div>
+                        <div class="showcase-item">
+                            <div class="showcase-icon">&#129504;</div>
+                            <div class="showcase-text">
+                                <div class="showcase-title">Smart</div>
+                                <div class="showcase-desc">AI-powered cycle predictions</div>
                             </div>
                         </div>
                     </div>
@@ -239,56 +269,52 @@
         </div>
     </section>
 
-    <!-- Download Section -->
     <section id="download" class="download">
         <div class="container">
             <div class="download-content">
-                <h2 class="section-title">Get Started Today</h2>
-                <p class="section-subtitle">Available for Android devices running Android 7.0 or higher</p>
-                <a href="#" class="btn-download">
+                <h2 class="section-title">Get CycleCare</h2>
+                <p class="section-subtitle">Available for Android 7.0+ (API 24)</p>
+                <a href="https://github.com/lekhanpro/cyclecare/releases" class="btn-download">
                     <svg class="download-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/>
                     </svg>
                     <div class="download-text">
                         <div class="download-label">Download APK</div>
-                        <div class="download-info">Version 1.0.0 • 5MB</div>
+                        <div class="download-info">Version 1.0.0 &middot; Android</div>
                     </div>
                 </a>
                 <p class="download-note">
-                    By downloading, you agree that this app is provided as-is for personal use.
+                    Free &amp; open source. No account needed. Your data stays on your device.
                 </p>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
                     <div class="logo">
-                        <span class="logo-icon">🌸</span>
+                        <span class="logo-icon">&#127800;</span>
                         <span class="logo-text">CycleCare</span>
                     </div>
                     <p class="footer-tagline">Your health, your data, your control.</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h4>Product</h4>
-                        <a href="#features">Features</a>
-                        <a href="#about">About</a>
-                        <a href="#download">Download</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Resources</h4>
-                        <a href="https://github.com" target="_blank">GitHub</a>
-                        <a href="#">Documentation</a>
-                        <a href="#">Privacy Policy</a>
-                    </div>
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#about">About</a>
+                    <a href="#download">Download</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <a href="https://github.com/lekhanpro/cyclecare" target="_blank">GitHub</a>
+                    <a href="https://github.com/lekhanpro/cyclecare/issues" target="_blank">Report Issue</a>
+                    <a href="#">Privacy Policy</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 CycleCare. Made with ❤️ for better health tracking.</p>
+                <p>&copy; 2026 CycleCare. Made with love for better health tracking.</p>
             </div>
         </div>
     </footer>

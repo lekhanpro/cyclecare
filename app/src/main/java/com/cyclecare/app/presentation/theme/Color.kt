@@ -2,43 +2,44 @@ package com.cyclecare.app.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Colors - Soft Pink/Purple Palette
-val PrimaryLight = Color(0xFFE91E63)  // Vibrant Pink
-val PrimaryDark = Color(0xFFC2185B)   // Deep Pink
-val SecondaryLight = Color(0xFF9C27B0) // Purple
-val SecondaryDark = Color(0xFF7B1FA2)  // Deep Purple
+// ── MyCalendar iOS-Inspired Palette ──────────────────────────────────
+// Warm mauve-pink primary (from App Store icon rgb 0.878, 0.365, 0.514)
+val PrimaryLight = Color(0xFFE05D83)   // Warm mauve-pink
+val PrimaryDark = Color(0xFFCC4070)    // Deep mauve
+val SecondaryLight = Color(0xFFA865B5) // Soft purple
+val SecondaryDark = Color(0xFF8E4A9E)  // Deep soft purple
 
-// Background Colors
-val BackgroundLight = Color(0xFFFFF8FA)  // Very light pink
-val BackgroundDark = Color(0xFF1A1A1A)   // Dark gray
+// Background Colors — watercolor-inspired soft tones
+val BackgroundLight = Color(0xFFFFF5F8)  // Warm blush
+val BackgroundDark = Color(0xFF1C1518)   // Dark warm
 val SurfaceLight = Color(0xFFFFFFFF)     // White
-val SurfaceDark = Color(0xFF2D2D2D)      // Dark surface
+val SurfaceDark = Color(0xFF2A2025)      // Dark warm surface
 
 // Accent Colors
-val AccentPink = Color(0xFFFF4081)       // Bright pink accent
-val AccentPurple = Color(0xFFAB47BC)     // Purple accent
-val AccentTeal = Color(0xFF26A69A)       // Teal for fertility
+val AccentPink = Color(0xFFFF7A9C)       // Soft coral pink
+val AccentPurple = Color(0xFFBB86CF)     // Lavender
+val AccentTeal = Color(0xFF5BBFB5)       // Soft seafoam for fertility
 
-// Status Colors
-val PeriodRed = Color(0xFFE53935)        // Period days
-val FertileGreen = Color(0xFF66BB6A)     // Fertile window
-val OvulationBlue = Color(0xFF42A5F5)    // Ovulation day
-val PredictionPurple = Color(0xFFBA68C8) // Predicted days
+// Status Colors — softer, watercolor-style
+val PeriodRed = Color(0xFFE8637A)        // Soft rose for period days
+val FertileGreen = Color(0xFF7EC8A4)     // Mint green fertile window
+val OvulationBlue = Color(0xFF7AB3D4)    // Sky blue ovulation
+val PredictionPurple = Color(0xFFC490D1) // Soft lavender predicted
 
 // Text Colors
-val TextPrimaryLight = Color(0xFF212121)
-val TextSecondaryLight = Color(0xFF757575)
-val TextPrimaryDark = Color(0xFFFFFFFF)
-val TextSecondaryDark = Color(0xFFB0B0B0)
+val TextPrimaryLight = Color(0xFF2D2025)  // Warm near-black
+val TextSecondaryLight = Color(0xFF887880) // Warm gray
+val TextPrimaryDark = Color(0xFFFFF5F8)
+val TextSecondaryDark = Color(0xFFBFA8AE)
 
-// Neutral Colors
-val Gray50 = Color(0xFFFAFAFA)
-val Gray100 = Color(0xFFF5F5F5)
-val Gray200 = Color(0xFFEEEEEE)
-val Gray300 = Color(0xFFE0E0E0)
-val Gray400 = Color(0xFFBDBDBD)
-val Gray500 = Color(0xFF9E9E9E)
-val Gray600 = Color(0xFF757575)
-val Gray700 = Color(0xFF616161)
-val Gray800 = Color(0xFF424242)
-val Gray900 = Color(0xFF212121)
+// Neutral Colors — warm-tinted grays
+val Gray50 = Color(0xFFFCF9FA)
+val Gray100 = Color(0xFFF7F2F4)
+val Gray200 = Color(0xFFF0EAEC)
+val Gray300 = Color(0xFFE4DDE0)
+val Gray400 = Color(0xFFBEB4B8)
+val Gray500 = Color(0xFF9C9196)
+val Gray600 = Color(0xFF7A7075)
+val Gray700 = Color(0xFF5C5256)
+val Gray800 = Color(0xFF3D3438)
+val Gray900 = Color(0xFF2D2025)

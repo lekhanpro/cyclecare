@@ -1,0 +1,778 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{parskip}
+
+\geometry{margin=1in}
+
+% ── Colors ────────────────────────────────────────────────────────────────
+\definecolor{primary}{HTML}{E91E63}
+\definecolor{accent}{HTML}{9C27B0}
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{phase1}{HTML}{4CAF50}
+\definecolor{phase2}{HTML}{2196F3}
+\definecolor{phase3}{HTML}{FF9800}
+\definecolor{phase4}{HTML}{9C27B0}
+\definecolor{phase5}{HTML}{F44336}
+
+% ── Listings ──────────────────────────────────────────────────────────────
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!30},
+  tabsize=2
+}
+
+% ── Header / Footer ──────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{primary}{\textbf{CycleCare}} Implementation Plan}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{\small\textcolor{gray}{Confidential — CycleCare Development Team}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Title Format ─────────────────────────────────────────────────────────
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{accent}}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{}{0em}{}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=accent
+}
+
+% ══════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title Page ───────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge\bfseries\textcolor{primary}{CycleCare}\par}
+\vspace{0.5cm}
+{\LARGE Implementation Plan \& Feature Roadmap\par}
+\vspace{1cm}
+{\large Achieving Feature Parity with MyCalendar\\(Period Calendar Period Tracker)\par}
+\vspace{2cm}
+
+\begin{tcolorbox}[colback=primary!5, colframe=primary, width=0.85\textwidth, arc=4mm]
+\centering
+\textbf{Target:} MyCalendar by Simple Design Ltd.\\
+4.9\,\(\bigstar\) rating \(\cdot\) 100M+ downloads \(\cdot\) Google Play\\[6pt]
+\textbf{Stack:} Kotlin \(\cdot\) Jetpack Compose \(\cdot\) Material Design 3\\
+Room Database \(\cdot\) Hilt \(\cdot\) Coroutines + Flow \(\cdot\) WorkManager
+\end{tcolorbox}
+
+\vfill
+{\large\textbf{Repository:} \url{https://github.com/lekhanpro/cyclecare}\par}
+\vspace{0.5cm}
+{\large March 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Executive Summary}
+
+CycleCare is a Kotlin/Jetpack Compose Android application for menstrual cycle tracking that already has a strong architectural foundation: MVVM + Clean Architecture, 7 Room database tables, AI-powered cycle predictions, biometric security, and data export.
+
+This plan bridges the gap between CycleCare's current state and feature parity with \textbf{MyCalendar} (100M+ downloads, 4.9\,\(\bigstar\)). The roadmap is organized into \textbf{5 phases} spanning approximately \textbf{20 sprints (10 weeks)}, prioritized by user impact and technical dependency.
+
+\begin{tcolorbox}[colback=codebg, colframe=gray!50, title=\textbf{Key Metrics}]
+\begin{tabularx}{\textwidth}{Xcc}
+\toprule
+\textbf{Metric} & \textbf{Current} & \textbf{Target} \\
+\midrule
+Feature coverage (vs MyCalendar) & $\sim$55\% & 95\%+ \\
+Database tables & 7 & 10 \\
+Screens & 4 & 12+ \\
+Test coverage & Unit only & Unit + UI + Integration \\
+Special modes & 0 & 3 (Pregnancy, Perimenopause, Abstinence) \\
+Cloud backup & None & Google Account \\
+\bottomrule
+\end{tabularx}
+\end{tcolorbox}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Current State Analysis}
+
+\subsection{Architecture (Existing — Solid)}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Data Layer:} 7 Room entities, 7 DAOs, 5 repository implementations, DataExporter (CSV/JSON), notification workers
+  \item \textbf{Domain Layer:} Clean models, repository interfaces, CyclePredictionEngine (weighted moving average + symptom correlation), ReminderScheduleEngine
+  \item \textbf{Presentation Layer:} 4 screens (Calendar, DailyLog, Insights, Settings), ViewModels with StateFlow, Material Design 3 theme, PIN/biometric lock
+  \item \textbf{DI:} Hilt modules (DatabaseModule, RepositoryModule, AppModule)
+\end{itemize}
+
+\subsection{What Works Well}
+\begin{itemize}[leftmargin=1.5em]
+  \item Clean Architecture separation is consistent
+  \item Room schema covers core tracking (periods, daily logs, reminders, settings, health data, pregnancy, birth control)
+  \item AI prediction engine with adaptive learning
+  \item Biometric + PIN security already implemented
+  \item Data export in CSV and JSON formats
+\end{itemize}
+
+\subsection{Critical Gaps}
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Incomplete implementations:} PregnancyRepository, BirthControlRepository, HealthDataRepository return stubs
+  \item \textbf{ReminderWorker:} Scheduled but missing actual notification dispatch
+  \item \textbf{No cloud backup/restore} (Google Account sync)
+  \item \textbf{Missing UI screens:} Onboarding, Pregnancy mode, Health dashboard, Partner sharing
+  \item \textbf{No instrumentation tests;} only 2 unit test files
+  \item \textbf{No special modes:} Pregnancy, Perimenopause, Abstinence
+  \item \textbf{No wearable support} (Wear OS)
+  \item \textbf{No educational content} or health condition tracking (PCOS, endometriosis, PMDD)
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Competitor Feature Matrix}
+
+\begin{longtable}{p{5.5cm}ccc}
+\toprule
+\textbf{Feature} & \textbf{CycleCare} & \textbf{MyCalendar} & \textbf{Gap} \\
+\midrule
+\endhead
+Period start/end logging & \checkmark & \checkmark & --- \\
+Flow intensity levels & \checkmark & \checkmark & --- \\
+Cycle length prediction & \checkmark & \checkmark & --- \\
+Ovulation/fertile window & \checkmark & \checkmark & --- \\
+Symptom tracking (40+) & \checkmark & \checkmark & --- \\
+Mood tracking & \checkmark & \checkmark & --- \\
+Temperature (BBT) logging & \checkmark & \checkmark & --- \\
+Custom reminders & \checkmark & \checkmark & --- \\
+PIN / biometric lock & \checkmark & \checkmark & --- \\
+Data export (CSV/JSON) & \checkmark & \checkmark & --- \\
+\midrule
+Pill / birth control reminders & Partial & \checkmark & \textcolor{phase1}{P1} \\
+Notification dispatch & Missing & \checkmark & \textcolor{phase1}{P1} \\
+Onboarding wizard & Missing & \checkmark & \textcolor{phase1}{P1} \\
+Pregnancy mode & Schema only & \checkmark & \textcolor{phase2}{P2} \\
+Cervical observations & Missing & \checkmark & \textcolor{phase2}{P2} \\
+Weight / water tracking & Partial & \checkmark & \textcolor{phase2}{P2} \\
+PCOS/Endo/PMDD tracking & Missing & \checkmark & \textcolor{phase2}{P2} \\
+Cloud backup (Google) & Missing & \checkmark & \textcolor{phase3}{P3} \\
+Multi-account support & Missing & \checkmark & \textcolor{phase3}{P3} \\
+Partner sharing/sync & Missing & \checkmark & \textcolor{phase3}{P3} \\
+Perimenopause mode & Missing & \checkmark & \textcolor{phase4}{P4} \\
+Abstinence mode & Missing & \checkmark & \textcolor{phase4}{P4} \\
+Wear OS tiles & Missing & \checkmark & \textcolor{phase4}{P4} \\
+Educational content & Missing & \checkmark & \textcolor{phase5}{P5} \\
+Community features & Missing & \checkmark & \textcolor{phase5}{P5} \\
+Advanced charting & Partial & \checkmark & \textcolor{phase5}{P5} \\
+\bottomrule
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Implementation Phases}
+
+% ─────────────────────────────────────────────────────────────────────────
+\subsection{\textcolor{phase1}{Phase 1: Core Completion (Sprints 1--4)}}
+
+\begin{tcolorbox}[colback=phase1!5, colframe=phase1, title=\textbf{Goal: Complete all existing stubs and fix critical gaps}]
+\textbf{Priority:} Critical \hfill \textbf{Duration:} 2 weeks (4 sprints)
+\end{tcolorbox}
+
+\subsubsection{1.1 — Complete Repository Implementations}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{PregnancyRepository} — Implement all CRUD operations against \texttt{pregnancy\_data} table: insert/update/delete pregnancy records, query by date range, calculate gestational age, track appointments
+  \item \textbf{BirthControlRepository} — Implement pill schedule management, injection/IUD tracking, reminder integration with \texttt{birth\_control} table
+  \item \textbf{HealthDataRepository} — Implement weight/BMI logging, water intake tracking, sleep duration records against \texttt{health\_data} table
+\end{itemize}
+
+\begin{lstlisting}[language=Java, caption=PregnancyRepository pattern]
+class PregnancyRepositoryImpl @Inject constructor(
+    private val pregnancyDao: PregnancyDataDao
+) : PregnancyRepository {
+    override fun getPregnancyData(): Flow<PregnancyData?> =
+        pregnancyDao.getCurrentPregnancy()
+    override suspend fun startPregnancy(dueDate: LocalDate) =
+        pregnancyDao.insert(PregnancyDataEntity(...))
+    override suspend fun logAppointment(appt: Appointment) = ...
+    override fun getGestationalAge(): Flow<Int> = ...
+}
+\end{lstlisting}
+
+\subsubsection{1.2 — Fix ReminderWorker Notification Dispatch}
+\begin{itemize}[leftmargin=1.5em]
+  \item Create \texttt{NotificationHelper} utility class with channel management
+  \item Implement \texttt{NotificationCompat.Builder} in \texttt{ReminderWorker.doWork()}
+  \item Add notification channels: Period Reminders, Pill Reminders, Health Reminders, Appointments
+  \item Support Android 13+ POST\_NOTIFICATIONS runtime permission
+  \item Add notification actions (Mark as Taken, Snooze, Dismiss)
+\end{itemize}
+
+\subsubsection{1.3 — Onboarding Wizard}
+\begin{itemize}[leftmargin=1.5em]
+  \item 5-screen HorizontalPager flow:
+  \begin{enumerate}
+    \item Welcome + privacy assurance
+    \item Last period date (Material 3 DatePicker — docked style per Compose docs)
+    \item Average cycle length selector (scroll wheel)
+    \item Average period duration selector
+    \item Goal selection (Track periods / Trying to conceive / Pregnancy / Perimenopause)
+  \end{enumerate}
+  \item Store onboarding completion flag in \texttt{settings} table
+  \item Conditionally navigate: Onboarding $\rightarrow$ Main or Main directly
+\end{itemize}
+
+\begin{lstlisting}[language=Java, caption=Jetpack Compose DatePicker (from Context7 docs)]
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OnboardingDatePicker() {
+    val datePickerState = rememberDatePickerState()
+    DatePicker(
+        state = datePickerState,
+        modifier = Modifier.padding(16.dp),
+        headline = { Text("When did your last period start?") },
+        showModeToggle = false
+    )
+}
+\end{lstlisting}
+
+\subsubsection{1.4 — Complete Birth Control Reminder UI}
+\begin{itemize}[leftmargin=1.5em]
+  \item Pill reminder screen with daily check-off (taken/missed/skipped)
+  \item Streak tracker (consecutive days taken)
+  \item Support multiple pill types: combination, progestin-only, extended cycle
+  \item IUD and injection schedule tracking with renewal reminders
+\end{itemize}
+
+\subsubsection{1.5 — Testing Foundation}
+\begin{itemize}[leftmargin=1.5em]
+  \item Add \texttt{androidTestImplementation} dependencies (Espresso, Compose UI Testing, Hilt Testing)
+  \item Write instrumentation tests for Room DAOs (in-memory database)
+  \item Write Compose UI tests for CalendarScreen and DailyLogScreen
+  \item Set up GitHub Actions CI pipeline for automated test runs
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────
+\subsection{\textcolor{phase2}{Phase 2: Health \& Tracking Depth (Sprints 5--8)}}
+
+\begin{tcolorbox}[colback=phase2!5, colframe=phase2, title=\textbf{Goal: Match MyCalendar's tracking granularity}]
+\textbf{Priority:} High \hfill \textbf{Duration:} 2 weeks (4 sprints)
+\end{tcolorbox}
+
+\subsubsection{2.1 — Pregnancy Mode (Full Implementation)}
+\begin{itemize}[leftmargin=1.5em]
+  \item New screen: \texttt{PregnancyDashboardScreen}
+  \begin{itemize}
+    \item Week-by-week progress with fetal development info
+    \item Gestational age calculator (from LMP or custom date)
+    \item Kick counter with session timing
+    \item Contraction timer
+    \item Appointment tracker with reminder integration
+    \item Weight gain chart (recommended range overlay)
+  \end{itemize}
+  \item \textbf{New Room entity:} \texttt{pregnancy\_appointments} table
+  \item Toggle pregnancy mode from Settings $\rightarrow$ hides period tracking, shows pregnancy dashboard
+  \item Post-pregnancy transition: prompt to resume cycle tracking
+\end{itemize}
+
+\subsubsection{2.2 — Cervical Observations}
+\begin{itemize}[leftmargin=1.5em]
+  \item Add to DailyLog screen (ModalBottomSheet per Compose docs):
+  \begin{itemize}
+    \item Cervical mucus: Dry, Sticky, Creamy, Watery, Egg-white
+    \item Cervical position: Low/Medium/High
+    \item Cervical firmness: Firm/Medium/Soft
+    \item Cervical opening: Closed/Partially open/Open
+  \end{itemize}
+  \item Extend \texttt{daily\_logs} Room entity with cervical observation columns
+  \item Integrate cervical data into CyclePredictionEngine for improved fertility window accuracy
+\end{itemize}
+
+\begin{lstlisting}[language=Java, caption=ModalBottomSheet for cervical tracking (from Context7)]
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CervicalObservationSheet(onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        // Mucus type selector, position slider, etc.
+    }
+}
+\end{lstlisting}
+
+\subsubsection{2.3 — Health Condition Monitoring}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{New Room entity:} \texttt{health\_conditions} table
+  \item Condition profiles with symptom overlays:
+  \begin{itemize}
+    \item \textbf{PCOS:} Irregular cycle alerts, androgen symptom tracking (acne, hair growth), insulin resistance markers
+    \item \textbf{Endometriosis:} Pain mapping (body location selector), pain intensity scale, flare diary
+    \item \textbf{PMDD:} Mood pattern analysis, DSM-5 symptom checklist, luteal phase severity scoring
+  \end{itemize}
+  \item Generate condition-specific insights in InsightsScreen
+\end{itemize}
+
+\subsubsection{2.4 — Enhanced Daily Logging}
+\begin{itemize}[leftmargin=1.5em]
+  \item Water intake tracker with daily goal and glass counter
+  \item Sleep duration and quality logging
+  \item Exercise type and duration
+  \item Sexual activity logging (protected/unprotected, libido level)
+  \item Custom tags (user-defined tracking categories)
+  \item Photo/note attachments per day
+\end{itemize}
+
+\subsubsection{2.5 — Advanced Charting}
+\begin{itemize}[leftmargin=1.5em]
+  \item BBT chart with coverline calculation
+  \item Cycle comparison overlay (current vs past 3 cycles)
+  \item Symptom frequency heatmap
+  \item Correlation analysis: symptoms vs cycle phase
+  \item Export charts as PNG/PDF
+  \item Library: \texttt{Vico} (Jetpack Compose charting) or \texttt{YCharts}
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────
+\subsection{\textcolor{phase3}{Phase 3: Cloud \& Social Features (Sprints 9--12)}}
+
+\begin{tcolorbox}[colback=phase3!5, colframe=phase3, title=\textbf{Goal: Data persistence and sharing capabilities}]
+\textbf{Priority:} High \hfill \textbf{Duration:} 2 weeks (4 sprints)
+\end{tcolorbox}
+
+\subsubsection{3.1 — Google Account Backup \& Restore}
+\begin{itemize}[leftmargin=1.5em]
+  \item Integrate Google Sign-In (Credential Manager API)
+  \item Use Google Drive API (app data folder — hidden from user's Drive)
+  \item Backup strategy:
+  \begin{itemize}
+    \item Serialize Room database to encrypted JSON
+    \item Auto-backup on significant data changes (period logged, settings changed)
+    \item Manual backup/restore from Settings screen
+    \item Conflict resolution: server timestamp wins, with user prompt on conflict
+  \end{itemize}
+  \item Encryption: AES-256-GCM with key derived from user's Google ID token
+  \item Show last backup timestamp and size in Settings
+\end{itemize}
+
+\subsubsection{3.2 — Multi-Account Support}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{New Room entity:} \texttt{user\_profiles} table
+  \item Account switcher in navigation drawer / settings
+  \item Each profile has isolated data (separate Room database file or profile-scoped queries)
+  \item PIN/biometric per profile (optional)
+  \item Use case: parent tracking for teen, or shared device
+\end{itemize}
+
+\subsubsection{3.3 — Partner Sharing / Sync}
+\begin{itemize}[leftmargin=1.5em]
+  \item Generate shareable invite link (Firebase Dynamic Links or custom deep link)
+  \item Partner sees read-only dashboard:
+  \begin{itemize}
+    \item Current cycle phase
+    \item Upcoming period prediction
+    \item Mood/symptom summary (configurable — user chooses what to share)
+  \end{itemize}
+  \item Real-time sync via Firebase Firestore (or custom backend)
+  \item Revoke access anytime from Settings
+  \item Push notifications to partner on cycle phase changes
+\end{itemize}
+
+\subsubsection{3.4 — Improved Settings \& Personalization}
+\begin{itemize}[leftmargin=1.5em]
+  \item Theme customization: color palette picker (10+ palette options)
+  \item Language selection (i18n with \texttt{strings.xml} resource files)
+  \item Cycle length customization with irregular cycle support
+  \item Notification sound and vibration pattern selection
+  \item Widget configuration (home screen widget showing cycle day)
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────
+\subsection{\textcolor{phase4}{Phase 4: Special Modes \& Wearable (Sprints 13--16)}}
+
+\begin{tcolorbox}[colback=phase4!5, colframe=phase4, title=\textbf{Goal: Lifecycle coverage and platform expansion}]
+\textbf{Priority:} Medium \hfill \textbf{Duration:} 2 weeks (4 sprints)
+\end{tcolorbox}
+
+\subsubsection{4.1 — Perimenopause Mode}
+\begin{itemize}[leftmargin=1.5em]
+  \item Tracks irregular cycles with extended/variable lengths
+  \item Symptom focus: hot flashes, night sweats, sleep disruption, vaginal dryness
+  \item Hormone fluctuation education cards
+  \item Adapted predictions (wider windows, lower confidence scores)
+  \item HRT (Hormone Replacement Therapy) medication tracking
+\end{itemize}
+
+\subsubsection{4.2 — Abstinence / Non-Tracking Mode}
+\begin{itemize}[leftmargin=1.5em]
+  \item Hides fertility/ovulation data
+  \item Focus on: period prediction only, symptom wellness, mood journaling
+  \item Simplified calendar view (no fertile window overlay)
+  \item Quick toggle from Settings
+\end{itemize}
+
+\subsubsection{4.3 — Home Screen Widgets}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Glance API} (Jetpack Compose for widgets):
+  \begin{itemize}
+    \item Small widget: Cycle day + phase icon
+    \item Medium widget: Days until next period + quick log button
+    \item Large widget: Mini calendar with period/fertile markers
+  \end{itemize}
+  \item Update via WorkManager periodic task
+\end{itemize}
+
+\subsubsection{4.4 — Wear OS Companion App}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{New module:} \texttt{:wear} (Compose for Wear OS)
+  \item Features:
+  \begin{itemize}
+    \item Cycle day complication for watch faces
+    \item Quick period start/end from wrist
+    \item Symptom quick-log (3 most recent symptoms)
+    \item Tile showing current phase
+  \end{itemize}
+  \item Data sync via Wearable Data Layer API
+  \item Minimal battery impact design
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────
+\subsection{\textcolor{phase5}{Phase 5: Content \& Polish (Sprints 17--20)}}
+
+\begin{tcolorbox}[colback=phase5!5, colframe=phase5, title=\textbf{Goal: Content, community, and production readiness}]
+\textbf{Priority:} Medium \hfill \textbf{Duration:} 2 weeks (4 sprints)
+\end{tcolorbox}
+
+\subsubsection{5.1 — Educational Content Library}
+\begin{itemize}[leftmargin=1.5em]
+  \item In-app articles organized by category:
+  \begin{itemize}
+    \item Menstrual health basics
+    \item Fertility education
+    \item Pregnancy week-by-week guide
+    \item Perimenopause education
+    \item Mental health and cycle connection
+  \end{itemize}
+  \item Content stored as Markdown in assets, rendered with Compose rich text
+  \item Contextual tips: show relevant articles based on cycle phase
+  \item Bookmarking and search
+\end{itemize}
+
+\subsubsection{5.2 — Comprehensive Testing}
+\begin{itemize}[leftmargin=1.5em]
+  \item Target: 80\%+ code coverage
+  \item Unit tests for all ViewModels, Repositories, and Engines
+  \item Compose UI tests for all screens
+  \item Room DAO instrumentation tests
+  \item End-to-end flows: Onboarding $\rightarrow$ Log Period $\rightarrow$ View Insights
+  \item Performance benchmarks (Macrobenchmark library)
+  \item Accessibility testing (TalkBack compatibility)
+\end{itemize}
+
+\subsubsection{5.3 — Production Hardening}
+\begin{itemize}[leftmargin=1.5em]
+  \item ProGuard/R8 rules optimization
+  \item Crash reporting (Firebase Crashlytics)
+  \item Analytics (privacy-respecting, opt-in only)
+  \item App Startup library for cold start optimization
+  \item Baseline Profiles for AOT compilation
+  \item Strict mode checks removal for release builds
+  \item Play Store listing: screenshots, feature graphic, description, privacy policy
+\end{itemize}
+
+\subsubsection{5.4 — Accessibility \& Internationalization}
+\begin{itemize}[leftmargin=1.5em]
+  \item Full TalkBack support (contentDescription on all interactive elements)
+  \item Dynamic font scaling support
+  \item RTL layout support
+  \item Initial languages: English, Spanish, Hindi, French, Portuguese, Arabic
+  \item Date/time format localization
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Technical Architecture Changes}
+
+\subsection{New Room Database Entities}
+
+\begin{tabularx}{\textwidth}{lXl}
+\toprule
+\textbf{Table} & \textbf{Purpose} & \textbf{Phase} \\
+\midrule
+\texttt{pregnancy\_appointments} & Prenatal visit scheduling & P2 \\
+\texttt{health\_conditions} & PCOS/Endo/PMDD profiles & P2 \\
+\texttt{user\_profiles} & Multi-account support & P3 \\
+\texttt{cervical\_observations} & Cervical tracking data & P2 \\
+\texttt{educational\_bookmarks} & Saved articles & P5 \\
+\bottomrule
+\end{tabularx}
+
+Database migration strategy: Room auto-migrations where possible, manual Migration classes for complex schema changes. Version bumps: v2 (Phase 2), v3 (Phase 3).
+
+\subsection{New Gradle Modules}
+
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Module} & \textbf{Purpose} \\
+\midrule
+\texttt{:core:common} & Shared utilities, date helpers, extensions \\
+\texttt{:core:network} & Google Drive API client, Firebase setup \\
+\texttt{:feature:pregnancy} & Pregnancy mode screens + logic \\
+\texttt{:feature:health} & Health conditions tracking \\
+\texttt{:wear} & Wear OS companion app \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Key Dependencies to Add}
+
+\begin{lstlisting}[caption=New dependencies (build.gradle.kts)]
+// Cloud & Auth
+"com.google.android.gms:play-services-auth"
+"com.google.api-client:google-api-client-android"
+"com.google.apis:google-api-services-drive"
+
+// Firebase (Partner Sync)
+"com.google.firebase:firebase-firestore-ktx"
+"com.google.firebase:firebase-dynamic-links-ktx"
+"com.google.firebase:firebase-crashlytics-ktx"
+
+// Charting
+"com.patrykandpatrick.vico:compose-m3:2.x"
+
+// Widgets
+"androidx.glance:glance-appwidget:1.x"
+"androidx.glance:glance-material3:1.x"
+
+// Wear OS
+"androidx.wear.compose:compose-material:1.x"
+"androidx.wear:wear-tiles:1.x"
+"com.google.android.gms:play-services-wearable"
+
+// Testing
+"androidx.compose.ui:ui-test-junit4"
+"androidx.test.espresso:espresso-core"
+"com.google.dagger:hilt-android-testing"
+"androidx.benchmark:benchmark-macro-junit4"
+\end{lstlisting}
+
+\subsection{Navigation Architecture Update}
+
+Currently: 4 bottom nav destinations. Updated structure:
+
+\begin{lstlisting}
+BottomNav (NavigationBar - Material 3):
+  - Calendar (existing)
+  - Daily Log (existing)
+  - Insights (existing, enhanced)
+  - Settings (existing, enhanced)
+
+Nested NavGraphs (new):
+  - onboarding_graph: Welcome -> DatePicker -> CycleLength
+                      -> Duration -> GoalSelection
+  - pregnancy_graph: Dashboard -> Appointments -> KickCounter
+                     -> ContractionTimer
+  - health_graph: ConditionSelect -> SymptomTracker
+                  -> PainMapping
+  - settings_graph: Main -> Backup -> Account -> Partner
+                    -> Theme -> Language
+\end{lstlisting}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{UI/UX Component Patterns}
+
+Based on Jetpack Compose Material 3 documentation (retrieved via Context7):
+
+\subsection{DatePicker — Onboarding \& Logging}
+Two variants to use:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Docked DatePicker}: For onboarding wizard (inline in page)
+  \item \textbf{DatePickerDialog}: For daily log date selection (modal overlay)
+  \item Both support \texttt{SelectableDates} to restrict future dates
+  \item Use \texttt{rememberDatePickerState()} for state management
+\end{itemize}
+
+\subsection{ModalBottomSheet — Quick Entry}
+\begin{itemize}[leftmargin=1.5em]
+  \item Symptom selection sheets
+  \item Cervical observation input
+  \item Quick period start/end confirmation
+  \item Use \texttt{rememberModalBottomSheetState(skipPartiallyExpanded = true)} for full sheets
+  \item Partial expansion for peek-and-expand pattern on insights cards
+\end{itemize}
+
+\subsection{NavigationBar — Bottom Navigation}
+\begin{itemize}[leftmargin=1.5em]
+  \item 4 items max (Calendar, Log, Insights, Settings)
+  \item Badge support for notification counts
+  \item Animated icon transitions (filled vs outlined)
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Sprint Schedule}
+
+\begin{longtable}{clp{8cm}c}
+\toprule
+\textbf{Sprint} & \textbf{Phase} & \textbf{Deliverables} & \textbf{Est. Hours} \\
+\midrule
+\endhead
+1 & \textcolor{phase1}{P1} & Repository implementations (Pregnancy, BirthControl, HealthData) & 16 \\
+2 & \textcolor{phase1}{P1} & ReminderWorker notifications + notification channels & 12 \\
+3 & \textcolor{phase1}{P1} & Onboarding wizard (5 screens + navigation) & 16 \\
+4 & \textcolor{phase1}{P1} & Birth control UI + testing foundation + CI setup & 16 \\
+\midrule
+5 & \textcolor{phase2}{P2} & Pregnancy dashboard + kick counter + contraction timer & 20 \\
+6 & \textcolor{phase2}{P2} & Cervical observations + daily log enhancements & 16 \\
+7 & \textcolor{phase2}{P2} & Health condition monitoring (PCOS/Endo/PMDD) & 20 \\
+8 & \textcolor{phase2}{P2} & Advanced charting (BBT, cycle comparison, heatmaps) & 18 \\
+\midrule
+9 & \textcolor{phase3}{P3} & Google Sign-In + Drive backup/restore & 20 \\
+10 & \textcolor{phase3}{P3} & Multi-account support + profile switcher & 16 \\
+11 & \textcolor{phase3}{P3} & Partner sharing (invite, dashboard, sync) & 20 \\
+12 & \textcolor{phase3}{P3} & Settings overhaul (themes, i18n setup, widgets config) & 14 \\
+\midrule
+13 & \textcolor{phase4}{P4} & Perimenopause mode + adapted predictions & 16 \\
+14 & \textcolor{phase4}{P4} & Abstinence mode + home screen widgets (Glance) & 16 \\
+15 & \textcolor{phase4}{P4} & Wear OS companion (complication + tile) & 20 \\
+16 & \textcolor{phase4}{P4} & Wear OS quick-log + data sync & 16 \\
+\midrule
+17 & \textcolor{phase5}{P5} & Educational content library + contextual tips & 16 \\
+18 & \textcolor{phase5}{P5} & Comprehensive testing (unit + UI + integration) & 20 \\
+19 & \textcolor{phase5}{P5} & Production hardening (ProGuard, Crashlytics, Baseline Profiles) & 16 \\
+20 & \textcolor{phase5}{P5} & Accessibility, i18n (6 languages), Play Store assets & 18 \\
+\midrule
+& & \textbf{Total} & \textbf{346} \\
+\bottomrule
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Risk Register}
+
+\begin{tabularx}{\textwidth}{p{3.5cm}cp{5cm}X}
+\toprule
+\textbf{Risk} & \textbf{Severity} & \textbf{Mitigation} & \textbf{Phase} \\
+\midrule
+Google Drive API quota limits & High & Implement exponential backoff, delta sync (only changed data), compress payloads & P3 \\
+Room migration failures & High & Write migration tests, keep fallback destructive migration behind flag for development only & P2--P3 \\
+Wear OS fragmentation & Medium & Target Wear OS 3+ only, use Horologist library for compat & P4 \\
+Health data sensitivity (HIPAA-adjacent) & High & All data local-first, encrypted backup, no server-side analytics on health data & All \\
+Firebase costs at scale & Medium & Use Firestore sparingly (partner sync only), cache aggressively, set budget alerts & P3 \\
+Play Store health app review & Medium & Follow Google Play health claims policy, add medical disclaimer, avoid diagnostic language & P5 \\
+\bottomrule
+\end{tabularx}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Quality Assurance Strategy}
+
+\subsection{Testing Pyramid}
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Unit Tests} (70\%): ViewModels, Repositories, Prediction Engine, Reminder Engine, utility functions
+  \item \textbf{Integration Tests} (20\%): Room DAO tests with in-memory DB, Repository + DAO together, WorkManager chain tests
+  \item \textbf{UI Tests} (10\%): Compose \texttt{createComposeRule()} for each screen, Navigation flow tests, Accessibility checks (semantic tree assertions)
+\end{enumerate}
+
+\subsection{CI/CD Pipeline}
+\begin{lstlisting}
+GitHub Actions Workflow:
+  on: [push, pull_request]
+  jobs:
+    lint:     ./gradlew ktlintCheck detekt
+    unit:     ./gradlew testDebugUnitTest
+    android:  ./gradlew connectedDebugAndroidTest
+              (on: Firebase Test Lab / emulator)
+    build:    ./gradlew assembleRelease
+    deploy:   fastlane supply (on tag push only)
+\end{lstlisting}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Privacy \& Security Considerations}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Local-first architecture:} All health data stored in Room DB on device. Cloud backup is opt-in and encrypted.
+  \item \textbf{Encryption:} AES-256-GCM for cloud backups. EncryptedSharedPreferences for sensitive settings.
+  \item \textbf{No server telemetry on health data.} Analytics (if added) track only UI events, never cycle/symptom data.
+  \item \textbf{Biometric gating:} Existing PIN/fingerprint lock extended to all new screens.
+  \item \textbf{Partner sharing:} User explicitly controls what data categories are visible. Revocable anytime.
+  \item \textbf{Data deletion:} Full account/data wipe from Settings with confirmation. Compliant with GDPR right to erasure.
+  \item \textbf{Medical disclaimer:} App is not a medical device. All predictions are estimates. Prominent disclaimer in onboarding and settings.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Success Criteria}
+
+\begin{tcolorbox}[colback=primary!5, colframe=primary, title=\textbf{Definition of Done — Feature Parity}]
+\begin{enumerate}[leftmargin=1.5em]
+  \item All 5 phases completed and merged to \texttt{main}
+  \item 95\%+ feature coverage against MyCalendar feature set
+  \item 80\%+ test code coverage
+  \item Zero critical/high severity bugs in release candidate
+  \item Play Store listing approved with 4.5+ internal testing score
+  \item WCAG 2.1 AA accessibility compliance
+  \item Sub-2-second cold start time
+  \item APK size under 15\,MB (AAB under 10\,MB)
+  \item Privacy policy and medical disclaimer published
+  \item Wear OS companion listed on Play Store
+\end{enumerate}
+\end{tcolorbox}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Appendix: File Structure (Post-Implementation)}
+
+\begin{lstlisting}
+cyclecare/
+  app/src/main/java/com/cyclecare/app/
+    data/
+      dao/         (7 existing + 3 new DAOs)
+      entity/      (7 existing + 3 new entities)
+      repository/  (5 existing completed + 2 new)
+      worker/      (ReminderWorker completed, BackupWorker new)
+      export/      (DataExporter existing)
+    domain/
+      model/       (existing + CervicalObservation, HealthCondition,
+                    UserProfile)
+      repository/  (interfaces updated)
+      engine/      (CyclePrediction + Reminder existing,
+                    CorrelationEngine new)
+    presentation/
+      screens/
+        calendar/     (existing, enhanced)
+        dailylog/     (existing, enhanced with cervical/health)
+        insights/     (existing, enhanced with charts)
+        settings/     (existing, expanded sub-screens)
+        onboarding/   (NEW - 5 screens)
+        pregnancy/    (NEW - dashboard, appointments, counters)
+        health/       (NEW - conditions, pain mapping)
+        partner/      (NEW - invite, dashboard)
+      components/     (shared composables)
+      navigation/     (updated with nested graphs)
+      theme/          (existing + dynamic theme)
+      widgets/        (Glance widgets)
+    di/               (existing modules + NetworkModule)
+    util/             (NotificationHelper, EncryptionUtil, etc.)
+  wear/src/main/      (Wear OS module)
+  core/
+    common/           (shared utilities)
+    network/          (Google Drive, Firebase clients)
+  assets/
+    educational/      (Markdown articles)
+\end{lstlisting}
+
+\vfill
+\begin{center}
+\textcolor{primary}{\rule{0.5\textwidth}{0.4pt}}\\[6pt]
+{\small Document generated with research via \textbf{Context7} (Jetpack Compose docs),\\
+\textbf{Playwright} (MyCalendar Play Store analysis), and formatted in \textbf{\LaTeX}.}
+\end{center}
+
+\end{document}

@@ -244,8 +244,8 @@ private fun CalendarGrid(
                             val isPeriod = periods.any { p -> date >= p.startDate && date <= (p.endDate ?: p.startDate) }
                             val isFertile = prediction?.let { date >= it.nextFertileWindowStart && date <= it.nextFertileWindowEnd } == true
                             val color = when {
-                                isPeriod -> Color(0xFFF8BBD0)
-                                isFertile -> Color(0xFFC8E6C9)
+                                isPeriod -> Color(0xFFFFD9E4)   // Soft rose
+                                isFertile -> Color(0xFFCCF2EC)  // Soft mint
                                 else -> Color.Transparent
                             }
                             Box(

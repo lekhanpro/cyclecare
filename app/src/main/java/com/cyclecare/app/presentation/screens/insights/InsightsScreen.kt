@@ -159,7 +159,7 @@ private fun FrequencyCard(title: String, values: Map<String, Int>) {
                             modifier = Modifier
                                 .fillMaxWidth((value.toFloat() / max.toFloat()).coerceIn(0.1f, 1f))
                                 .height(8.dp)
-                                .background(Color(0xFFCE93D8), RoundedCornerShape(100))
+                                .background(Color(0xFFE05D83), RoundedCornerShape(100))
                         )
                     }
                 }

@@ -57,7 +57,7 @@ fun CycleCareNavigation() {
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+                tonalElevation = 0.dp  // Flat iOS-style nav bar
             ) {
                 items.forEach { screen ->
                     NavigationBarItem(
