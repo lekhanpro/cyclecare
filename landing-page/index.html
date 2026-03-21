@@ -3,322 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CycleCare - A beautiful, privacy-first menstrual cycle tracking app for Android. Track periods, fertility, symptoms and more.">
-    <meta name="keywords" content="period tracker, menstrual cycle, fertility tracking, ovulation, women's health, cycle calendar">
+    <meta name="description" content="CycleCare - Beautiful, privacy-first menstrual cycle tracking for Android. AI predictions, fertility tracking, 40+ symptoms.">
     <meta name="theme-color" content="#E05D83">
+    <meta property="og:title" content="CycleCare - Your Personal Cycle Companion">
+    <meta property="og:description" content="Beautiful, private, intelligent period tracking. All data stays on your device.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lekhanpro.github.io/cyclecare/">
     <title>CycleCare - Your Personal Cycle Companion</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav class="navbar">
+    <!-- Three.js 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
         <div class="container">
-            <div class="nav-content">
-                <a href="#" class="logo">
-                    <span class="logo-icon">&#127800;</span>
-                    <span class="logo-text">CycleCare</span>
-                </a>
-                <ul class="nav-links">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="https://github.com/lekhanpro/cyclecare" target="_blank">GitHub</a></li>
-                    <li><a href="#download" class="btn-primary">Download</a></li>
-                </ul>
-                <button class="mobile-menu-btn" aria-label="Toggle menu">
-                    <span></span><span></span><span></span>
-                </button>
-            </div>
+            <a href="#" class="logo">
+                <div class="logo-glow"></div>
+                <span class="logo-text">CycleCare</span>
+            </a>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#tech">Tech</a></li>
+                <li><a href="#privacy">Privacy</a></li>
+                <li><a href="#download" class="nav-cta">Download</a></li>
+            </ul>
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
-    <section class="hero">
+    <!-- Hero -->
+    <section class="hero" id="hero">
         <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
+            <div class="hero-grid">
+                <div class="hero-text" id="hero-text">
+                    <div class="hero-badge">
+                        <span class="badge-dot"></span>
+                        Privacy-first &middot; Open Source
+                    </div>
                     <h1 class="hero-title">
                         Track Your Cycle<br>
-                        with <span class="gradient-text">Confidence</span>
+                        with <span class="text-gradient">Confidence</span>
                     </h1>
-                    <p class="hero-subtitle">
-                        Beautiful, private, and intelligent period tracking. AI-powered predictions,
-                        fertility insights, and comprehensive health logging - all stored locally on your device.
+                    <p class="hero-desc">
+                        AI-powered predictions, fertility insights, and comprehensive health logging.
+                        Beautiful design. Zero data collection. 100% yours.
                     </p>
-                    <div class="hero-buttons">
-                        <a href="#download" class="btn-large btn-primary">
-                            <span>Download APK</span>
-                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                                <path d="M10 13L5 8H15L10 13Z" fill="currentColor"/>
-                                <path d="M4 15H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                    <div class="hero-actions">
+                        <a href="#download" class="btn btn-primary btn-glow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            Download APK
                         </a>
-                        <a href="#features" class="btn-large btn-secondary">Explore Features</a>
+                        <a href="https://github.com/lekhanpro/cyclecare" target="_blank" class="btn btn-glass">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                            View Source
+                        </a>
                     </div>
-                    <div class="hero-stats">
-                        <div class="stat">
-                            <div class="stat-value">100%</div>
-                            <div class="stat-label">Private</div>
+                    <div class="hero-metrics">
+                        <div class="metric">
+                            <div class="metric-val">100%</div>
+                            <div class="metric-label">Private</div>
                         </div>
-                        <div class="stat">
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Ads</div>
+                        <div class="metric-divider"></div>
+                        <div class="metric">
+                            <div class="metric-val">40+</div>
+                            <div class="metric-label">Symptoms</div>
                         </div>
-                        <div class="stat">
-                            <div class="stat-value">Free</div>
-                            <div class="stat-label">Forever</div>
+                        <div class="metric-divider"></div>
+                        <div class="metric">
+                            <div class="metric-val">AI</div>
+                            <div class="metric-label">Predictions</div>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric">
+                            <div class="metric-val">$0</div>
+                            <div class="metric-label">Forever</div>
                         </div>
                     </div>
                 </div>
-                <div class="hero-image">
-                    <div class="phone-mockup">
-                        <div class="phone-screen">
-                            <div class="app-preview">
-                                <div class="preview-header">
-                                    <div class="preview-title">CycleCare</div>
-                                    <div class="preview-subtitle">Today's Overview</div>
+                <div class="hero-visual" id="hero-visual">
+                    <div class="phone-3d">
+                        <div class="phone-frame">
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen">
+                                <div class="screen-header">
+                                    <span class="screen-time">9:41</span>
+                                    <span class="screen-icons">&#9679; &#9679; &#9679;</span>
                                 </div>
-                                <div class="preview-dashboard">
-                                    <div class="preview-cycle-label">Cycle Day</div>
-                                    <div class="preview-cycle-day">14</div>
-                                    <div class="preview-countdown">5 days until next period</div>
-                                </div>
-                                <div class="preview-card">
-                                    <div class="preview-card-title">Upcoming</div>
-                                    <div class="preview-items">
-                                        <div class="preview-item">
-                                            <span class="dot period"></span>
-                                            <span>Period Start</span>
-                                            <span class="preview-date">Mar 28</span>
+                                <div class="screen-app">
+                                    <div class="app-title">CycleCare</div>
+                                    <div class="app-subtitle">Today's Overview</div>
+                                    <div class="app-dashboard">
+                                        <div class="dash-label">CYCLE DAY</div>
+                                        <div class="dash-number">14</div>
+                                        <div class="dash-ring">
+                                            <svg viewBox="0 0 120 120">
+                                                <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(224,93,131,0.15)" stroke-width="8"/>
+                                                <circle cx="60" cy="60" r="52" fill="none" stroke="url(#ring-grad)" stroke-width="8" stroke-dasharray="326.73" stroke-dashoffset="163" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                                                <defs><linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#E05D83"/><stop offset="100%" stop-color="#A865B5"/></linearGradient></defs>
+                                            </svg>
                                         </div>
-                                        <div class="preview-item">
-                                            <span class="dot ovulation"></span>
+                                    </div>
+                                    <div class="app-info">5 days until next period</div>
+                                    <div class="app-cards">
+                                        <div class="mini-card">
+                                            <div class="mc-dot" style="background:#E8637A"></div>
+                                            <span>Period</span>
+                                            <span class="mc-date">Mar 28</span>
+                                        </div>
+                                        <div class="mini-card">
+                                            <div class="mc-dot" style="background:#7AB3D4"></div>
                                             <span>Ovulation</span>
-                                            <span class="preview-date">Apr 8</span>
+                                            <span class="mc-date">Apr 8</span>
                                         </div>
-                                        <div class="preview-item">
-                                            <span class="dot fertile"></span>
-                                            <span>Fertile Window</span>
-                                            <span class="preview-date">Apr 5-10</span>
+                                        <div class="mini-card">
+                                            <div class="mc-dot" style="background:#7EC8A4"></div>
+                                            <span>Fertile</span>
+                                            <span class="mc-date">Apr 5-10</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="phone-reflection"></div>
+                    </div>
+                    <div class="float-card fc-1">
+                        <div class="fc-icon">&#127800;</div>
+                        <div>Fertility Window<br><small>Apr 5 - 10</small></div>
+                    </div>
+                    <div class="float-card fc-2">
+                        <div class="fc-icon">&#128154;</div>
+                        <div>Mood: Happy<br><small>Logged today</small></div>
+                    </div>
+                    <div class="float-card fc-3">
+                        <div class="fc-icon">&#128170;</div>
+                        <div>95% Regular<br><small>Cycle health</small></div>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="hero-gradient-blur"></div>
     </section>
 
-    <section id="features" class="features">
+    <!-- Features -->
+    <section id="features" class="section features-section">
         <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Everything You Need</h2>
-                <p class="section-subtitle">Powerful, private cycle tracking with beautiful design</p>
+            <div class="section-head">
+                <div class="section-label">Features</div>
+                <h2 class="section-title">Everything You Need.<br><span class="text-gradient">Nothing You Don't.</span></h2>
+                <p class="section-desc">Powerful cycle tracking designed around your privacy and wellbeing.</p>
             </div>
             <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">&#128197;</div>
-                    <h3 class="feature-title">Smart Calendar</h3>
-                    <p class="feature-description">
-                        Visual cycle tracking with color-coded days for periods, fertile windows, and ovulation predictions
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128197;</span></div>
+                    <h3>Smart Calendar</h3>
+                    <p>Interactive calendar with color-coded period, fertile, and ovulation days. Navigate months and tap to log.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#129302;</div>
-                    <h3 class="feature-title">AI Predictions</h3>
-                    <p class="feature-description">
-                        Machine learning-powered cycle predictions that adapt to your unique patterns with confidence scoring
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#129504;</span></div>
+                    <h3>AI Predictions</h3>
+                    <p>Machine learning predictions that adapt to your unique cycle patterns with confidence scoring.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#127800;</div>
-                    <h3 class="feature-title">Fertility Tracking</h3>
-                    <p class="feature-description">
-                        Know your fertile window and ovulation dates with BBT charting and cervical tracking
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#127800;</span></div>
+                    <h3>Fertility Tracking</h3>
+                    <p>Ovulation dates, fertile windows, BBT charting, and cervical observation tracking.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#128221;</div>
-                    <h3 class="feature-title">Daily Logging</h3>
-                    <p class="feature-description">
-                        Track 40+ symptoms, moods, temperature, weight, water intake, sleep, and more
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128221;</span></div>
+                    <h3>Daily Logging</h3>
+                    <p>Track 40+ symptoms, moods, flow, temperature, weight, water, sleep, intimacy, and tests.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#128200;</div>
-                    <h3 class="feature-title">Insights Dashboard</h3>
-                    <p class="feature-description">
-                        Understand your patterns with cycle analytics, trend charts, and regularity scoring
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128200;</span></div>
+                    <h3>Insights Dashboard</h3>
+                    <p>Cycle analytics with trend charts, symptom heatmaps, mood patterns, and regularity scores.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#128274;</div>
-                    <h3 class="feature-title">Privacy First</h3>
-                    <p class="feature-description">
-                        All data stored locally with PIN and biometric lock. No cloud, no tracking, no compromises
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128138;</span></div>
+                    <h3>Birth Control</h3>
+                    <p>Pill reminders with streaks, IUD tracking, injection schedules, and medication management.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#128138;</div>
-                    <h3 class="feature-title">Birth Control</h3>
-                    <p class="feature-description">
-                        Pill reminders with streak tracking, IUD and injection schedule management
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128276;</span></div>
+                    <h3>Smart Reminders</h3>
+                    <p>Period, pill, and hydration notifications with quiet hours and customizable channels.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#128276;</div>
-                    <h3 class="feature-title">Smart Reminders</h3>
-                    <p class="feature-description">
-                        Customizable notifications for periods, pills, hydration, and health check-ins with quiet hours
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128229;</span></div>
+                    <h3>Data Export</h3>
+                    <p>Export your complete health data in CSV or JSON. Full backup and restore support.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">&#128229;</div>
-                    <h3 class="feature-title">Data Export</h3>
-                    <p class="feature-description">
-                        Export your complete health data in CSV or JSON format. Your data, your control
-                    </p>
+                <div class="feature-card glass-card" data-reveal>
+                    <div class="fc-glow"></div>
+                    <div class="feature-icon-wrap"><span>&#128274;</span></div>
+                    <h3>Biometric Lock</h3>
+                    <p>PIN and fingerprint/face authentication. Your most sensitive data, fully protected.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="about" class="about">
+    <!-- Tech Stack -->
+    <section id="tech" class="section tech-section">
         <div class="container">
-            <div class="about-content">
-                <div class="about-text">
-                    <h2 class="section-title">Why CycleCare?</h2>
-                    <p class="about-description">
-                        We believe cycle tracking should be private, beautiful, and intelligent.
-                        CycleCare gives you the features of premium apps with none of the privacy trade-offs.
-                    </p>
-                    <ul class="benefits-list">
-                        <li>
-                            <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>No account required - start tracking instantly</span>
-                        </li>
-                        <li>
-                            <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>100% local storage - data never leaves your phone</span>
-                        </li>
-                        <li>
-                            <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>No ads, no tracking, no data selling</span>
-                        </li>
-                        <li>
-                            <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>PIN + biometric security for your sensitive data</span>
-                        </li>
-                        <li>
-                            <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Open source and transparent</span>
-                        </li>
-                        <li>
-                            <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Built with Jetpack Compose + Material Design 3</span>
-                        </li>
+            <div class="section-head">
+                <div class="section-label">Technology</div>
+                <h2 class="section-title">Built with <span class="text-gradient">Modern Android</span></h2>
+                <p class="section-desc">Clean architecture, reactive state, and beautiful Compose UI.</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-item glass-card" data-reveal>
+                    <div class="tech-name">Kotlin</div>
+                    <div class="tech-desc">100% Kotlin with coroutines and Flow</div>
+                </div>
+                <div class="tech-item glass-card" data-reveal>
+                    <div class="tech-name">Jetpack Compose</div>
+                    <div class="tech-desc">Declarative UI with Material Design 3</div>
+                </div>
+                <div class="tech-item glass-card" data-reveal>
+                    <div class="tech-name">Room Database</div>
+                    <div class="tech-desc">7 tables, local-first persistence</div>
+                </div>
+                <div class="tech-item glass-card" data-reveal>
+                    <div class="tech-name">Hilt / Dagger</div>
+                    <div class="tech-desc">Compile-time dependency injection</div>
+                </div>
+                <div class="tech-item glass-card" data-reveal>
+                    <div class="tech-name">MVVM + Clean</div>
+                    <div class="tech-desc">Layered architecture with StateFlow</div>
+                </div>
+                <div class="tech-item glass-card" data-reveal>
+                    <div class="tech-name">WorkManager</div>
+                    <div class="tech-desc">Reliable background notifications</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy -->
+    <section id="privacy" class="section privacy-section">
+        <div class="container">
+            <div class="privacy-grid">
+                <div class="privacy-text" data-reveal>
+                    <div class="section-label">Privacy</div>
+                    <h2 class="section-title">Your Data.<br><span class="text-gradient">Your Device. Period.</span></h2>
+                    <p class="section-desc">We believe health data is the most sensitive data you have. CycleCare keeps it where it belongs - on your phone.</p>
+                    <ul class="privacy-list">
+                        <li><div class="pl-check">&#10003;</div> No account required - start instantly</li>
+                        <li><div class="pl-check">&#10003;</div> 100% local storage - data never uploaded</li>
+                        <li><div class="pl-check">&#10003;</div> No analytics, tracking, or telemetry</li>
+                        <li><div class="pl-check">&#10003;</div> No ads, no data selling, no compromises</li>
+                        <li><div class="pl-check">&#10003;</div> PIN + biometric authentication</li>
+                        <li><div class="pl-check">&#10003;</div> Full data export and deletion anytime</li>
+                        <li><div class="pl-check">&#10003;</div> Open source - verify the code yourself</li>
                     </ul>
                 </div>
-                <div class="about-image">
-                    <div class="feature-showcase">
-                        <div class="showcase-item">
-                            <div class="showcase-icon">&#127912;</div>
-                            <div class="showcase-text">
-                                <div class="showcase-title">Beautiful Design</div>
-                                <div class="showcase-desc">iOS-inspired watercolor theme</div>
-                            </div>
-                        </div>
-                        <div class="showcase-item">
-                            <div class="showcase-icon">&#9889;</div>
-                            <div class="showcase-text">
-                                <div class="showcase-title">Fast & Smooth</div>
-                                <div class="showcase-desc">60fps Jetpack Compose UI</div>
-                            </div>
-                        </div>
-                        <div class="showcase-item">
-                            <div class="showcase-icon">&#128272;</div>
-                            <div class="showcase-text">
-                                <div class="showcase-title">Secure</div>
-                                <div class="showcase-desc">Biometric + PIN protection</div>
-                            </div>
-                        </div>
-                        <div class="showcase-item">
-                            <div class="showcase-icon">&#129504;</div>
-                            <div class="showcase-text">
-                                <div class="showcase-title">Smart</div>
-                                <div class="showcase-desc">AI-powered cycle predictions</div>
-                            </div>
-                        </div>
+                <div class="privacy-visual" data-reveal>
+                    <div class="shield-container">
+                        <div class="shield-ring ring-1"></div>
+                        <div class="shield-ring ring-2"></div>
+                        <div class="shield-ring ring-3"></div>
+                        <div class="shield-icon">&#128737;</div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="download" class="download">
+    <!-- Download -->
+    <section id="download" class="section download-section">
         <div class="container">
-            <div class="download-content">
+            <div class="download-box glass-card">
+                <div class="dl-glow"></div>
                 <h2 class="section-title">Get CycleCare</h2>
-                <p class="section-subtitle">Available for Android 7.0+ (API 24)</p>
-                <a href="https://github.com/lekhanpro/cyclecare/releases" class="btn-download">
-                    <svg class="download-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/>
-                    </svg>
-                    <div class="download-text">
-                        <div class="download-label">Download APK</div>
-                        <div class="download-info">Version 1.0.0 &middot; Android</div>
-                    </div>
-                </a>
-                <p class="download-note">
-                    Free &amp; open source. No account needed. Your data stays on your device.
-                </p>
+                <p class="section-desc">Free, open source, and private. Available for Android 7.0+</p>
+                <div class="download-buttons">
+                    <a href="https://github.com/lekhanpro/cyclecare/releases" target="_blank" class="btn btn-primary btn-glow btn-xl">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download APK
+                    </a>
+                    <a href="https://github.com/lekhanpro/cyclecare" target="_blank" class="btn btn-glass btn-xl">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                        Star on GitHub
+                    </a>
+                </div>
+                <p class="dl-note">No account needed. Your data stays on your device.</p>
             </div>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-content">
+            <div class="footer-grid">
                 <div class="footer-brand">
-                    <div class="logo">
-                        <span class="logo-icon">&#127800;</span>
-                        <span class="logo-text">CycleCare</span>
-                    </div>
-                    <p class="footer-tagline">Your health, your data, your control.</p>
+                    <a href="#" class="logo"><span class="logo-text">CycleCare</span></a>
+                    <p>Your health, your data, your control.</p>
                 </div>
-                <div class="footer-column">
+                <div class="footer-col">
                     <h4>Product</h4>
                     <a href="#features">Features</a>
-                    <a href="#about">About</a>
+                    <a href="#tech">Technology</a>
                     <a href="#download">Download</a>
                 </div>
-                <div class="footer-column">
+                <div class="footer-col">
                     <h4>Resources</h4>
                     <a href="https://github.com/lekhanpro/cyclecare" target="_blank">GitHub</a>
                     <a href="https://github.com/lekhanpro/cyclecare/issues" target="_blank">Report Issue</a>
-                    <a href="#">Privacy Policy</a>
+                    <a href="https://github.com/lekhanpro/cyclecare/releases" target="_blank">Releases</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 CycleCare. Made with love for better health tracking.</p>
+                <p>&copy; 2026 CycleCare &middot; Built with Kotlin + Jetpack Compose</p>
             </div>
         </div>
     </footer>
 
+    <!-- Three.js from CDN -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="scene.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
