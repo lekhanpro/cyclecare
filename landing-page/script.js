@@ -27,11 +27,11 @@ if (mobileMenuBtn) {
 window.addEventListener('scroll', () => {
     const navbar = document.querySelector('.navbar');
     if (window.scrollY > 50) {
-        navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-        navbar.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.12)';
+        navbar.style.background = 'rgba(255, 245, 248, 0.98)';
+        navbar.style.boxShadow = '0 2px 16px rgba(45, 32, 37, 0.08)';
     } else {
-        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-        navbar.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+        navbar.style.background = 'rgba(255, 245, 248, 0.85)';
+        navbar.style.boxShadow = 'none';
     }
 });
 

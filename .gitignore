@@ -88,7 +88,18 @@ api_keys.properties
 .DS_Store
 Thumbs.db
 
-# Documentation (keeping only essential)
+# LaTeX temp files
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Installers
+*.exe
+
+# Unwanted docs
 BUILD_NOW.md
 BUILD_GUIDE.md
 QUICKSTART.md
@@ -109,5 +120,8 @@ GITHUB_BUILD_GUIDE.md
 WORKFLOW_EXPLAINED.md
 READY_TO_PUSH.md
 VISUAL_GUIDE.md
+BUILD_STATUS.md
+COMPLETION_CHECKLIST.md
+WHAT_HAPPENED.md
 COMMANDS.txt
 CycleCare_Android_Execution_Brief.pdf
