@@ -15,12 +15,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.cyclecare.app.domain.repository.SettingsRepository
 import com.cyclecare.app.presentation.screens.calendar.CalendarScreen
 import com.cyclecare.app.presentation.screens.dailylog.DailyLogScreen
 import com.cyclecare.app.presentation.screens.insights.InsightsScreen
+import com.cyclecare.app.presentation.screens.onboarding.OnboardingScreen
 import com.cyclecare.app.presentation.screens.settings.SettingsScreen
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class Screen(val route: String, val title: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    object Onboarding : Screen("onboarding", "Onboarding", Icons.Default.Start)
     object Calendar : Screen("calendar", "Calendar", Icons.Default.CalendarToday)
     object DailyLog : Screen("daily_log", "Log", Icons.Default.Edit)
     object Insights : Screen("insights", "Insights", Icons.Default.Insights)
@@ -31,6 +37,18 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
 fun CycleCareNavigation() {
     val lockViewModel: AppLockViewModel = hiltViewModel()
     val lockState by lockViewModel.uiState.collectAsState()
+    
+    var isOnboardingComplete by remember { mutableStateOf<Boolean?>(null) }
+    val scope = rememberCoroutineScope()
+    
+    // Check onboarding status
+    LaunchedEffect(Unit) {
+        scope.launch {
+            lockViewModel.settingsRepository.getSettings().collect { settings ->
+                isOnboardingComplete = settings.onboardingCompleted
+            }
+        }
+    }
 
     if (lockState.isPinEnabled && !lockState.isUnlocked) {
         AppLockScreen(
@@ -41,7 +59,29 @@ fun CycleCareNavigation() {
         )
         return
     }
+    
+    when (isOnboardingComplete) {
+        null -> {
+            // Loading
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        false -> {
+            OnboardingScreen(
+                onComplete = {
+                    isOnboardingComplete = true
+                }
+            )
+        }
+        true -> {
+            MainNavigation()
+        }
+    }
+}
 
+@Composable
+private fun MainNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
