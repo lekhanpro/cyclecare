@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
+import 'navigation/app_router.dart';
+import 'providers/app_providers.dart';
 import 'screens/splash/splash_screen.dart';
 
 class CycleCareApp extends ConsumerWidget {
@@ -9,12 +11,15 @@ class CycleCareApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(darkModeProvider);
+
     return MaterialApp(
       title: 'CycleCare',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      onGenerateRoute: AppRouter.generateRoute,
       home: const SplashScreen(),
     );
   }

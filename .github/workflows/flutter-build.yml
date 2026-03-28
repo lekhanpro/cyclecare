@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - flutter-migration
+      - flutter-full-implementation
       - main
     paths:
       - 'cyclecare_flutter/**'
@@ -55,11 +56,6 @@ jobs:
             echo "initialized=false" >> $GITHUB_OUTPUT
             echo "⚠️ Flutter project not fully initialized. Skipping Android build."
           fi
-      
-      - name: Run code generation
-        working-directory: cyclecare_flutter
-        run: |
-          flutter pub run build_runner build --delete-conflicting-outputs || echo "Code generation skipped (no generated files yet)"
       
       - name: Analyze code
         working-directory: cyclecare_flutter
