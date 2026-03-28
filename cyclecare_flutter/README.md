@@ -54,6 +54,11 @@ lib/
 ```bash
 cd cyclecare_flutter
 flutter pub get
+
+# Format code (recommended before committing)
+dart format .
+
+# Run the app
 flutter run
 ```
 

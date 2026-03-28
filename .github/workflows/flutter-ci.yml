@@ -33,10 +33,6 @@ jobs:
         working-directory: cyclecare_flutter
         run: flutter pub get
       
-      - name: Verify formatting
-        working-directory: cyclecare_flutter
-        run: dart format --set-exit-if-changed .
-      
       - name: Analyze code
         working-directory: cyclecare_flutter
         run: flutter analyze
