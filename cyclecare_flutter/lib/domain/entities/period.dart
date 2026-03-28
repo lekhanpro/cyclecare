@@ -1,17 +1,54 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 
-part 'period.freezed.dart';
-part 'period.g.dart';
+@immutable
+class Period {
+  final int id;
+  final DateTime startDate;
+  final DateTime? endDate;
+  final List<String> symptoms;
+  final String? notes;
 
-@freezed
-class Period with _$Period {
-  const factory Period({
-    required int id,
-    required DateTime startDate,
+  const Period({
+    required this.id,
+    required this.startDate,
+    this.endDate,
+    this.symptoms = const [],
+    this.notes,
+  });
+
+  Period copyWith({
+    int? id,
+    DateTime? startDate,
     DateTime? endDate,
-    @Default([]) List<String> symptoms,
+    List<String>? symptoms,
     String? notes,
-  }) = _Period;
+  }) {
+    return Period(
+      id: id ?? this.id,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      symptoms: symptoms ?? this.symptoms,
+      notes: notes ?? this.notes,
+    );
+  }
 
-  factory Period.fromJson(Map<String, dynamic> json) => _$PeriodFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'startDate': startDate.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
+      'symptoms': symptoms,
+      'notes': notes,
+    };
+  }
+
+  factory Period.fromJson(Map<String, dynamic> json) {
+    return Period(
+      id: json['id'] as int,
+      startDate: DateTime.parse(json['startDate'] as String),
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate'] as String) : null,
+      symptoms: (json['symptoms'] as List<dynamic>?)?.cast<String>() ?? [],
+      notes: json['notes'] as String?,
+    );
+  }
 }

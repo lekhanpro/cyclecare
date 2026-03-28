@@ -24,7 +24,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
     
     // TODO: Check onboarding status from database
-    final onboardingCompleted = false; // Replace with actual check
+    const onboardingCompleted = false; // Replace with actual check
     
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -53,7 +53,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.favorite,
                 size: 80,
                 color: Colors.white,

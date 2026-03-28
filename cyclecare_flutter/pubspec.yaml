@@ -60,9 +60,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   
-  assets:
-    - assets/images/
-    - assets/education/
+  # Removed - assets will be added when needed
+  # assets:
+  #   - assets/images/
+  #   - assets/education/
   
   fonts:
     - family: Poppins
