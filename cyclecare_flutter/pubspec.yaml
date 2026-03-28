@@ -10,47 +10,64 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # State Management
   flutter_riverpod: ^2.4.9
   riverpod_annotation: ^2.3.3
-  
+
   # Database
   drift: ^2.14.1
   sqlite3_flutter_libs: ^0.5.18
   path_provider: ^2.1.1
   path: ^1.8.3
-  
+
   # Local Storage
   shared_preferences: ^2.2.2
-  
+
   # UI
   cupertino_icons: ^1.0.6
   google_fonts: ^4.0.5
   fl_chart: ^0.65.0
   table_calendar: ^3.0.9
   intl: ^0.18.1
-  
+  smooth_page_indicator: ^1.1.0
+  flutter_markdown: ^0.6.18
+
   # Security
   local_auth: ^2.1.7
   flutter_secure_storage: ^9.0.0
   crypto: ^3.0.3
-  
+  encrypt: ^5.0.3
+
   # Notifications
   flutter_local_notifications: ^16.3.0
   timezone: ^0.9.2
-  
+
+  # Cloud & Auth
+  google_sign_in: ^6.1.6
+  googleapis: ^12.0.0
+  googleapis_auth: ^1.4.1
+  firebase_core: ^2.24.2
+  cloud_firestore: ^4.13.6
+  firebase_auth: ^4.15.3
+
   # Utils
   uuid: ^4.2.2
   collection: ^1.18.0
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
+  url_launcher: ^6.2.2
+  share_plus: ^7.2.1
+  image_picker: ^1.0.5
+  permission_handler: ^11.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
-  
+  integration_test:
+    sdk: flutter
+
   # Code Generation
   build_runner: ^2.4.7
   riverpod_generator: ^2.3.9
@@ -60,14 +77,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
-  # Removed - assets will be added when needed
-  # assets:
-  #   - assets/images/
-  #   - assets/education/
-  
-  # Using google_fonts package instead of bundled fonts
-  # fonts:
-  #   - family: Poppins
-  #     fonts:
-  #       - asset: assets/fonts/Poppins-Regular.ttf
+
+  assets:
+    - assets/education/
