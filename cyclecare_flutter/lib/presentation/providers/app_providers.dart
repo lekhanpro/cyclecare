@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/database/app_database.dart';
+import '../../domain/engines/cycle_prediction_engine.dart';
 
 // Database provider
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase.instance);
@@ -38,37 +39,26 @@ final darkModeProvider = StateProvider<bool>((ref) => false);
 final privacyModeProvider = StateProvider<bool>((ref) => false);
 
 // Periods stream
-final periodsProvider = StreamProvider<List<Period>>((ref) {
+final periodsProvider = StreamProvider<List<PeriodRecord>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.watchAllPeriods();
 });
 
 // Daily logs stream
-final dailyLogsProvider = StreamProvider<List<DailyLog>>((ref) {
+final dailyLogsProvider = StreamProvider<List<DailyLogRecord>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.watchAllDailyLogs();
 });
 
-// Reminders stream
-final remindersProvider = StreamProvider<List<Reminder>>((ref) {
-  final db = ref.watch(databaseProvider);
-  return db.watchAllReminders();
-});
-
-// Birth control stream
-final birthControlProvider = StreamProvider<List<BirthControlData>>((ref) {
-  final db = ref.watch(databaseProvider);
-  return db.watchAllBirthControl();
-});
-
-// Active pregnancy
-final activePregnancyProvider = StreamProvider<PregnancyDataData?>((ref) {
-  final db = ref.watch(databaseProvider);
-  return db.watchActivePregnancy();
-});
-
 // Latest period
-final latestPeriodProvider = FutureProvider<Period?>((ref) async {
+final latestPeriodProvider = FutureProvider<PeriodRecord?>((ref) async {
   final db = ref.watch(databaseProvider);
   return db.getLatestPeriod();
+});
+
+// Cycle prediction provider
+final cyclePredictionProvider = FutureProvider<CyclePrediction>((ref) async {
+  final periods = await ref.watch(periodsProvider.future);
+  final startDates = periods.map((p) => p.startDate).toList();
+  return CyclePredictionEngine.predict(periodStartDates: startDates);
 });

@@ -114,9 +114,9 @@ class InsightsScreen extends ConsumerWidget {
 
 // ── Helpers ──
 
-List<int> _cycleLengths(List<Period> periods) {
+List<int> _cycleLengths(List<PeriodRecord> periods) {
   if (periods.length < 2) return [];
-  final sorted = List<Period>.from(periods)
+  final sorted = List<PeriodRecord>.from(periods)
     ..sort((a, b) => a.startDate.compareTo(b.startDate));
   final lengths = <int>[];
   for (int i = 1; i < sorted.length; i++) {
@@ -127,7 +127,7 @@ List<int> _cycleLengths(List<Period> periods) {
   return lengths;
 }
 
-List<int> _periodLengths(List<Period> periods) {
+List<int> _periodLengths(List<PeriodRecord> periods) {
   return periods
       .where((p) => p.endDate != null)
       .map((p) => p.endDate!.difference(p.startDate).inDays + 1)
@@ -139,7 +139,7 @@ List<int> _periodLengths(List<Period> periods) {
 // ═════════════════════════════════════════════════════════
 
 class _CycleStatisticsCard extends StatelessWidget {
-  final List<Period> periods;
+  final List<PeriodRecord> periods;
   final ColorScheme colorScheme;
 
   const _CycleStatisticsCard({
@@ -248,7 +248,7 @@ class _StatTile extends StatelessWidget {
 // ═════════════════════════════════════════════════════════
 
 class _CycleLengthTrendCard extends StatelessWidget {
-  final List<Period> periods;
+  final List<PeriodRecord> periods;
   final ColorScheme colorScheme;
 
   const _CycleLengthTrendCard({
@@ -365,7 +365,7 @@ class _CycleLengthTrendCard extends StatelessWidget {
 // ═════════════════════════════════════════════════════════
 
 class _SymptomFrequencyCard extends StatelessWidget {
-  final List<DailyLog> logs;
+  final List<DailyLogRecord> logs;
   final ColorScheme colorScheme;
 
   const _SymptomFrequencyCard({
@@ -478,7 +478,7 @@ class _SymptomFrequencyCard extends StatelessWidget {
 // ═════════════════════════════════════════════════════════
 
 class _MoodPatternsCard extends StatelessWidget {
-  final List<DailyLog> logs;
+  final List<DailyLogRecord> logs;
   final ColorScheme colorScheme;
 
   const _MoodPatternsCard({
@@ -501,8 +501,8 @@ class _MoodPatternsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final counts = <String, int>{};
     for (final log in logs) {
-      if (log.mood != null && log.mood!.isNotEmpty) {
-        for (final m in log.mood!.split(',')) {
+      if (log.mood.isNotEmpty) {
+        for (final m in log.mood.split(',')) {
           final mood = m.trim();
           if (mood.isNotEmpty) {
             counts[mood] = (counts[mood] ?? 0) + 1;
@@ -598,7 +598,7 @@ class _MoodPatternsCard extends StatelessWidget {
 // ═════════════════════════════════════════════════════════
 
 class _BBTChartCard extends StatelessWidget {
-  final List<DailyLog> logs;
+  final List<DailyLogRecord> logs;
   final ColorScheme colorScheme;
 
   const _BBTChartCard({
@@ -742,7 +742,7 @@ class _BBTChartCard extends StatelessWidget {
 // ═════════════════════════════════════════════════════════
 
 class _CyclePhaseCard extends StatelessWidget {
-  final List<Period> periods;
+  final List<PeriodRecord> periods;
   final ColorScheme colorScheme;
 
   const _CyclePhaseCard({
@@ -764,7 +764,7 @@ class _CyclePhaseCard extends StatelessWidget {
       );
     }
 
-    final sorted = List<Period>.from(periods)
+    final sorted = List<PeriodRecord>.from(periods)
       ..sort((a, b) => b.startDate.compareTo(a.startDate));
     final latest = sorted.first;
     final now = DateTime.now();

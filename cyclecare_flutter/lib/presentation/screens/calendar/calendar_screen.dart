@@ -4,7 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../providers/app_providers.dart';
 import '../../../domain/engines/cycle_prediction_engine.dart';
-import '../../../core/utils/date_utils.dart';
+import '../../../data/database/app_database.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -23,10 +23,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   static const Color _ovulationBlue = Color(0xFF1E88E5);
   static const Color _fertileGreen = Color(0xFF43A047);
 
+  DateTime _normalize(DateTime d) => DateTime(d.year, d.month, d.day);
+
   @override
   Widget build(BuildContext context) {
-    final cycleData = ref.watch(cycleDataProvider);
-    final predictions = ref.watch(cyclePredictionProvider);
+    final periodsAsync = ref.watch(periodsProvider);
+    final prediction = ref.watch(cyclePredictionProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,8 +38,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildCycleInfoCard(context, predictions),
-            _buildCalendar(context, cycleData, predictions),
+            _buildCycleInfoCard(context, prediction),
+            _buildCalendar(context, periodsAsync, prediction),
             const SizedBox(height: 100),
           ],
         ),
@@ -46,9 +48,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Cycle info card
-  // ---------------------------------------------------------------------------
   Widget _buildCycleInfoCard(
     BuildContext context,
     AsyncValue<CyclePrediction> predictions,
@@ -79,14 +78,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   _buildInfoTile(
                     context,
                     label: 'Cycle Day',
-                    value: '${prediction.currentCycleDay}',
+                    value: '${prediction.cycleDay}',
                     icon: Icons.today,
                     color: _primaryPink,
                   ),
                   _buildInfoTile(
                     context,
                     label: 'Next Period',
-                    value: '${prediction.daysUntilNextPeriod}d',
+                    value: '${prediction.daysUntilPeriod}d',
                     icon: Icons.schedule,
                     color: _periodRed,
                   ),
@@ -99,8 +98,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                   _buildInfoTile(
                     context,
-                    label: 'Fertility',
-                    value: prediction.fertilityStatus,
+                    label: 'Confidence',
+                    value: '${(prediction.confidenceScore * 100).round()}%',
                     icon: Icons.favorite,
                     color: _fertileGreen,
                   ),
@@ -170,17 +169,34 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Calendar with markers
-  // ---------------------------------------------------------------------------
   Widget _buildCalendar(
     BuildContext context,
-    AsyncValue<Map<DateTime, DayLog>> cycleData,
-    AsyncValue<CyclePrediction> predictions,
+    AsyncValue<List<PeriodRecord>> periodsAsync,
+    AsyncValue<CyclePrediction> predictionAsync,
   ) {
-    final periodDays = predictions.valueOrNull?.periodDays ?? <DateTime>{};
-    final ovulationDay = predictions.valueOrNull?.ovulationDay;
-    final fertileDays = predictions.valueOrNull?.fertileDays ?? <DateTime>{};
+    final prediction = predictionAsync.valueOrNull;
+    final periods = periodsAsync.valueOrNull ?? [];
+
+    // Build period day set from actual records
+    final periodDays = <DateTime>{};
+    for (final p in periods) {
+      final end = p.endDate ?? p.startDate.add(const Duration(days: 4));
+      for (var d = p.startDate; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
+        periodDays.add(_normalize(d));
+      }
+    }
+
+    // Build fertile window set from prediction
+    final fertileDays = <DateTime>{};
+    DateTime? ovulationDay;
+    if (prediction != null) {
+      ovulationDay = prediction.ovulationDate;
+      for (var d = prediction.fertileWindowStart;
+          !d.isAfter(prediction.fertileWindowEnd);
+          d = d.add(const Duration(days: 1))) {
+        fertileDays.add(_normalize(d));
+      }
+    }
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -204,7 +220,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               _selectedDay = selectedDay;
               _focusedDay = focusedDay;
             });
-            _showDayDetailSheet(context, selectedDay, cycleData.valueOrNull);
           },
           onFormatChanged: (format) {
             setState(() {
@@ -239,7 +254,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
           calendarBuilders: CalendarBuilders<dynamic>(
             markerBuilder: (context, date, events) {
-              final normalized = AppDateUtils.normalize(date);
+              final normalized = _normalize(date);
               final markers = <Widget>[];
 
               if (periodDays.contains(normalized)) {
@@ -282,16 +297,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // FAB column
-  // ---------------------------------------------------------------------------
   Widget _buildFabColumn(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         FloatingActionButton.small(
           heroTag: 'logSymptom',
-          onPressed: () => _onLogSymptom(context),
+          onPressed: () => Navigator.pushNamed(context, '/daily-log'),
           backgroundColor: _primaryPink.withOpacity(0.85),
           child: const Icon(Icons.edit_note, color: Colors.white),
         ),
@@ -310,166 +322,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  void _onLogPeriodStart(BuildContext context) {
+  void _onLogPeriodStart(BuildContext context) async {
+    final db = ref.read(databaseProvider);
     final today = DateTime.now();
-    ref.read(cycleDataProvider.notifier).logPeriodStart(today);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Period start logged for today')),
+    await db.insertPeriod(
+      startDate: DateTime(today.year, today.month, today.day),
     );
-  }
-
-  void _onLogSymptom(BuildContext context) {
-    ref.read(logSymptomProvider.notifier).openLogSheet(
-          context,
-          _selectedDay ?? DateTime.now(),
-        );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Day detail bottom sheet
-  // ---------------------------------------------------------------------------
-  void _showDayDetailSheet(
-    BuildContext context,
-    DateTime day,
-    Map<DateTime, DayLog>? logs,
-  ) {
-    final normalized = AppDateUtils.normalize(day);
-    final dayLog = logs?[normalized];
-    final prediction = ref.read(cyclePredictionProvider).valueOrNull;
-    final isPeriodDay = prediction?.periodDays.contains(normalized) ?? false;
-    final isFertile = prediction?.fertileDays.contains(normalized) ?? false;
-    final isOvulation = prediction?.ovulationDay != null &&
-        isSameDay(day, prediction!.ovulationDay!);
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Drag handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Date title
-                Text(
-                  AppDateUtils.formatFull(day),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 16),
-
-                // Status chips
-                if (isPeriodDay)
-                  _buildStatusRow('Period Day', _periodRed, Icons.water_drop),
-                if (isOvulation)
-                  _buildStatusRow(
-                      'Ovulation Day', _ovulationBlue, Icons.circle),
-                if (isFertile && !isOvulation)
-                  _buildStatusRow('Fertile Window', _fertileGreen, Icons.eco),
-                if (!isPeriodDay && !isFertile && !isOvulation)
-                  _buildStatusRow('No special status', Colors.grey,
-                      Icons.remove_circle_outline),
-
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 8),
-
-                // Log summary header
-                Text(
-                  'Log Summary',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 8),
-
-                if (dayLog != null) ...[
-                  if (dayLog.symptoms.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: dayLog.symptoms
-                          .map((s) => Chip(
-                                label:
-                                    Text(s, style: const TextStyle(fontSize: 12)),
-                                visualDensity: VisualDensity.compact,
-                              ))
-                          .toList(),
-                    ),
-                  if (dayLog.mood != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.mood,
-                              size: 18, color: _primaryPink),
-                          const SizedBox(width: 8),
-                          Text('Mood: ${dayLog.mood}'),
-                        ],
-                      ),
-                    ),
-                  if (dayLog.notes != null && dayLog.notes!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.notes,
-                              size: 18, color: _primaryPink),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(dayLog.notes!)),
-                        ],
-                      ),
-                    ),
-                ] else
-                  Text(
-                    'No logs for this day.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatusRow(String label, Color color, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(color: color, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Period start logged for today')),
+      );
+    }
   }
 }

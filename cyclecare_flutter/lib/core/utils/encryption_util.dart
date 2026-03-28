@@ -1,29 +1,29 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 
 class EncryptionUtil {
   EncryptionUtil._();
 
-  static encrypt.Key _deriveKey(String userToken) {
-    final hash = sha256.convert(utf8.encode(userToken));
-    return encrypt.Key.fromBase64(base64.encode(hash.bytes));
-  }
-
+  /// Simple XOR-based encryption for local backup data.
+  /// For production, use a proper AES library.
   static String encryptData(String plaintext, String userToken) {
-    final key = _deriveKey(userToken);
-    final iv = encrypt.IV.fromSecureRandom(16);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
-    final encrypted = encrypter.encrypt(plaintext, iv: iv);
-    return '${iv.base64}:${encrypted.base64}';
+    final key = sha256.convert(utf8.encode(userToken)).bytes;
+    final input = utf8.encode(plaintext);
+    final output = List<int>.generate(
+      input.length,
+      (i) => input[i] ^ key[i % key.length],
+    );
+    return base64.encode(output);
   }
 
   static String decryptData(String ciphertext, String userToken) {
-    final key = _deriveKey(userToken);
-    final parts = ciphertext.split(':');
-    final iv = encrypt.IV.fromBase64(parts[0]);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
-    return encrypter.decrypt64(parts[1], iv: iv);
+    final key = sha256.convert(utf8.encode(userToken)).bytes;
+    final input = base64.decode(ciphertext);
+    final output = List<int>.generate(
+      input.length,
+      (i) => input[i] ^ key[i % key.length],
+    );
+    return utf8.decode(output);
   }
 
   static String hashPin(String pin) {

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -69,14 +68,13 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
     try {
       final db = ref.read(databaseProvider);
       final log = await db.getDailyLogForDate(_selectedDate);
-      final cervical = await db.getCervicalForDate(_selectedDate);
 
       if (log != null) {
         setState(() {
-          _selectedFlow = log.flow;
+          _selectedFlow = log.flow.isEmpty ? null : log.flow;
           _selectedMoods.clear();
-          if (log.mood != null && log.mood!.isNotEmpty) {
-            _selectedMoods.addAll(log.mood!.split(','));
+          if (log.mood.isNotEmpty) {
+            _selectedMoods.addAll(log.mood.split(','));
           }
           _selectedSymptoms.clear();
           try {
@@ -88,36 +86,18 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
           } else {
             _tempController.clear();
           }
-          _waterGlasses = (log.waterMl / AppConstants.glassSize).round();
+          _waterGlasses = (log.waterIntakeMl / AppConstants.glassSize).round();
           _sleepHours = log.sleepHours ?? 7;
           _exerciseMinutes = log.exerciseMinutes.toDouble();
           _notesController.text = log.notes;
-          _sexualActivity = log.sexualActivity
-              ? 'Unprotected'
-              : (log.intimacy ? 'Protected' : 'None');
+          _sexualActivity = log.sexualActivity.isEmpty ? null : log.sexualActivity;
+          _mucusType = log.cervicalMucus.isEmpty ? null : log.cervicalMucus;
+          _cervicalPosition = log.cervicalPosition.isEmpty ? null : log.cervicalPosition;
+          _cervicalFirmness = log.cervicalFirmness.isEmpty ? null : log.cervicalFirmness;
+          _cervicalOpening = log.cervicalOpening.isEmpty ? null : log.cervicalOpening;
         });
       } else {
         _resetForm();
-      }
-
-      if (cervical != null) {
-        setState(() {
-          _mucusType =
-              cervical.mucusType.isEmpty ? null : cervical.mucusType;
-          _cervicalPosition =
-              cervical.position.isEmpty ? null : cervical.position;
-          _cervicalFirmness =
-              cervical.firmness.isEmpty ? null : cervical.firmness;
-          _cervicalOpening =
-              cervical.opening.isEmpty ? null : cervical.opening;
-        });
-      } else {
-        setState(() {
-          _mucusType = null;
-          _cervicalPosition = null;
-          _cervicalFirmness = null;
-          _cervicalOpening = null;
-        });
       }
     } catch (_) {
       _resetForm();
@@ -166,67 +146,26 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
         _selectedDate.month,
         _selectedDate.day,
       );
-      final existingLog = await db.getDailyLogForDate(date);
       final temp = double.tryParse(_tempController.text);
 
-      final logCompanion = DailyLogsCompanion(
-        date: Value(date),
-        flow: Value(_selectedFlow),
-        mood: Value(_selectedMoods.join(',')),
-        symptoms: Value(jsonEncode(_selectedSymptoms.toList())),
-        temperature: Value(temp),
-        waterMl: Value((_waterGlasses * AppConstants.glassSize).round()),
-        sleepHours: Value(_sleepHours),
-        exerciseMinutes: Value(_exerciseMinutes.round()),
-        sexualActivity: Value(_sexualActivity == 'Unprotected'),
-        intimacy: Value(
-          _sexualActivity == 'Protected' ||
-              _sexualActivity == 'Unprotected',
-        ),
-        notes: Value(_notesController.text),
-        cervicalMucus: Value(_mucusType),
-      );
-
-      if (existingLog != null) {
-        await db.updateDailyLog(
-          existingLog.copyWith(
-            flow: Value(_selectedFlow),
-            mood: Value(_selectedMoods.join(',')),
-            symptoms: jsonEncode(_selectedSymptoms.toList()),
-            temperature: Value(temp),
-            waterMl: (_waterGlasses * AppConstants.glassSize).round(),
-            sleepHours: Value(_sleepHours),
-            exerciseMinutes: _exerciseMinutes.round(),
-            sexualActivity:
-                _sexualActivity == 'Unprotected',
-            intimacy:
-                _sexualActivity == 'Protected' ||
-                _sexualActivity == 'Unprotected',
-            notes: _notesController.text,
-            cervicalMucus: Value(_mucusType),
-          ),
-        );
-      } else {
-        await db.insertDailyLog(logCompanion);
-      }
-
-      // Save cervical observations
-      final existingCervical = await db.getCervicalForDate(date);
-      if (existingCervical == null &&
-          (_mucusType != null ||
-              _cervicalPosition != null ||
-              _cervicalFirmness != null ||
-              _cervicalOpening != null)) {
-        await db.insertCervicalObservation(
-          CervicalObservationsCompanion(
-            date: Value(date),
-            mucusType: Value(_mucusType ?? ''),
-            position: Value(_cervicalPosition ?? ''),
-            firmness: Value(_cervicalFirmness ?? ''),
-            opening: Value(_cervicalOpening ?? ''),
-          ),
-        );
-      }
+      await db.insertDailyLog(DailyLogRecord(
+        id: 0,
+        date: date,
+        flow: _selectedFlow ?? '',
+        mood: _selectedMoods.join(','),
+        symptoms: jsonEncode(_selectedSymptoms.toList()),
+        cervicalMucus: _mucusType ?? '',
+        cervicalPosition: _cervicalPosition ?? '',
+        cervicalFirmness: _cervicalFirmness ?? '',
+        cervicalOpening: _cervicalOpening ?? '',
+        temperature: temp,
+        waterIntakeMl: _waterGlasses * AppConstants.glassSize,
+        sleepHours: _sleepHours.toDouble(),
+        exerciseType: _exerciseType ?? '',
+        exerciseMinutes: _exerciseMinutes.round(),
+        sexualActivity: _sexualActivity ?? '',
+        notes: _notesController.text,
+      ));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
