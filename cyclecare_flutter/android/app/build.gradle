@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.cyclecare.flutter"
-    compileSdk 34
+    compileSdk 35
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -43,7 +43,7 @@ android {
     defaultConfig {
         applicationId "com.cyclecare.flutter"
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
