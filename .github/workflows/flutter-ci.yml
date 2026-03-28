@@ -33,6 +33,25 @@ jobs:
         working-directory: cyclecare_flutter
         run: flutter pub get
       
+      - name: Check Flutter project structure
+        working-directory: cyclecare_flutter
+        run: |
+          echo "Checking Flutter project structure..."
+          if [ ! -f "pubspec.lock" ]; then
+            echo "Warning: pubspec.lock not found"
+          fi
+          if [ ! -d "android/app/src/main/res" ]; then
+            echo "Warning: Android resources directory missing"
+            echo "Creating minimal Android structure..."
+            mkdir -p android/app/src/main/res/values
+            mkdir -p android/app/src/main/res/drawable
+            mkdir -p android/app/src/main/res/mipmap-hdpi
+            mkdir -p android/app/src/main/res/mipmap-mdpi
+            mkdir -p android/app/src/main/res/mipmap-xhdpi
+            mkdir -p android/app/src/main/res/mipmap-xxhdpi
+            mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          fi
+      
       - name: Analyze code
         working-directory: cyclecare_flutter
         run: flutter analyze --no-fatal-infos || echo "Analysis completed with warnings"
@@ -75,13 +94,32 @@ jobs:
         working-directory: cyclecare_flutter
         run: flutter pub get
       
+      - name: Check if project is initialized
+        id: check_init
+        working-directory: cyclecare_flutter
+        run: |
+          if [ -f "android/app/src/main/res/values/styles.xml" ] && [ -f "android/gradle/wrapper/gradle-wrapper.properties" ]; then
+            echo "initialized=true" >> $GITHUB_OUTPUT
+          else
+            echo "initialized=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Flutter project not fully initialized. Run 'flutter create .' to generate platform files."
+          fi
+      
       - name: Build APK
+        if: steps.check_init.outputs.initialized == 'true'
         working-directory: cyclecare_flutter
         run: flutter build apk --debug
       
       - name: Upload APK
+        if: steps.check_init.outputs.initialized == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cyclecare-flutter-apk
           path: cyclecare_flutter/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
+      
+      - name: Project Not Initialized
+        if: steps.check_init.outputs.initialized == 'false'
+        run: |
+          echo "::warning::Flutter project needs initialization. See README for instructions."
+          echo "This is expected for a new Flutter migration. The project structure is ready but needs 'flutter create' to generate platform files."

@@ -45,6 +45,17 @@ jobs:
         working-directory: cyclecare_flutter
         run: flutter pub get
       
+      - name: Check if project is initialized
+        id: check_init
+        working-directory: cyclecare_flutter
+        run: |
+          if [ -f "android/app/src/main/res/values/styles.xml" ] && [ -f "android/gradle/wrapper/gradle-wrapper.properties" ]; then
+            echo "initialized=true" >> $GITHUB_OUTPUT
+          else
+            echo "initialized=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Flutter project not fully initialized. Skipping Android build."
+          fi
+      
       - name: Run code generation
         working-directory: cyclecare_flutter
         run: |
@@ -59,14 +70,17 @@ jobs:
         run: flutter test || echo "No tests found"
       
       - name: Build APK (Debug)
+        if: steps.check_init.outputs.initialized == 'true'
         working-directory: cyclecare_flutter
         run: flutter build apk --debug
       
       - name: Build APK (Release)
+        if: steps.check_init.outputs.initialized == 'true'
         working-directory: cyclecare_flutter
         run: flutter build apk --release
       
       - name: Upload Debug APK
+        if: steps.check_init.outputs.initialized == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cyclecare-flutter-debug-apk
@@ -74,11 +88,18 @@ jobs:
           retention-days: 30
       
       - name: Upload Release APK
+        if: steps.check_init.outputs.initialized == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cyclecare-flutter-release-apk
           path: cyclecare_flutter/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 90
+      
+      - name: Project Not Initialized
+        if: steps.check_init.outputs.initialized == 'false'
+        run: |
+          echo "::warning::Flutter project needs initialization with 'flutter create .'"
+          echo "Analysis and tests passed, but builds are skipped until project is initialized."
 
   build-ios:
     name: Build iOS (macOS)

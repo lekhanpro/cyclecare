@@ -2,6 +2,24 @@
 
 A beautiful, privacy-first menstrual cycle tracking app built with Flutter.
 
+## ⚠️ Project Status
+
+This is a **work-in-progress** Flutter migration. The project structure has been created but requires Flutter SDK to be properly initialized.
+
+### To Initialize This Project
+
+```bash
+# Install Flutter SDK first
+# https://docs.flutter.dev/get-started/install
+
+# Then run:
+cd cyclecare_flutter
+flutter create . --org com.cyclecare
+flutter pub get
+```
+
+This will generate the necessary platform-specific files (Android, iOS, Web).
+
 ## Features
 
 - **Cycle Tracking**: Interactive calendar with period, fertile, and ovulation predictions
