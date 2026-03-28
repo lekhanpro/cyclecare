@@ -7,6 +7,8 @@ import com.cyclecare.app.data.local.dao.*
 import com.cyclecare.app.data.repository.*
 import com.cyclecare.app.domain.engine.CyclePredictionEngine
 import com.cyclecare.app.domain.repository.*
+import com.cyclecare.app.domain.repository.PregnancyRepository
+import com.cyclecare.app.domain.repository.BirthControlRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -91,4 +93,17 @@ object AppModule {
     @Singleton
     fun provideHealthDataRepository(healthDataDao: HealthDataDao): HealthDataRepository =
         HealthDataRepositoryImpl(healthDataDao)
+
+    @Provides
+    @Singleton
+    fun providePregnancyRepository(pregnancyDataDao: PregnancyDataDao): PregnancyRepository =
+        PregnancyRepositoryImpl(pregnancyDataDao)
+
+    @Provides
+    @Singleton
+    fun provideBirthControlRepository(
+        birthControlDao: BirthControlDao,
+        dailyLogDao: DailyLogDao
+    ): BirthControlRepository =
+        BirthControlRepositoryImpl(birthControlDao, dailyLogDao)
 }
