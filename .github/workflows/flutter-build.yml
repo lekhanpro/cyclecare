@@ -6,9 +6,8 @@ on:
       - flutter-migration
       - flutter-full-implementation
       - main
-    paths:
-      - 'cyclecare_flutter/**'
-      - '.github/workflows/flutter-build.yml'
+    tags:
+      - 'flutter-v*'
   pull_request:
     branches:
       - flutter-migration
