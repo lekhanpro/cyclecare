@@ -102,16 +102,24 @@ jobs:
         working-directory: cyclecare_flutter
         run: flutter pub get
       
-      - name: Run code generation
+      - name: Check if iOS is configured
+        id: check_ios
         working-directory: cyclecare_flutter
         run: |
-          flutter pub run build_runner build --delete-conflicting-outputs || echo "Code generation skipped (no generated files yet)"
+          if [ -d "ios" ] && [ -f "ios/Runner.xcodeproj/project.pbxproj" ]; then
+            echo "configured=true" >> $GITHUB_OUTPUT
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "iOS not configured yet - skipping build"
+          fi
       
       - name: Build iOS (No Codesign)
+        if: steps.check_ios.outputs.configured == 'true'
         working-directory: cyclecare_flutter
         run: flutter build ios --release --no-codesign
       
       - name: Create iOS Archive
+        if: steps.check_ios.outputs.configured == 'true'
         working-directory: cyclecare_flutter
         run: |
           mkdir -p build/ios-archive
@@ -120,6 +128,7 @@ jobs:
           zip -r ../cyclecare-flutter-ios.zip Runner.app
       
       - name: Upload iOS Build
+        if: steps.check_ios.outputs.configured == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cyclecare-flutter-ios-build
@@ -148,16 +157,24 @@ jobs:
         working-directory: cyclecare_flutter
         run: flutter pub get
       
-      - name: Run code generation
+      - name: Check if Web is configured
+        id: check_web
         working-directory: cyclecare_flutter
         run: |
-          flutter pub run build_runner build --delete-conflicting-outputs || echo "Code generation skipped (no generated files yet)"
+          if [ -d "web" ] && [ -f "web/index.html" ]; then
+            echo "configured=true" >> $GITHUB_OUTPUT
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "Web not configured yet - skipping build"
+          fi
       
       - name: Build Web
+        if: steps.check_web.outputs.configured == 'true'
         working-directory: cyclecare_flutter
         run: flutter build web --release
       
       - name: Upload Web Build
+        if: steps.check_web.outputs.configured == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cyclecare-flutter-web
@@ -166,7 +183,7 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: [build-android, build-ios, build-web]
+    needs: [build-android]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/flutter-v')
     
@@ -180,22 +197,27 @@ jobs:
           name: cyclecare-flutter-release-apk
           path: ./artifacts/
       
-      - name: Download iOS Build
+      - name: Download iOS Build (if available)
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: cyclecare-flutter-ios-build
           path: ./artifacts/
       
-      - name: Download Web Build
+      - name: Download Web Build (if available)
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: cyclecare-flutter-web
           path: ./artifacts/web/
       
-      - name: Create Web Archive
+      - name: Create Web Archive (if available)
+        continue-on-error: true
         run: |
-          cd ./artifacts/web
-          zip -r ../cyclecare-flutter-web.zip .
+          if [ -d "./artifacts/web" ]; then
+            cd ./artifacts/web
+            zip -r ../cyclecare-flutter-web.zip .
+          fi
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -208,9 +230,9 @@ jobs:
             # CycleCare Flutter Release
             
             ## Downloads
-            - **Android**: app-release.apk
-            - **iOS**: cyclecare-flutter-ios.zip (requires signing)
-            - **Web**: cyclecare-flutter-web.zip
+            - **Android**: app-release.apk (ready to install)
+            - **iOS**: cyclecare-flutter-ios.zip (requires signing) - if available
+            - **Web**: cyclecare-flutter-web.zip (host on web server) - if available
             
             ## Installation
             
@@ -219,12 +241,12 @@ jobs:
             2. Enable "Install from unknown sources"
             3. Install the APK
             
-            ### iOS
+            ### iOS (if available)
             1. Download and extract cyclecare-flutter-ios.zip
             2. Sign with your Apple Developer certificate
             3. Install via Xcode or TestFlight
             
-            ### Web
+            ### Web (if available)
             1. Download and extract cyclecare-flutter-web.zip
             2. Host on any web server
             

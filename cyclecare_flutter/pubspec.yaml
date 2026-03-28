@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
 
 dependencies:
   flutter:
@@ -25,7 +26,7 @@ dependencies:
   
   # UI
   cupertino_icons: ^1.0.6
-  google_fonts: ^6.1.0
+  google_fonts: ^4.0.5
   fl_chart: ^0.65.0
   table_calendar: ^3.0.9
   intl: ^0.18.1
