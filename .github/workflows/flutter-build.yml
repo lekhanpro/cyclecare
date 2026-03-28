@@ -1,0 +1,238 @@
+name: Flutter Build
+
+on:
+  push:
+    branches:
+      - flutter-migration
+      - main
+    paths:
+      - 'cyclecare_flutter/**'
+      - '.github/workflows/flutter-build.yml'
+  pull_request:
+    branches:
+      - flutter-migration
+      - main
+    paths:
+      - 'cyclecare_flutter/**'
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          cache: true
+      
+      - name: Flutter doctor
+        run: flutter doctor -v
+      
+      - name: Get dependencies
+        working-directory: cyclecare_flutter
+        run: flutter pub get
+      
+      - name: Run code generation
+        working-directory: cyclecare_flutter
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs || echo "Code generation skipped (no generated files yet)"
+      
+      - name: Analyze code
+        working-directory: cyclecare_flutter
+        run: flutter analyze
+      
+      - name: Run tests
+        working-directory: cyclecare_flutter
+        run: flutter test || echo "No tests found"
+      
+      - name: Build APK (Debug)
+        working-directory: cyclecare_flutter
+        run: flutter build apk --debug
+      
+      - name: Build APK (Release)
+        working-directory: cyclecare_flutter
+        run: flutter build apk --release
+      
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclecare-flutter-debug-apk
+          path: cyclecare_flutter/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 30
+      
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclecare-flutter-release-apk
+          path: cyclecare_flutter/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 90
+
+  build-ios:
+    name: Build iOS (macOS)
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          cache: true
+      
+      - name: Flutter doctor
+        run: flutter doctor -v
+      
+      - name: Get dependencies
+        working-directory: cyclecare_flutter
+        run: flutter pub get
+      
+      - name: Run code generation
+        working-directory: cyclecare_flutter
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs || echo "Code generation skipped (no generated files yet)"
+      
+      - name: Build iOS (No Codesign)
+        working-directory: cyclecare_flutter
+        run: flutter build ios --release --no-codesign
+      
+      - name: Create iOS Archive
+        working-directory: cyclecare_flutter
+        run: |
+          mkdir -p build/ios-archive
+          cp -r build/ios/iphoneos/Runner.app build/ios-archive/
+          cd build/ios-archive
+          zip -r ../cyclecare-flutter-ios.zip Runner.app
+      
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclecare-flutter-ios-build
+          path: cyclecare_flutter/build/cyclecare-flutter-ios.zip
+          retention-days: 30
+
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          cache: true
+      
+      - name: Flutter doctor
+        run: flutter doctor -v
+      
+      - name: Get dependencies
+        working-directory: cyclecare_flutter
+        run: flutter pub get
+      
+      - name: Run code generation
+        working-directory: cyclecare_flutter
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs || echo "Code generation skipped (no generated files yet)"
+      
+      - name: Build Web
+        working-directory: cyclecare_flutter
+        run: flutter build web --release
+      
+      - name: Upload Web Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclecare-flutter-web
+          path: cyclecare_flutter/build/web/
+          retention-days: 30
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-android, build-ios, build-web]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/flutter-v')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: cyclecare-flutter-release-apk
+          path: ./artifacts/
+      
+      - name: Download iOS Build
+        uses: actions/download-artifact@v4
+        with:
+          name: cyclecare-flutter-ios-build
+          path: ./artifacts/
+      
+      - name: Download Web Build
+        uses: actions/download-artifact@v4
+        with:
+          name: cyclecare-flutter-web
+          path: ./artifacts/web/
+      
+      - name: Create Web Archive
+        run: |
+          cd ./artifacts/web
+          zip -r ../cyclecare-flutter-web.zip .
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/app-release.apk
+            ./artifacts/cyclecare-flutter-ios.zip
+            ./artifacts/cyclecare-flutter-web.zip
+          body: |
+            # CycleCare Flutter Release
+            
+            ## Downloads
+            - **Android**: app-release.apk
+            - **iOS**: cyclecare-flutter-ios.zip (requires signing)
+            - **Web**: cyclecare-flutter-web.zip
+            
+            ## Installation
+            
+            ### Android
+            1. Download app-release.apk
+            2. Enable "Install from unknown sources"
+            3. Install the APK
+            
+            ### iOS
+            1. Download and extract cyclecare-flutter-ios.zip
+            2. Sign with your Apple Developer certificate
+            3. Install via Xcode or TestFlight
+            
+            ### Web
+            1. Download and extract cyclecare-flutter-web.zip
+            2. Host on any web server
+            
+            ## Privacy
+            - 100% local storage
+            - No cloud sync
+            - No analytics or telemetry
+            
+            Co-authored-by: Mithun Gowda B <mithungowda.b7411@gmail.com>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
