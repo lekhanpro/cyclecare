@@ -25,7 +25,8 @@ import javax.inject.Inject
 class CalendarViewModel @Inject constructor(
     private val periodRepository: PeriodRepository,
     private val dailyLogRepository: DailyLogRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val amenorrheaDetectionEngine: com.cyclecare.app.domain.engine.AmenorrheaDetectionEngine
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalendarUiState())
@@ -35,6 +36,7 @@ class CalendarViewModel @Inject constructor(
         observePeriods()
         refreshPrediction()
         observeOnboarding()
+        checkAmenorrhea()
     }
 
     private fun observePeriods() {
@@ -152,6 +154,31 @@ class CalendarViewModel @Inject constructor(
             else -> "Low fertility"
         }
     }
+    
+    private fun checkAmenorrhea() {
+        viewModelScope.launch {
+            val periods = periodRepository.getAllPeriods().first()
+            val recentLogs = dailyLogRepository.getLogsInRange(
+                LocalDate.now().minusDays(90),
+                LocalDate.now()
+            ).first()
+            val settings = settingsRepository.getSettings().first()
+            
+            val result = amenorrheaDetectionEngine.detectAmenorrhea(
+                periods = periods,
+                recentLogs = recentLogs,
+                isPregnant = settings.pregnancyMode,
+                isBreastfeeding = settings.breastfeedingMode,
+                isMenopause = settings.menopauseMode
+            )
+            
+            _uiState.update { it.copy(amenorrheaAlert = result) }
+        }
+    }
+    
+    fun dismissAmenorrheaAlert() {
+        _uiState.update { it.copy(amenorrheaAlert = null) }
+    }
 }
 
 data class CalendarUiState(
@@ -162,6 +189,7 @@ data class CalendarUiState(
     val fertilityStatus: String = "Need more data",
     val lastPeriodStart: LocalDate? = null,
     val showOnboarding: Boolean = false,
+    val amenorrheaAlert: com.cyclecare.app.domain.model.AmenorrheaResult? = null,
     val isLoading: Boolean = true,
     val error: String? = null
 )
