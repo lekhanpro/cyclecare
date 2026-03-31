@@ -16,6 +16,9 @@ on:
       - 'cyclecare_flutter/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-android:
     name: Build Android APK
@@ -236,7 +239,7 @@ jobs:
           fi
       
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             ./artifacts/app-release.apk
