@@ -116,7 +116,7 @@ class _HealthConditionsScreenState extends ConsumerState<HealthConditionsScreen>
           // Pain mapping link
           Card(
             child: ListTile(
-              leading: const Icon(Icons.body_chart, color: Colors.orange),
+              leading: const Icon(Icons.accessibility_new, color: Colors.orange),
               title: const Text('Pain Mapping'),
               subtitle: const Text('Track pain locations on body map'),
               trailing: const Icon(Icons.chevron_right),

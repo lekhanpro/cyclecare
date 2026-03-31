@@ -865,7 +865,7 @@ class _CyclePhaseCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: (daysSinceStart / avgCycle).clamp(0.0, 1.0),
               minHeight: 8,
-              backgroundColor: colorScheme.surfaceContainerHighest,
+              backgroundColor: colorScheme.surfaceVariant,
               color: phaseColor,
             ),
           ),
