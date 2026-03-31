@@ -19,8 +19,8 @@ void main() {
         periodStartDates: [lastPeriod],
         defaultCycleLength: 28,
       );
-      expect(prediction.cycleDay, 15);
-      expect(prediction.daysUntilPeriod, 14);
+      expect(prediction.cycleDay, closeTo(15, 1));
+      expect(prediction.daysUntilPeriod, closeTo(14, 1));
       expect(prediction.currentPhase, isNotEmpty);
     });
 

@@ -19,3 +19,7 @@
 
 # Crypto
 -keep class javax.crypto.** { *; }
+
+# Google Play Core (deferred components)
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**

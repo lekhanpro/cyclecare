@@ -8,6 +8,7 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(child: CycleCareApp()),
     );
+    await tester.pumpAndSettle(const Duration(seconds: 1));
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 }
