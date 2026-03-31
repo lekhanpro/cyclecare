@@ -167,7 +167,10 @@ class AppDatabase {
   }
 
   // ── Periods ──
-  Stream<List<PeriodRecord>> watchAllPeriods() => _periodsController.stream;
+  Stream<List<PeriodRecord>> watchAllPeriods() async* {
+    yield List.unmodifiable(_periods);
+    yield* _periodsController.stream;
+  }
   Future<List<PeriodRecord>> getAllPeriods() async => List.unmodifiable(_periods);
 
   Future<PeriodRecord?> getLatestPeriod() async {
@@ -196,7 +199,10 @@ class AppDatabase {
   }
 
   // ── Daily Logs ──
-  Stream<List<DailyLogRecord>> watchAllDailyLogs() => _dailyLogsController.stream;
+  Stream<List<DailyLogRecord>> watchAllDailyLogs() async* {
+    yield List.unmodifiable(_dailyLogs);
+    yield* _dailyLogsController.stream;
+  }
   Future<List<DailyLogRecord>> getAllDailyLogs() async => List.unmodifiable(_dailyLogs);
 
   Future<DailyLogRecord?> getDailyLogForDate(DateTime date) async {

@@ -23,3 +23,14 @@
 # Google Play Core (deferred components)
 -keep class com.google.android.play.core.** { *; }
 -dontwarn com.google.android.play.core.**
+
+# Flutter Local Notifications
+-keep class com.dexterous.** { *; }
+-dontwarn com.dexterous.**
+
+# SharedPreferences
+-keep class androidx.datastore.** { *; }
+-dontwarn androidx.datastore.**
+
+# Keep JSON model classes used with jsonDecode
+-keep class com.cyclecare.flutter.** { *; }

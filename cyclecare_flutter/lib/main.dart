@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/utils/notification_helper.dart';
+import 'data/database/app_database.dart';
 import 'presentation/app.dart';
 
 void main() async {
@@ -13,9 +14,17 @@ void main() async {
   // Initialize timezone data for notifications
   tz.initializeTimeZones();
 
-  // Initialize notifications (not on web)
+  // Initialize database (must happen before runApp)
+  await AppDatabase.instance.initialize();
+
+  // Initialize notifications (not on web) - wrapped in try/catch
+  // so a failure doesn't block the entire app
   if (!kIsWeb) {
-    await NotificationHelper.initialize();
+    try {
+      await NotificationHelper.initialize();
+    } catch (_) {
+      // Notification init can fail on some devices - app still works
+    }
   }
 
   // Set preferred orientations (not on web)
