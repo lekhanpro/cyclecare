@@ -38,13 +38,5 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>NSFaceIDUsageDescription</key>
-	<string>CycleCare uses Face ID to protect your private health data.</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>CycleCare needs calendar access to add appointment reminders.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CycleCare needs photo access to attach images to daily logs.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>CycleCare needs camera access to take photos for daily logs.</string>
 </dict>
 </plist>

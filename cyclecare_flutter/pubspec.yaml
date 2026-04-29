@@ -1,45 +1,22 @@
 name: cyclecare_flutter
-description: A privacy-first menstrual cycle tracking app
+description: CycleCare, a privacy-first menstrual cycle tracker for iOS and Android.
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.10.0'
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: '>=3.16.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # State Management
   flutter_riverpod: ^2.4.9
 
-  # Local Storage
   shared_preferences: ^2.2.2
-  path_provider: ^2.1.1
 
-  # UI
   cupertino_icons: ^1.0.6
-  google_fonts: ^4.0.5
-  fl_chart: ^0.65.0
-  table_calendar: ^3.0.9
   intl: ^0.18.1
-  smooth_page_indicator: ^1.1.0
-  flutter_markdown: ^0.6.18
-
-  # Security
-  local_auth: ^2.1.7
-  flutter_secure_storage: ^9.0.0
-  crypto: ^3.0.3
-
-  # Notifications
-  flutter_local_notifications: ^16.3.0
-  timezone: ^0.9.2
-
-  # Utils
-  uuid: ^4.2.2
-  collection: ^1.18.0
-  url_launcher: ^6.2.2
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +25,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  assets:
-    - assets/education/

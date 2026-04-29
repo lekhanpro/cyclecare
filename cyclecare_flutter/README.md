@@ -1,108 +1,78 @@
 # CycleCare Flutter
 
-A beautiful, privacy-first menstrual cycle tracking app built with Flutter.
+CycleCare is a privacy-first menstrual cycle and period tracker built with Flutter. The current production scope is intentionally focused: onboarding, cycle prediction, a calendar-centric home screen, daily symptom logging, and basic settings.
 
-## ⚠️ Project Status
+## Requirements
 
-This is a **work-in-progress** Flutter migration. The project structure has been created but requires Flutter SDK to be properly initialized.
+- Flutter 3.16 or newer
+- Dart 3.2 or newer
+- Android SDK for Android builds
+- Xcode and CocoaPods on macOS for iOS builds
 
-### To Initialize This Project
+## Tech Choices
 
-```bash
-# Install Flutter SDK first
-# https://docs.flutter.dev/get-started/install
+- `flutter_riverpod`: app state, dependency injection, and screen updates.
+- `shared_preferences`: simple offline persistence for periods, logs, and settings.
+- `intl`: date labels and month formatting.
+- `cupertino_icons`: iOS-style tab and action icons.
 
-# Then run:
-cd cyclecare_flutter
-flutter create . --org com.cyclecare
-flutter pub get
-```
-
-This will generate the necessary platform-specific files (Android, iOS, Web).
-
-## Features
-
-- **Cycle Tracking**: Interactive calendar with period, fertile, and ovulation predictions
-- **Daily Logging**: Track 40+ symptoms, mood, flow, and health metrics
-- **Amenorrhea Detection**: AI-powered detection of missed periods with severity levels
-- **Health Insights**: Cycle trends, symptom analysis, and pattern recognition
-- **Privacy First**: 100% local storage, no cloud sync, PIN + biometric lock
-- **Multilingual**: Support for English, Hindi, Tamil, Telugu, Kannada
-- **Education Cards**: Contextual health education content
-- **Birth Control Tracking**: Pill reminders with streak tracking
-
-## Architecture
-
-- **State Management**: Riverpod
-- **Database**: Drift (SQLite)
-- **Local Storage**: Shared Preferences
-- **Notifications**: flutter_local_notifications
-- **Biometric Auth**: local_auth
-- **Charts**: fl_chart
+The app does not require an account, network API, analytics, or cloud sync.
 
 ## Project Structure
 
-```
+```text
 lib/
-├── core/              # Core utilities, constants, themes
-├── data/              # Data layer (database, repositories)
-│   ├── models/        # Data models
-│   ├── database/      # Drift database
-│   └── repositories/  # Repository implementations
-├── domain/            # Business logic
-│   ├── entities/      # Domain entities
-│   ├── repositories/  # Repository interfaces
-│   └── usecases/      # Use cases
-├── presentation/      # UI layer
-│   ├── screens/       # App screens
-│   ├── widgets/       # Reusable widgets
-│   └── providers/     # Riverpod providers
-└── main.dart          # App entry point
+  main.dart
+  core/
+    theme/
+    utils/
+  features/
+    app/
+    onboarding/
+    settings/
+    tracking/
+      application/
+      data/
+      domain/
+      presentation/
+  widgets/
 ```
 
-## Getting Started
+## Features
 
-### Prerequisites
+- Onboarding for last period date, average cycle length, and period length.
+- Home screen with cycle day, next expected period, and compact monthly calendar.
+- Full calendar with recorded period days, predicted period, fertile window, and ovulation marker.
+- Daily log form for flow, mood, symptoms, and notes.
+- Settings for cycle defaults, reminder UI, JSON export preview, and local data deletion.
+- Local-only persistence with `SharedPreferences`.
 
-- Flutter SDK 3.16.0 or higher
-- Dart 3.2.0 or higher
-
-### Installation
+## Run
 
 ```bash
-cd cyclecare_flutter
 flutter pub get
-
-# Format code (recommended before committing)
-dart format .
-
-# Run the app
 flutter run
 ```
 
-### Build
+## Android
 
 ```bash
-# Android
+flutter build apk --debug
 flutter build apk --release
-
-# iOS
-flutter build ios --release
 ```
 
-## Privacy
+## iOS
 
-- All data stored locally using Drift (SQLite)
-- No internet permission required
-- No analytics or telemetry
-- PIN + biometric authentication
-- Full data export capability
+Run from macOS:
 
-## License
+```bash
+flutter pub get
+cd ios
+pod install
+cd ..
+flutter run -d ios
+```
 
-MIT License
+## Notes
 
-## Authors
-
-- Lekhan HR
-- Mithun Gowda B <mithungowda.b7411@gmail.com>
+The original Kotlin Android app remains in the repository as source material for future feature ports such as notifications, biometric lock, birth-control tracking, pregnancy mode, and richer insights.
