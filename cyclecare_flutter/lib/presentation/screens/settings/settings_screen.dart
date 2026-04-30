@@ -44,7 +44,7 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: const Text('Hide in app switcher'),
               trailing: Switch(
                 value: ref.watch(privacyModeProvider),
-                onChanged: (v) => ref.read(privacyModeProvider.notifier).state = v,
+                onChanged: (v) => ref.read(privacyModeProvider.notifier).setPrivacyMode(v),
               ),
             ),
           ]),
@@ -87,7 +87,7 @@ class SettingsScreen extends ConsumerWidget {
               secondary: const Icon(Icons.dark_mode),
               title: const Text('Dark Mode'),
               value: isDark,
-              onChanged: (v) => ref.read(darkModeProvider.notifier).state = v,
+              onChanged: (v) => ref.read(darkModeProvider.notifier).setDarkMode(v),
             ),
             ListTile(
               leading: const Icon(Icons.palette),
@@ -240,7 +240,7 @@ class SettingsScreen extends ConsumerWidget {
         title: const Text('Select Mode'),
         children: modes.map((m) => SimpleDialogOption(
           onPressed: () {
-            ref.read(userModeProvider.notifier).state = m.$1;
+            ref.read(userModeProvider.notifier).setMode(m.$1);
             Navigator.pop(ctx);
           },
           child: ListTile(
@@ -283,7 +283,7 @@ class SettingsScreen extends ConsumerWidget {
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
               ElevatedButton(
                 onPressed: () {
-                  ref.read(cycleLengthProvider.notifier).state = value;
+                  ref.read(cycleLengthProvider.notifier).setLength(value);
                   Navigator.pop(ctx);
                 },
                 child: const Text('Save'),
@@ -321,7 +321,7 @@ class SettingsScreen extends ConsumerWidget {
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
               ElevatedButton(
                 onPressed: () {
-                  ref.read(periodLengthProvider.notifier).state = value;
+                  ref.read(periodLengthProvider.notifier).setLength(value);
                   Navigator.pop(ctx);
                 },
                 child: const Text('Save'),

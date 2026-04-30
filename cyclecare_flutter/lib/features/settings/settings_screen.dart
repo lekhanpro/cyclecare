@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/auth_providers.dart';
+import '../../core/services/security_service.dart';
 import '../../core/theme/cyclecare_theme.dart';
+import '../../presentation/providers/app_providers.dart';
 import '../../widgets/soft_card.dart';
 import '../auth/sign_in_screen.dart';
 import '../partner/partner_screen.dart';
+import '../reminders/reminders_screen.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
 import '../tracking/domain/cycle_models.dart';
 
@@ -164,6 +167,29 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
 
+            // AI Assistant
+            _SettingsGroup(
+              title: 'AI Assistant',
+              children: [
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Enable AI'),
+                  subtitle: const Text('Chat with CycleCare AI for educational info'),
+                  value: ref.watch(aiEnabledProvider),
+                  activeColor: CycleCareColors.rose,
+                  onChanged: (value) => ref.read(aiEnabledProvider.notifier).setEnabled(value),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Use personal data in AI'),
+                  subtitle: const Text('Allow AI to see cycle summaries for personalization'),
+                  value: ref.watch(aiUsePersonalDataProvider),
+                  activeColor: CycleCareColors.rose,
+                  onChanged: (value) => ref.read(aiUsePersonalDataProvider.notifier).setUsePersonalData(value),
+                ),
+              ],
+            ),
+
             // Reminders
             _SettingsGroup(
               title: 'Reminders',
@@ -178,6 +204,37 @@ class SettingsScreen extends ConsumerWidget {
                     ref,
                     data.preferences.copyWith(remindersEnabled: value),
                   ),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(CupertinoIcons.alarm, color: CycleCareColors.rose),
+                  title: const Text('Manage Reminders', style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: const Text('Add custom reminders and adjust times'),
+                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16, color: CycleCareColors.muted),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RemindersScreen())),
+                ),
+              ],
+            ),
+
+            // Privacy & Security
+            _SettingsGroup(
+              title: 'Privacy & Security',
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(CupertinoIcons.lock, color: CycleCareColors.rose),
+                  title: const Text('App Lock', style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: const Text('PIN or biometric authentication'),
+                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16, color: CycleCareColors.muted),
+                  onTap: () => _showAppLockDialog(context, ref),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Hide in app switcher'),
+                  subtitle: const Text('Mask app content in recent apps'),
+                  value: ref.watch(privacyModeProvider),
+                  activeColor: CycleCareColors.rose,
+                  onChanged: (value) => ref.read(privacyModeProvider.notifier).setPrivacyMode(value),
                 ),
               ],
             ),
@@ -264,6 +321,95 @@ class SettingsScreen extends ConsumerWidget {
 
   void _save(WidgetRef ref, CyclePreferences preferences) {
     ref.read(cycleTrackerControllerProvider.notifier).updatePreferences(preferences);
+  }
+
+  Future<void> _showAppLockDialog(BuildContext context, WidgetRef ref) async {
+    final security = ref.read(securityServiceProvider);
+    final canBio = await security.canUseBiometric;
+    final currentType = await security.lockType;
+    if (!context.mounted) return;
+
+    showCupertinoDialog(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('App Lock'),
+        content: const Text('Choose how to secure CycleCare.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final pin = await _askForPin(context);
+              if (pin != null && pin.length >= 4) {
+                await security.setPin(pin);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN lock enabled')));
+                }
+              }
+            },
+            child: const Text('Set PIN'),
+          ),
+          if (canBio)
+            CupertinoDialogAction(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final ok = await security.authenticateWithBiometric();
+                if (ok) {
+                  await security.enableBiometricLock();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Biometric lock enabled')));
+                  }
+                }
+              },
+              child: const Text('Use Biometric'),
+            ),
+          if (currentType != LockType.none)
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await security.disableLock();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lock disabled')));
+                }
+              },
+              child: const Text('Disable'),
+            ),
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _askForPin(BuildContext context) async {
+    final ctrl = TextEditingController();
+    final result = await showCupertinoDialog<String>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('Enter PIN'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: CupertinoTextField(
+            controller: ctrl,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            obscureText: true,
+            placeholder: '4-6 digits',
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, ctrl.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    return result;
   }
 
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {

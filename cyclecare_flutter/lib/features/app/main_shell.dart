@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/cyclecare_theme.dart';
+import '../ai/ai_chat_screen.dart';
 import '../partner/partner_dashboard_screen.dart';
+import '../reminders/reminders_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tracking/presentation/calendar_screen.dart';
 import '../tracking/presentation/home_screen.dart';
@@ -36,6 +38,11 @@ class MainShell extends StatelessWidget {
             label: 'Log',
           ),
           BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.sparkles),
+            activeIcon: Icon(CupertinoIcons.sparkles),
+            label: 'AI',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.person_2),
             activeIcon: Icon(CupertinoIcons.person_2_fill),
             label: 'Partner',
@@ -52,7 +59,8 @@ class MainShell extends StatelessWidget {
           0 => const HomeScreen(),
           1 => const CalendarScreen(),
           2 => const LogScreen(),
-          3 => const PartnerDashboardScreen(),
+          3 => const AIChatScreen(),
+          4 => const PartnerDashboardScreen(),
           _ => const SettingsScreen(),
         };
         return CupertinoTabView(

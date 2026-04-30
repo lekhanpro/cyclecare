@@ -23,7 +23,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
             subtitle: const Text('Use dark color scheme'),
             secondary: const Icon(Icons.dark_mode),
             value: isDark,
-            onChanged: (v) => ref.read(darkModeProvider.notifier).state = v,
+            onChanged: (v) => ref.read(darkModeProvider.notifier).setDarkMode(v),
           ),
           const Divider(),
           const SizedBox(height: 16),
@@ -45,7 +45,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
               final entry = AppConstants.themePalettes.entries.elementAt(i);
               final isSelected = currentColor == entry.value;
               return GestureDetector(
-                onTap: () => ref.read(themeColorProvider.notifier).state = entry.value,
+                onTap: () => ref.read(themeColorProvider.notifier).setColor(entry.value),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Color(entry.value),

@@ -6,6 +6,7 @@ import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/theme/cyclecare_theme.dart';
 import '../../../core/utils/date_helpers.dart';
+import '../../../domain/entities/amenorrhea_result.dart';
 import '../../../widgets/cycle_calendar.dart';
 import '../../../widgets/cycle_summary_card.dart';
 import '../../../widgets/primary_button.dart';
@@ -72,6 +73,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _UserAvatar(),
                   ],
                 ),
+                const SizedBox(height: 18),
+                AmenorrheaBanner(periods: data.periods),
                 const SizedBox(height: 18),
                 CycleSummaryCard(
                   prediction: data.prediction,
@@ -271,6 +274,93 @@ class _PhaseInfo {
   final String name;
   final Color color;
   final int days;
+}
+
+class AmenorrheaBanner extends StatelessWidget {
+  const AmenorrheaBanner({super.key, required this.periods});
+  final List<CycleEvent> periods;
+
+  @override
+  Widget build(BuildContext context) {
+    final result = _detect(periods);
+    if (result == null) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _severityColor(result.severity).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _severityColor(result.severity).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: _severityColor(result.severity), size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  result.severity.displayName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: _severityColor(result.severity),
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            result.description,
+            style: TextStyle(
+              color: _severityColor(result.severity).withOpacity(0.9),
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'This is a general observation, not a diagnosis. Please consult a healthcare professional if you are concerned.',
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  AmenorrheaResult? _detect(List<CycleEvent> periods) {
+    if (periods.isEmpty) return null;
+    final sorted = List<CycleEvent>.from(periods)
+      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+    final last = sorted.first;
+    final daysSince = DateTime.now().difference(last.startDate).inDays;
+    if (daysSince <= 45) return null;
+    final severity = daysSince >= 180
+        ? AmenorrheaSeverity.severe
+        : daysSince >= 90
+            ? AmenorrheaSeverity.moderate
+            : AmenorrheaSeverity.mild;
+    return AmenorrheaResult(
+      severity: severity,
+      daysSinceLastPeriod: daysSince,
+      description: 'It has been $daysSince days since your last logged period. ${severity.description}',
+    );
+  }
+
+  Color _severityColor(AmenorrheaSeverity severity) {
+    return switch (severity) {
+      AmenorrheaSeverity.mild => Colors.orange,
+      AmenorrheaSeverity.moderate => Colors.deepOrange,
+      AmenorrheaSeverity.severe => Colors.red,
+    };
+  }
 }
 
 class _SelectedDayCard extends StatelessWidget {
