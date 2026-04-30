@@ -17,6 +17,7 @@ release/
 
 # Gradle files
 .gradle/
+.gradle-cache/
 build/
 */build/
 
@@ -51,7 +52,7 @@ render.experimental.xml
 .cxx/
 
 # Google Services (e.g. APIs or Firebase)
-google-services.json
+# google-services.json (committed for CI build)
 
 # Freeline
 freeline.py
