@@ -356,6 +356,7 @@ class AmenorrheaBanner extends StatelessWidget {
 
   Color _severityColor(AmenorrheaSeverity severity) {
     return switch (severity) {
+      AmenorrheaSeverity.none => Colors.green,
       AmenorrheaSeverity.mild => Colors.orange,
       AmenorrheaSeverity.moderate => Colors.deepOrange,
       AmenorrheaSeverity.severe => Colors.red,

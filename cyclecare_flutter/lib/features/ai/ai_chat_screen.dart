@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/ai_service.dart';
 import '../../core/theme/cyclecare_theme.dart';
-import '../../core/providers/app_providers.dart';
+import '../../presentation/providers/app_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../domain/engines/cycle_prediction_engine.dart';
 

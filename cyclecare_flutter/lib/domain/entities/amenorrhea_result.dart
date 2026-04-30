@@ -62,6 +62,8 @@ class AmenorrheaResult {
   final List<String> recommendations;
   final bool dismissed;
 
+  final String description;
+
   const AmenorrheaResult({
     required this.severity,
     required this.daysSinceLastPeriod,
@@ -69,6 +71,7 @@ class AmenorrheaResult {
     this.contributingFactors = const [],
     this.recommendations = const [],
     this.dismissed = false,
+    this.description = '',
   });
 
   AmenorrheaResult copyWith({
@@ -78,6 +81,7 @@ class AmenorrheaResult {
     List<String>? contributingFactors,
     List<String>? recommendations,
     bool? dismissed,
+    String? description,
   }) {
     return AmenorrheaResult(
       severity: severity ?? this.severity,
@@ -86,6 +90,7 @@ class AmenorrheaResult {
       contributingFactors: contributingFactors ?? this.contributingFactors,
       recommendations: recommendations ?? this.recommendations,
       dismissed: dismissed ?? this.dismissed,
+      description: description ?? this.description,
     );
   }
 
@@ -97,6 +102,7 @@ class AmenorrheaResult {
       'contributingFactors': contributingFactors,
       'recommendations': recommendations,
       'dismissed': dismissed,
+      'description': description,
     };
   }
 
@@ -115,6 +121,7 @@ class AmenorrheaResult {
       recommendations:
           (json['recommendations'] as List<dynamic>?)?.cast<String>() ?? [],
       dismissed: json['dismissed'] as bool? ?? false,
+      description: json['description'] as String? ?? '',
     );
   }
 }

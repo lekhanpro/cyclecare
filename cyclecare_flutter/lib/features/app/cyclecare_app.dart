@@ -48,7 +48,7 @@ class _CycleCareAppState extends ConsumerState<CycleCareApp> with WidgetsBinding
     final tracker = ref.watch(cycleTrackerControllerProvider);
     final isDark = ref.watch(darkModeProvider);
     final themeColor = ref.watch(themeColorProvider);
-    ref.watch(authSyncProvider); // keep sync listener alive
+    ref.listen(authSyncProvider, (_, __) {}); // keep sync listener alive
 
     final lightTheme = CycleCareTheme.light.copyWith(
       colorScheme: ColorScheme.fromSeed(
