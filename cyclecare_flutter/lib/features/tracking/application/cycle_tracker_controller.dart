@@ -1,14 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/date_helpers.dart';
+import '../../../presentation/providers/app_providers.dart';
 import '../data/cycle_repository.dart';
 import '../domain/cycle_models.dart';
 import '../domain/cycle_prediction_service.dart';
-
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
-  return SharedPreferences.getInstance();
-});
 
 final cycleRepositoryProvider = FutureProvider<CycleRepository>((ref) async {
   final preferences = await ref.watch(sharedPreferencesProvider.future);

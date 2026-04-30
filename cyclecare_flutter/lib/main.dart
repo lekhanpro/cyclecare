@@ -9,12 +9,28 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await AppDatabase.instance.initialize();
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+  }
+  
+  try {
+    await AppDatabase.instance.initialize();
+  } catch (e) {
+    print('Database initialization failed: $e');
+  }
+  
+  try {
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+  } catch (e) {
+    print('Notification service initialization failed: $e');
+  }
+  
   runApp(
     const ProviderScope(
       child: CycleCareApp(),

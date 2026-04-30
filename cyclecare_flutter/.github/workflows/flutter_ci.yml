@@ -105,7 +105,7 @@ jobs:
         run: flutter pub get
       - name: Build Web
         working-directory: cyclecare_flutter
-        run: flutter build web
+        run: flutter build web --release
       - name: Upload Web Build
         uses: actions/upload-artifact@v4
         with:
@@ -127,3 +127,8 @@ jobs:
       - name: Build iOS (no codesign)
         working-directory: cyclecare_flutter
         run: flutter build ios --release --no-codesign
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: cyclecare_flutter/build/ios
