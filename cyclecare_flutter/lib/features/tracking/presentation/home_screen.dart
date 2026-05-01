@@ -34,13 +34,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(cycleTrackerControllerProvider);
+    ref.listen<AsyncValue<CycleTrackerState>>(
+      cycleTrackerControllerProvider,
+      (prev, next) {
+        next.whenData(_pushSharedData);
+      },
+    );
     return Scaffold(
       body: SafeArea(
         child: state.when(
           loading: () => const Center(child: CupertinoActivityIndicator()),
           error: (error, _) => Center(child: Text('CycleCare could not load: $error')),
           data: (data) {
-            _pushSharedData(data);
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
               children: [

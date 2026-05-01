@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../data/database/app_database.dart';
-import '../../domain/engines/cycle_prediction_engine.dart';
+import '../../features/tracking/domain/cycle_models.dart';
 
 abstract class AIClient {
   Future<String> sendMessage({
@@ -94,8 +93,8 @@ class AIContextBuilder {
   }
 
   List<Map<String, String>> buildUserContext({
-    required List<PeriodRecord> periods,
-    required List<DailyLogRecord> recentLogs,
+    required List<CycleEvent> periods,
+    required List<DailyLog> recentLogs,
     required CyclePrediction? prediction,
     required bool includeIntimacy,
   }) {
@@ -103,7 +102,7 @@ class AIContextBuilder {
     final summary = StringBuffer();
 
     if (periods.isNotEmpty) {
-      final sorted = List<PeriodRecord>.from(periods)
+      final sorted = List<CycleEvent>.from(periods)
         ..sort((a, b) => b.startDate.compareTo(a.startDate));
       summary.writeln('Recent periods:');
       for (final p in sorted.take(3)) {
@@ -116,7 +115,6 @@ class AIContextBuilder {
       summary.writeln('Current prediction:');
       summary.writeln('- Cycle day: ${prediction.cycleDay}');
       summary.writeln('- Days until next period: ${prediction.daysUntilPeriod}');
-      summary.writeln('- Phase: ${prediction.currentPhase}');
       summary.writeln('- Fertile window: ${prediction.fertileWindowStart.toIso8601String().split("T").first} to ${prediction.fertileWindowEnd.toIso8601String().split("T").first}');
     }
 
@@ -125,10 +123,9 @@ class AIContextBuilder {
       summary.writeln('Recent daily logs (last 7 days):');
       for (final log in recentLogs.take(7)) {
         final parts = <String>[
-          if (log.flow.isNotEmpty) 'flow: ${log.flow}',
-          if (log.mood.isNotEmpty) 'mood: ${log.mood}',
-          if (log.symptoms != '[]') 'symptoms: ${log.symptoms}',
-          if (includeIntimacy && log.sexualActivity.isNotEmpty) 'sexual activity: ${log.sexualActivity}',
+          if (log.flow != null) 'flow: ${log.flow!.name}',
+          if (log.mood != null) 'mood: ${log.mood}',
+          if (log.symptoms.isNotEmpty) 'symptoms: ${log.symptoms.join(", ")}',
         ];
         if (parts.isNotEmpty) {
           summary.writeln('- ${log.date.toIso8601String().split("T").first}: ${parts.join(", ")}');
@@ -164,8 +161,8 @@ class AIService {
     required String question,
     required bool allowPersonalData,
     required String trackingMode,
-    required List<PeriodRecord> periods,
-    required List<DailyLogRecord> recentLogs,
+    required List<CycleEvent> periods,
+    required List<DailyLog> recentLogs,
     required CyclePrediction? prediction,
     required bool includeIntimacy,
   }) async {

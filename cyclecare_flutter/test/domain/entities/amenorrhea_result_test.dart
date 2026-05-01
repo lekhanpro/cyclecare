@@ -54,10 +54,10 @@ void main() {
       expect(result.daysSinceLastPeriod, 190);
     });
 
-    test('AmenorrheaSeverity label returns correct text', () {
-      expect(AmenorrheaSeverity.mild.label, 'Mild');
-      expect(AmenorrheaSeverity.moderate.label, 'Moderate');
-      expect(AmenorrheaSeverity.severe.label, 'Severe');
+    test('AmenorrheaSeverity displayName returns correct text', () {
+      expect(AmenorrheaSeverity.mild.displayName, 'Slightly Delayed');
+      expect(AmenorrheaSeverity.moderate.displayName, 'Delayed');
+      expect(AmenorrheaSeverity.severe.displayName, 'Missed Period');
     });
   });
 }

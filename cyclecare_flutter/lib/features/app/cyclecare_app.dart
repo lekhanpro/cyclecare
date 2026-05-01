@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../../presentation/providers/app_providers.dart';
 import '../auth/landing_screen.dart';
-import '../onboarding/onboarding_screen.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
 import 'main_shell.dart';
 

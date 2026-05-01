@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/soft_card.dart';
+import '../app/main_shell.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<CycleTrackerState>>(
+      cycleTrackerControllerProvider,
+      (_, next) {
+        if (next.valueOrNull?.preferences.onboardingCompleted == true) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute<void>(builder: (_) => const MainShell()),
+            (_) => false,
+          );
+        }
+      },
+    );
     return Scaffold(
       body: SafeArea(
         child: ListView(

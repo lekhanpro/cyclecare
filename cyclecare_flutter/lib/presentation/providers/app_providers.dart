@@ -6,9 +6,32 @@ import '../../core/services/notification_service.dart';
 import '../../core/services/security_service.dart';
 import '../../data/database/app_database.dart';
 import '../../domain/engines/cycle_prediction_engine.dart';
+import '../../features/tracking/application/cycle_tracker_controller.dart';
 
 // Database provider
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase.instance);
+
+// Legacy providers kept for backward compatibility with presentation/screens/
+final periodsProvider = StreamProvider<List<PeriodRecord>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.watchAllPeriods();
+});
+
+final dailyLogsProvider = StreamProvider<List<DailyLogRecord>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.watchAllDailyLogs();
+});
+
+final latestPeriodProvider = FutureProvider<PeriodRecord?>((ref) async {
+  final db = ref.watch(databaseProvider);
+  return db.getLatestPeriod();
+});
+
+final cyclePredictionProvider = FutureProvider<CyclePrediction>((ref) async {
+  final trackerState = await ref.watch(cycleTrackerControllerProvider.future);
+  final startDates = trackerState.periods.map((p) => p.startDate).toList();
+  return CyclePredictionEngine.predict(periodStartDates: startDates);
+});
 
 // SharedPreferences provider
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
@@ -230,30 +253,6 @@ final appLockEnabledProvider = FutureProvider<bool>((ref) async {
   return service.isLockEnabled;
 });
 
-// Periods stream
-final periodsProvider = StreamProvider<List<PeriodRecord>>((ref) {
-  final db = ref.watch(databaseProvider);
-  return db.watchAllPeriods();
-});
-
-// Daily logs stream
-final dailyLogsProvider = StreamProvider<List<DailyLogRecord>>((ref) {
-  final db = ref.watch(databaseProvider);
-  return db.watchAllDailyLogs();
-});
-
-// Latest period
-final latestPeriodProvider = FutureProvider<PeriodRecord?>((ref) async {
-  final db = ref.watch(databaseProvider);
-  return db.getLatestPeriod();
-});
-
-// Cycle prediction provider
-final cyclePredictionProvider = FutureProvider<CyclePrediction>((ref) async {
-  final periods = await ref.watch(periodsProvider.future);
-  final startDates = periods.map((p) => p.startDate).toList();
-  return CyclePredictionEngine.predict(periodStartDates: startDates);
-});
 
 // Firebase sync service provider
 final firebaseSyncServiceProvider = Provider<FirebaseSyncService>((ref) {

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../ai/ai_chat_screen.dart';
 import '../partner/partner_dashboard_screen.dart';
-import '../reminders/reminders_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tracking/presentation/calendar_screen.dart';
 import '../tracking/presentation/home_screen.dart';

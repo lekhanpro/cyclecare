@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cyclecare_flutter/features/tracking/presentation/home_screen.dart';
 import 'package:cyclecare_flutter/features/tracking/application/cycle_tracker_controller.dart';
 import 'package:cyclecare_flutter/features/tracking/domain/cycle_models.dart';
-import 'package:cyclecare_flutter/presentation/providers/app_providers.dart';
 
 void main() {
   group('HomeScreen', () {
@@ -50,34 +49,25 @@ void main() {
   });
 }
 
-class FakeCycleTrackerController extends AsyncNotifier<CycleTrackerState> {
+class FakeCycleTrackerController extends CycleTrackerController {
   @override
   Future<CycleTrackerState> build() async {
-    return const CycleTrackerState(
-      periods: [],
-      logs: [],
-      preferences: CyclePreferences(),
+    return CycleTrackerState(
+      periods: const [],
+      logs: const [],
+      preferences: const CyclePreferences(),
       prediction: null,
-      selectedDate: null,
+      selectedDate: DateTime.now(),
     );
   }
 
-  static AsyncNotifierProvider<FakeCycleTrackerController, CycleTrackerState> loaded({
-    required List<PeriodLog> periods,
+  static AsyncNotifierProvider<CycleTrackerController, CycleTrackerState> loaded({
+    required List<CycleEvent> periods,
     required List<DailyLog> logs,
     required CyclePreferences preferences,
   }) {
-    return AsyncNotifierProvider<FakeCycleTrackerController, CycleTrackerState>(() {
-      final controller = FakeCycleTrackerController();
-      // ignore: invalid_use_of_protected_member
-      controller.state = AsyncData(CycleTrackerState(
-        periods: periods,
-        logs: logs,
-        preferences: preferences,
-        prediction: null,
-        selectedDate: DateTime.now(),
-      ));
-      return controller;
-    });
+    return AsyncNotifierProvider<CycleTrackerController, CycleTrackerState>(
+      FakeCycleTrackerController.new,
+    );
   }
 }

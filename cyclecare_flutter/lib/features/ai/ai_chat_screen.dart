@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/ai_service.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../../presentation/providers/app_providers.dart';
-import '../../data/database/app_database.dart';
-import '../../domain/engines/cycle_prediction_engine.dart';
+import '../../features/tracking/application/cycle_tracker_controller.dart';
 
 final aiChatMessagesProvider = StateProvider<List<AIChatMessage>>((ref) => []);
 final aiLoadingProvider = StateProvider<bool>((ref) => false);
@@ -78,21 +77,18 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     }
 
     _controller.clear();
-    setState(() {
-      ref.read(aiChatMessagesProvider.notifier).update((state) => [
-        ...state,
-        AIChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
-      ]);
-    });
+    ref.read(aiChatMessagesProvider.notifier).update((state) => [
+      ...state,
+      AIChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
+    ]);
     ref.read(aiLoadingProvider.notifier).state = true;
     _scrollToBottom();
 
     try {
-      final db = ref.read(databaseProvider);
-      final periods = await db.getAllPeriods();
-      final logs = await db.getAllDailyLogs();
-      final predictionAsync = ref.read(cyclePredictionProvider);
-      final prediction = predictionAsync.valueOrNull;
+      final trackerState = ref.read(cycleTrackerControllerProvider).valueOrNull;
+      final periods = trackerState?.periods ?? [];
+      final logs = trackerState?.logs ?? [];
+      final prediction = trackerState?.prediction;
 
       final service = ref.read(aiServiceProvider);
       final response = await service.ask(
@@ -105,34 +101,28 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
         includeIntimacy: false,
       );
 
-      setState(() {
-        ref.read(aiChatMessagesProvider.notifier).update((state) => [
-          ...state,
-          AIChatMessage(text: response, isUser: false, timestamp: DateTime.now()),
-        ]);
-      });
+      ref.read(aiChatMessagesProvider.notifier).update((state) => [
+        ...state,
+        AIChatMessage(text: response, isUser: false, timestamp: DateTime.now()),
+      ]);
     } on AIException catch (e) {
-      setState(() {
-        ref.read(aiChatMessagesProvider.notifier).update((state) => [
-          ...state,
-          AIChatMessage(
-            text: 'I\'m having trouble connecting right now. ${_suggestOffline(allowPersonal)}\n\n(Error: ${e.message})',
-            isUser: false,
-            timestamp: DateTime.now(),
-          ),
-        ]);
-      });
+      ref.read(aiChatMessagesProvider.notifier).update((state) => [
+        ...state,
+        AIChatMessage(
+          text: 'I\'m having trouble connecting right now. ${_suggestOffline(allowPersonal)}\n\n(Error: ${e.message})',
+          isUser: false,
+          timestamp: DateTime.now(),
+        ),
+      ]);
     } catch (e) {
-      setState(() {
-        ref.read(aiChatMessagesProvider.notifier).update((state) => [
-          ...state,
-          AIChatMessage(
-            text: 'Something went wrong. Please check your connection and try again.',
-            isUser: false,
-            timestamp: DateTime.now(),
-          ),
-        ]);
-      });
+      ref.read(aiChatMessagesProvider.notifier).update((state) => [
+        ...state,
+        AIChatMessage(
+          text: 'Something went wrong. Please check your connection and try again.',
+          isUser: false,
+          timestamp: DateTime.now(),
+        ),
+      ]);
     } finally {
       ref.read(aiLoadingProvider.notifier).state = false;
       _scrollToBottom();

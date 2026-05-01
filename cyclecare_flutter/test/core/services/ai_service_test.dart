@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cyclecare_flutter/core/services/ai_service.dart';
-import 'package:cyclecare_flutter/data/database/app_database.dart';
-import 'package:cyclecare_flutter/domain/engines/cycle_prediction_engine.dart';
+import 'package:cyclecare_flutter/features/tracking/domain/cycle_models.dart';
 
 class FakeAIClient implements AIClient {
   final String Function(String systemPrompt, List<Map<String, String>> messages)? onSend;
@@ -40,14 +39,13 @@ void main() {
       expect(prompt, contains('do NOT have access'));
     });
 
-    test('buildUserContext omits intimacy when includeIntimacy is false', () {
+    test('buildUserContext includes log mood and symptoms', () {
       final logs = [
-        DailyLogRecord(
-          id: 1, date: DateTime.now(),
-          flow: 'Light', mood: 'Calm', symptoms: '[]',
-          cervicalMucus: '', cervicalPosition: '', cervicalFirmness: '', cervicalOpening: '',
-          temperature: 0, sexualActivity: 'Protected', waterIntake: 0, sleepHours: 0,
-          exercise: '', notes: '',
+        DailyLog(
+          date: DateTime.now(),
+          flow: FlowIntensity.light,
+          mood: 'Calm',
+          symptoms: const ['Cramps'],
         ),
       ];
       final context = builder.buildUserContext(
@@ -58,27 +56,18 @@ void main() {
       );
       expect(context.length, 2);
       final userMsg = context.first['content']!;
-      expect(userMsg, isNot(contains('sexual activity')));
+      expect(userMsg, contains('mood: Calm'));
+      expect(userMsg, contains('symptoms: Cramps'));
     });
 
-    test('buildUserContext includes intimacy when enabled', () {
-      final logs = [
-        DailyLogRecord(
-          id: 1, date: DateTime.now(),
-          flow: 'Light', mood: 'Calm', symptoms: '[]',
-          cervicalMucus: '', cervicalPosition: '', cervicalFirmness: '', cervicalOpening: '',
-          temperature: 0, sexualActivity: 'Protected', waterIntake: 0, sleepHours: 0,
-          exercise: '', notes: '',
-        ),
-      ];
+    test('buildUserContext returns empty list when no data', () {
       final context = builder.buildUserContext(
         periods: [],
-        recentLogs: logs,
+        recentLogs: [],
         prediction: null,
-        includeIntimacy: true,
+        includeIntimacy: false,
       );
-      final userMsg = context.first['content']!;
-      expect(userMsg, contains('sexual activity'));
+      expect(context, isEmpty);
     });
   });
 

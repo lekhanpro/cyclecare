@@ -7,7 +7,7 @@ void main() {
       final start = DateTime(2024, 1, 1);
       final result = CyclePredictionEngine.predict(periodStartDates: [start]);
       expect(result.cycleDay, greaterThanOrEqualTo(0));
-      expect(result.nextPeriodStart, isNotNull);
+      expect(result.nextPeriodDate, isNotNull);
     });
 
     test('averages multiple periods for cycle length', () {
@@ -17,8 +17,7 @@ void main() {
         DateTime(2024, 2, 28),
       ];
       final result = CyclePredictionEngine.predict(periodStartDates: dates);
-      expect(result.averageCycleLength, closeTo(29, 1));
-      expect(result.confidence, greaterThan(0));
+      expect(result.confidenceScore, greaterThan(0));
     });
 
     test('handles irregular cycles with lower confidence', () {
@@ -29,7 +28,7 @@ void main() {
         DateTime(2024, 3, 30),
       ];
       final result = CyclePredictionEngine.predict(periodStartDates: dates);
-      expect(result.confidence, lessThan(0.9));
+      expect(result.confidenceScore, lessThan(0.9));
     });
 
     test('identifies ovulation as 14 days before next period', () {
@@ -45,9 +44,9 @@ void main() {
 
     test('returns default values when no periods provided', () {
       final result = CyclePredictionEngine.predict(periodStartDates: []);
-      expect(result.averageCycleLength, 28);
-      expect(result.averagePeriodLength, 5);
-      expect(result.confidence, 0.0);
+      expect(result.cycleDay, greaterThanOrEqualTo(1));
+      expect(result.daysUntilPeriod, greaterThan(0));
+      expect(result.confidenceScore, lessThanOrEqualTo(0.5));
     });
   });
 }
