@@ -6,11 +6,19 @@ import '../../core/theme/cyclecare_theme.dart';
 import '../../widgets/primary_button.dart';
 import '../onboarding/onboarding_screen.dart';
 
-class LandingScreen extends ConsumerWidget {
+class LandingScreen extends ConsumerStatefulWidget {
   const LandingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LandingScreen> createState() => _LandingScreenState();
+}
+
+class _LandingScreenState extends ConsumerState<LandingScreen> {
+  bool _signingIn = false;
+  String? _authError;
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
@@ -55,7 +63,7 @@ class LandingScreen extends ConsumerWidget {
                     Future.microtask(() => _goToOnboarding(context, ref));
                     return const SizedBox.shrink();
                   }
-                  return _buildButtons(context, ref);
+                  return _buildButtons(context);
                 },
               ),
               const Spacer(),
@@ -66,17 +74,32 @@ class LandingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildButtons(BuildContext context, WidgetRef ref) {
+  Widget _buildButtons(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_authError != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF0F0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _authError!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         PrimaryButton(
-          label: 'Sign in with Google',
+          label: _signingIn ? 'Signing in...' : 'Sign in with Google',
           icon: Icons.g_mobiledata,
-          onPressed: () async {
-            final authService = ref.read(authServiceProvider);
-            await authService.signInWithGoogle();
-          },
+          onPressed: _signingIn ? null : _signInWithGoogle,
         ),
         const SizedBox(height: 12),
         OutlinedButton.icon(
@@ -86,7 +109,8 @@ class LandingScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
             foregroundColor: CycleCareColors.ink,
             side: const BorderSide(color: CycleCareColors.line),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
           onPressed: () => _goToOnboarding(context, ref),
         ),
@@ -106,6 +130,27 @@ class LandingScreen extends ConsumerWidget {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const OnboardingScreen()),
     );
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _signingIn = true;
+      _authError = null;
+    });
+    try {
+      final user = await ref.read(authServiceProvider).signInWithGoogle();
+      if (user == null && mounted) {
+        setState(() => _authError = 'Sign in was cancelled.');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _authError = e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _signingIn = false);
+      }
+    }
   }
 
   void _showPrivacyInfo(BuildContext context) {

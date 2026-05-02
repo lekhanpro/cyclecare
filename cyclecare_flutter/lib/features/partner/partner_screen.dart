@@ -63,14 +63,41 @@ class _PartnerScreenState extends ConsumerState<PartnerScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                if (_error != null) ...[
+                  Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 PrimaryButton(
-                  label: 'Sign in with Google',
+                  label: _loading ? 'Signing in...' : 'Sign in with Google',
                   icon: CupertinoIcons.person_crop_circle,
-                  onPressed: () async {
-                    try {
-                      await ref.read(authServiceProvider).signInWithGoogle();
-                    } catch (_) {}
-                  },
+                  onPressed: _loading
+                      ? null
+                      : () async {
+                          setState(() {
+                            _loading = true;
+                            _error = null;
+                          });
+                          try {
+                            await ref
+                                .read(authServiceProvider)
+                                .signInWithGoogle();
+                          } catch (e) {
+                            if (mounted) {
+                              setState(() => _error = e.toString());
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => _loading = false);
+                            }
+                          }
+                        },
                 ),
               ],
             ),
@@ -121,7 +148,8 @@ class _PartnerScreenState extends ConsumerState<PartnerScreen> {
             data: (link) => link != null
                 ? _OwnerLinkCard(
                     link: link,
-                    onPermissionsChanged: (updated) => _updatePermissions(updated),
+                    onPermissionsChanged: (updated) =>
+                        _updatePermissions(updated),
                     onRevoke: () => _revokeLink(link.inviteCode),
                   )
                 : _CreateInviteCard(
@@ -176,7 +204,8 @@ class _PartnerScreenState extends ConsumerState<PartnerScreen> {
       _error = null;
     });
     try {
-      final link = await ref.read(partnerServiceProvider).acceptInvite(user, code);
+      final link =
+          await ref.read(partnerServiceProvider).acceptInvite(user, code);
       if (link == null && mounted) {
         setState(() => _error = 'Invalid code or already linked');
       } else if (mounted) {
@@ -248,7 +277,8 @@ class _CreateInviteCard extends StatelessWidget {
     return SoftCard(
       child: Column(
         children: [
-          const Icon(CupertinoIcons.link, size: 48, color: CycleCareColors.muted),
+          const Icon(CupertinoIcons.link,
+              size: 48, color: CycleCareColors.muted),
           const SizedBox(height: 14),
           const Text(
             'Share your cycle data',
@@ -308,7 +338,8 @@ class _OwnerLinkCard extends StatelessWidget {
               ),
               if (link.isLinked)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: CycleCareColors.fertile,
                     borderRadius: BorderRadius.circular(10),
@@ -409,8 +440,7 @@ class _OwnerLinkCard extends StatelessWidget {
             label: 'Flow',
             subtitle: 'Flow intensity',
             value: link.shareFlow,
-            onChanged: (v) =>
-                onPermissionsChanged(link.copyWith(shareFlow: v)),
+            onChanged: (v) => onPermissionsChanged(link.copyWith(shareFlow: v)),
           ),
           const SizedBox(height: 14),
           SizedBox(

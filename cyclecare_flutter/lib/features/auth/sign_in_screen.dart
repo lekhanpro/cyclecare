@@ -35,7 +35,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Sign in failed. Please try again.';
+          _error = e.toString();
         });
       }
     }

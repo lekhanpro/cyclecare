@@ -8,7 +8,10 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.19.0'
+  FLUTTER_VERSION: '3.32.8'
+  ANDROID_COMPILE_SDK: '36'
+  ANDROID_TARGET_SDK: '35'
+  ANDROID_NDK_VERSION: '28.2.13676358'
 
 jobs:
   analyze:
@@ -50,10 +53,19 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install \
+            "platforms;android-${{ env.ANDROID_COMPILE_SDK }}" \
+            "platforms;android-${{ env.ANDROID_TARGET_SDK }}" \
+            "ndk;${{ env.ANDROID_NDK_VERSION }}"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
+          cache: true
       - name: Install dependencies
         working-directory: cyclecare_flutter
         run: flutter pub get
@@ -75,10 +87,19 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install \
+            "platforms;android-${{ env.ANDROID_COMPILE_SDK }}" \
+            "platforms;android-${{ env.ANDROID_TARGET_SDK }}" \
+            "ndk;${{ env.ANDROID_NDK_VERSION }}"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
+          cache: true
       - name: Install dependencies
         working-directory: cyclecare_flutter
         run: flutter pub get
