@@ -266,6 +266,7 @@ final authSyncProvider = Provider<void>((ref) {
     if (user != null) {
       final sync = ref.read(firebaseSyncServiceProvider);
       await sync.sync(user);
+      ref.invalidate(cycleTrackerControllerProvider);
     }
   });
   return;

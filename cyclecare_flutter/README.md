@@ -74,17 +74,31 @@ flutter pub get
 
 ### 3. Configure AI provider (optional, for AI assistant)
 
-Create a `.env` file in `cyclecare_flutter/` with:
+Create a gitignored `.env.local` file in `cyclecare_flutter/` with:
 
 ```bash
 AI_API_KEY=your-openai-compatible-api-key
 AI_BASE_URL=https://api.openai.com
+AI_MODEL=gpt-4o-mini
 ```
 
 Or pass them at build time:
 
 ```bash
-flutter build apk --debug --dart-define=AI_API_KEY=your-key --dart-define=AI_BASE_URL=https://api.openai.com
+flutter build apk --debug --dart-define=AI_API_KEY=your-key --dart-define=AI_BASE_URL=https://api.openai.com --dart-define=AI_MODEL=gpt-4o-mini
+```
+
+For Groq/OpenAI-compatible keys, set:
+
+```bash
+AI_BASE_URL=https://api.groq.com/openai
+AI_MODEL=llama-3.1-8b-instant
+```
+
+The helper script reads `.env.local`, keeps secrets out of git, and passes the values as build defines:
+
+```powershell
+.\scripts\build_android_apk.ps1 -Mode release
 ```
 
 If no key is provided, the AI assistant will show an offline/disabled state.

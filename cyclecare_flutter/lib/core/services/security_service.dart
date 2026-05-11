@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/encryption_util.dart';
+
 enum LockType { none, pin, biometric }
 
 class SecurityService {
@@ -56,7 +58,7 @@ class SecurityService {
   }
 
   Future<void> setPin(String pin) async {
-    await _secureStorage.write(key: _pinKey, value: pin);
+    await _secureStorage.write(key: _pinKey, value: EncryptionUtil.hashPin(pin));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_lockEnabledKey, true);
     await prefs.setString(_lockTypeKey, LockType.pin.name);
@@ -64,7 +66,7 @@ class SecurityService {
 
   Future<bool> verifyPin(String pin) async {
     final stored = await _secureStorage.read(key: _pinKey);
-    return stored == pin;
+    return stored == EncryptionUtil.hashPin(pin);
   }
 
   Future<bool> authenticateWithBiometric() async {

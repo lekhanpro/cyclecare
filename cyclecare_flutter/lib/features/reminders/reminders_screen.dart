@@ -117,12 +117,16 @@ class _ReminderTile extends ConsumerWidget {
     final color = switch (reminder.type) {
       ReminderType.periodReminder => Colors.red.shade400,
       ReminderType.ovulationReminder => Colors.blue.shade400,
+      ReminderType.fertileWindowReminder => Colors.green.shade400,
+      ReminderType.dailyLogReminder => Colors.teal.shade400,
       ReminderType.pillReminder => Colors.purple.shade400,
       ReminderType.customReminder => Colors.orange.shade400,
     };
     final icon = switch (reminder.type) {
       ReminderType.periodReminder => Icons.water_drop,
       ReminderType.ovulationReminder => Icons.egg_outlined,
+      ReminderType.fertileWindowReminder => Icons.eco,
+      ReminderType.dailyLogReminder => Icons.edit_note,
       ReminderType.pillReminder => Icons.medication,
       ReminderType.customReminder => Icons.notifications_active,
     };

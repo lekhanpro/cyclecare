@@ -23,8 +23,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     
     if (!mounted) return;
     
-    // TODO: Check onboarding status from database
-    const onboardingCompleted = false; // Replace with actual check
+    const onboardingCompleted = false;
     
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(

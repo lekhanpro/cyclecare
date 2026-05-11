@@ -43,9 +43,15 @@ class CyclePredictionService {
     );
 
     final lastStart = dateOnly(ordered.first.startDate);
-    var nextPeriodStart = lastStart;
-    while (!nextPeriodStart.isAfter(today)) {
-      nextPeriodStart = nextPeriodStart.add(Duration(days: averageCycleLength));
+    final expectedPeriodStart = lastStart.add(Duration(days: averageCycleLength));
+    var nextPeriodStart = expectedPeriodStart;
+    final isLate = today.isAfter(expectedPeriodStart);
+    if (isLate) {
+      nextPeriodStart = expectedPeriodStart;
+    } else {
+      while (nextPeriodStart.isBefore(today)) {
+        nextPeriodStart = nextPeriodStart.add(Duration(days: averageCycleLength));
+      }
     }
 
     final nextPeriodEnd = nextPeriodStart.add(
@@ -57,9 +63,16 @@ class CyclePredictionService {
     final fertileStart = ovulationDate.subtract(const Duration(days: 5));
     final fertileEnd = ovulationDate.add(const Duration(days: 1));
     final cycleDay = today.difference(lastStart).inDays + 1;
+    final ovulationCycleDay = averageCycleLength - preferences.lutealPhaseLength;
+    final phase = _phaseFor(
+      cycleDay: cycleDay,
+      periodLength: averagePeriodLength,
+      ovulationDay: ovulationCycleDay,
+    );
     final stdDev = _standardDeviation(cycleLengths);
     final variabilityScore = (1 - (stdDev / 12)).clamp(0.05, 1).toDouble();
     final sampleScore = (cycleLengths.length / 6).clamp(0.25, 1).toDouble();
+    final daysLate = isLate ? today.difference(expectedPeriodStart).inDays : 0;
 
     return CyclePrediction(
       nextPeriodStart: nextPeriodStart,
@@ -69,21 +82,36 @@ class CyclePredictionService {
       fertileWindowEnd: fertileEnd,
       averageCycleLength: averageCycleLength,
       averagePeriodLength: averagePeriodLength,
-      confidence: (variabilityScore * 0.7 + sampleScore * 0.3).clamp(0.1, 0.99),
+      confidence:
+          (variabilityScore * 0.7 + sampleScore * 0.3).clamp(0.1, 0.99).toDouble(),
       isIrregular: stdDev >= 4.5,
       cycleDay: cycleDay < 1 ? 1 : cycleDay,
-      daysUntilPeriod: nextPeriodStart.difference(today).inDays,
+      daysUntilPeriod: isLate ? 0 : nextPeriodStart.difference(today).inDays,
+      phase: phase,
+      isLate: isLate,
+      daysLate: daysLate,
     );
+  }
+
+  String _phaseFor({
+    required int cycleDay,
+    required int periodLength,
+    required int ovulationDay,
+  }) {
+    if (cycleDay <= periodLength) return 'Menstrual';
+    if (cycleDay < ovulationDay - 2) return 'Follicular';
+    if (cycleDay <= ovulationDay + 1) return 'Ovulation';
+    return 'Luteal';
   }
 
   int _averageCycleLength(List<int> lengths, int fallback) {
     if (lengths.isEmpty) {
-      return fallback.clamp(21, 45);
+      return fallback.clamp(21, 45) as int;
     }
     if (lengths.length < 3) {
       return (lengths.reduce((a, b) => a + b) / lengths.length)
           .round()
-          .clamp(21, 45);
+          .clamp(21, 45) as int;
     }
     var weight = lengths.length.toDouble();
     var total = 0.0;
@@ -93,7 +121,7 @@ class CyclePredictionService {
       totalWeight += weight;
       weight = max(1, weight - 1);
     }
-    return (total / totalWeight).round().clamp(21, 45);
+    return (total / totalWeight).round().clamp(21, 45) as int;
   }
 
   int _averagePeriodLength(List<CycleEvent> periods, int fallback) {
@@ -103,9 +131,9 @@ class CyclePredictionService {
         .where((length) => length >= 1 && length <= 14)
         .toList();
     if (lengths.isEmpty) {
-      return fallback.clamp(2, 10);
+      return fallback.clamp(2, 10) as int;
     }
-    return (lengths.reduce((a, b) => a + b) / lengths.length).round().clamp(2, 10);
+    return (lengths.reduce((a, b) => a + b) / lengths.length).round().clamp(2, 10) as int;
   }
 
   double _standardDeviation(List<int> values) {

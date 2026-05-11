@@ -57,3 +57,10 @@ app.*.map.json
 tmp/
 .jdk/
 .gradle-cache/
+
+# Local secrets and build config. Never commit real API keys.
+.env
+.env.*
+*.env.local
+*.local.env
+ai_config.local.json

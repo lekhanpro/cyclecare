@@ -1,13 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers/auth_providers.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/services/security_service.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../../presentation/providers/app_providers.dart';
+import '../../presentation/screens/education/education_screen.dart';
 import '../../widgets/soft_card.dart';
 import '../auth/sign_in_screen.dart';
+import '../ai/ai_chat_screen.dart';
 import '../partner/partner_screen.dart';
 import '../reminders/reminders_screen.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
@@ -104,6 +109,32 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
 
+            // Profile and mode
+            _SettingsGroup(
+              title: 'Profile',
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(CupertinoIcons.person, color: CycleCareColors.rose),
+                  title: Text(
+                    data.preferences.profileName.isEmpty
+                        ? 'Optional profile'
+                        : data.preferences.profileName,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    [
+                      data.preferences.goal.label,
+                      if (data.preferences.profileBirthYear != null)
+                        'Born ${data.preferences.profileBirthYear}',
+                    ].join(' · '),
+                  ),
+                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+                  onTap: () => _editProfile(context, ref, data.preferences),
+                ),
+              ],
+            ),
+
             // Partner sharing
             _SettingsGroup(
               title: 'Partner',
@@ -187,6 +218,32 @@ class SettingsScreen extends ConsumerWidget {
                   activeColor: CycleCareColors.rose,
                   onChanged: (value) => ref.read(aiUsePersonalDataProvider.notifier).setUsePersonalData(value),
                 ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(CupertinoIcons.sparkles, color: CycleCareColors.rose),
+                  title: const Text('Open AI chat', style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: const Text('Ask educational cycle-care questions'),
+                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const AIChatScreen()),
+                  ),
+                ),
+              ],
+            ),
+
+            _SettingsGroup(
+              title: 'Education',
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(CupertinoIcons.book, color: CycleCareColors.rose),
+                  title: const Text('Health library', style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: const Text('Cycle, fertility, pregnancy, and mood basics'),
+                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const EducationScreen()),
+                  ),
+                ),
               ],
             ),
 
@@ -198,11 +255,52 @@ class SettingsScreen extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Period reminders'),
                   subtitle: const Text('Get notified before your period'),
-                  value: data.preferences.remindersEnabled,
+                  value: data.preferences.periodReminderEnabled,
                   activeColor: CycleCareColors.rose,
-                  onChanged: (value) => _save(
+                  onChanged: (value) => _saveReminderToggle(
                     ref,
-                    data.preferences.copyWith(remindersEnabled: value),
+                    data.preferences.copyWith(periodReminderEnabled: value),
+                    ReminderType.periodReminder,
+                    value,
+                  ),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Ovulation reminders'),
+                  subtitle: const Text('Around your estimated ovulation date'),
+                  value: data.preferences.ovulationReminderEnabled,
+                  activeColor: CycleCareColors.rose,
+                  onChanged: (value) => _saveReminderToggle(
+                    ref,
+                    data.preferences.copyWith(ovulationReminderEnabled: value),
+                    ReminderType.ovulationReminder,
+                    value,
+                  ),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Daily logging reminder'),
+                  subtitle: const Text('A gentle check-in each day'),
+                  value: data.preferences.dailyLogReminderEnabled,
+                  activeColor: CycleCareColors.rose,
+                  onChanged: (value) => _saveReminderToggle(
+                    ref,
+                    data.preferences.copyWith(dailyLogReminderEnabled: value),
+                    ReminderType.dailyLogReminder,
+                    value,
+                  ),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Pill or medicine reminder'),
+                  subtitle: const Text('For daily medicine or birth control'),
+                  value: data.preferences.pillReminderEnabled,
+                  activeColor: CycleCareColors.rose,
+                  onChanged: (value) => _saveReminderToggle(
+                    ref,
+                    data.preferences.copyWith(pillReminderEnabled: value),
+                    ReminderType.pillReminder,
+                    value,
                   ),
                 ),
                 ListTile(
@@ -220,6 +318,14 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsGroup(
               title: 'Privacy & Security',
               children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(CupertinoIcons.lock_shield, color: CycleCareColors.rose),
+                  title: const Text('Privacy explanation', style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: const Text('What stays local and what AI may receive'),
+                  trailing: const Icon(CupertinoIcons.chevron_right, size: 16),
+                  onTap: () => _showPrivacyDialog(context),
+                ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(CupertinoIcons.lock, color: CycleCareColors.rose),
@@ -247,31 +353,15 @@ class SettingsScreen extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(CupertinoIcons.square_arrow_down),
                   title: const Text('Export JSON'),
-                  subtitle: const Text('Export your local data'),
+                  subtitle: const Text('Export and share your local data'),
                   onTap: () async {
                     final export = await ref
                         .read(cycleTrackerControllerProvider.notifier)
                         .exportJson();
                     if (context.mounted) {
-                      showDialog<void>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text('Export preview'),
-                          content: SingleChildScrollView(
-                            child: Text(
-                              export.length > 900
-                                  ? '${export.substring(0, 900)}...'
-                                  : export,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Done'),
-                            ),
-                          ],
-                        ),
+                      await Share.share(
+                        export,
+                        subject: 'CycleCare data export',
                       );
                     }
                   },
@@ -321,6 +411,135 @@ class SettingsScreen extends ConsumerWidget {
 
   void _save(WidgetRef ref, CyclePreferences preferences) {
     ref.read(cycleTrackerControllerProvider.notifier).updatePreferences(preferences);
+  }
+
+  Future<void> _saveReminderToggle(
+    WidgetRef ref,
+    CyclePreferences preferences,
+    ReminderType type,
+    bool enabled,
+  ) async {
+    _save(ref, preferences);
+    final service = ref.read(notificationServiceProvider);
+    final reminders = await service.loadReminders();
+    final updated = reminders
+        .map((reminder) =>
+            reminder.type == type ? reminder.copyWith(enabled: enabled) : reminder)
+        .toList();
+    await service.saveReminders(updated);
+    ref.invalidate(remindersProvider);
+  }
+
+  Future<void> _editProfile(
+    BuildContext context,
+    WidgetRef ref,
+    CyclePreferences preferences,
+  ) async {
+    final nameController = TextEditingController(text: preferences.profileName);
+    final birthYearController = TextEditingController(
+      text: preferences.profileBirthYear?.toString() ?? '',
+    );
+    var goal = preferences.goal;
+    final updated = await showDialog<CyclePreferences>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Profile'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name or nickname',
+                    hintText: 'Optional',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: birthYearController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(4),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Birth year',
+                    hintText: 'Optional',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<TrackingGoal>(
+                  value: goal,
+                  decoration: const InputDecoration(labelText: 'Goal'),
+                  items: [
+                    for (final item in TrackingGoal.values)
+                      DropdownMenuItem(
+                        value: item,
+                        child: Text(item.label),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => goal = value);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(
+                  ctx,
+                  preferences.copyWith(
+                    profileName: nameController.text.trim(),
+                    profileBirthYear: int.tryParse(birthYearController.text.trim()),
+                    goal: goal,
+                  ),
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+    nameController.dispose();
+    birthYearController.dispose();
+    if (updated != null) {
+      _save(ref, updated);
+    }
+  }
+
+  void _showPrivacyDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Privacy in CycleCare'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'CycleCare is local-first. Your periods, daily logs, notes, symptoms, moods, and settings stay on this device unless you choose features that need network access.\n\n'
+            'AI is optional. If you enable personal data for AI, CycleCare sends a short summary such as cycle day, prediction dates, recent moods, and symptom names. It does not need your full export or private notes to answer most questions.\n\n'
+            'Partner sharing and cloud sync require Google/Firebase sign-in and are opt-in. You can revoke sharing, export local data, or delete local data from Settings.\n\n'
+            'CycleCare is not a doctor and does not diagnose. For severe pain, very heavy bleeding, unusual symptoms, missed periods with concern, or anything serious, speak with a doctor, guardian, or trusted adult.',
+            style: TextStyle(height: 1.4),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _showAppLockDialog(BuildContext context, WidgetRef ref) async {

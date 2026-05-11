@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum ReminderType {
   periodReminder,
   ovulationReminder,
+  fertileWindowReminder,
+  dailyLogReminder,
   pillReminder,
   customReminder,
 }
@@ -113,7 +115,14 @@ class NotificationService {
     );
 
     await _plugin.initialize(initSettings);
+    await _requestAndroidPermission();
     _initialized = true;
+  }
+
+  Future<void> _requestAndroidPermission() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
   }
 
   Future<List<Reminder>> loadReminders() async {
@@ -237,6 +246,25 @@ class NotificationService {
         enabled: false,
       ),
       const Reminder(
+        id: 'fertile_window_reminder_default',
+        type: ReminderType.fertileWindowReminder,
+        title: 'Fertile Window',
+        body: 'Your estimated fertile window starts soon.',
+        hour: 9,
+        minute: 0,
+        daysBefore: 1,
+        enabled: false,
+      ),
+      const Reminder(
+        id: 'daily_log_reminder_default',
+        type: ReminderType.dailyLogReminder,
+        title: 'Daily Check-in',
+        body: 'Take a minute to log how you feel today.',
+        hour: 20,
+        minute: 0,
+        enabled: false,
+      ),
+      const Reminder(
         id: 'pill_reminder_default',
         type: ReminderType.pillReminder,
         title: 'Pill Reminder',
@@ -252,6 +280,8 @@ class NotificationService {
     return switch (type) {
       ReminderType.periodReminder => 'Period Reminders',
       ReminderType.ovulationReminder => 'Ovulation & Fertility',
+      ReminderType.fertileWindowReminder => 'Fertile Window',
+      ReminderType.dailyLogReminder => 'Daily Logging',
       ReminderType.pillReminder => 'Birth Control',
       ReminderType.customReminder => 'Custom Reminders',
     };
@@ -261,6 +291,8 @@ class NotificationService {
     return switch (type) {
       ReminderType.periodReminder => 'Reminders for upcoming periods',
       ReminderType.ovulationReminder => 'Fertile window and ovulation alerts',
+      ReminderType.fertileWindowReminder => 'Fertile window alerts',
+      ReminderType.dailyLogReminder => 'Daily tracking reminders',
       ReminderType.pillReminder => 'Daily birth control pill reminders',
       ReminderType.customReminder => 'User-created custom reminders',
     };

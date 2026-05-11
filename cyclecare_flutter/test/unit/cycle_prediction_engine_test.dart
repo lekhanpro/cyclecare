@@ -56,5 +56,19 @@ void main() {
       expect(prediction.fertileWindowStart, DateTime(2026, 4, 10));
       expect(prediction.fertileWindowEnd, DateTime(2026, 4, 16));
     });
+
+    test('detects late period without moving estimate forward', () {
+      final prediction = service.buildPrediction(
+        periods: [
+          CycleEvent(id: '1', startDate: DateTime(2026, 4, 1)),
+        ],
+        preferences: preferences,
+        referenceDate: DateTime(2026, 5, 4),
+      );
+      expect(prediction!.isLate, isTrue);
+      expect(prediction.daysLate, 5);
+      expect(prediction.daysUntilPeriod, 0);
+      expect(prediction.nextPeriodStart, DateTime(2026, 4, 29));
+    });
   });
 }

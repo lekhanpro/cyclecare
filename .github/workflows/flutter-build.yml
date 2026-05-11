@@ -54,11 +54,11 @@ jobs:
 
       - name: Build APK (Debug)
         working-directory: cyclecare_flutter
-        run: flutter build apk --debug
+        run: flutter build apk --debug --dart-define=AI_API_KEY="${{ secrets.AI_API_KEY }}"
 
       - name: Build APK (Release)
         working-directory: cyclecare_flutter
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=AI_API_KEY="${{ secrets.AI_API_KEY }}"
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4

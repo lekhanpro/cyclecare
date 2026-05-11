@@ -13,6 +13,7 @@ class CycleCalendar extends StatelessWidget {
     required this.statusFor,
     required this.onSelected,
     required this.onMonthChanged,
+    this.hasLogFor,
     this.compact = false,
     super.key,
   });
@@ -22,6 +23,7 @@ class CycleCalendar extends StatelessWidget {
   final DayStatus Function(DateTime day) statusFor;
   final ValueChanged<DateTime> onSelected;
   final ValueChanged<DateTime> onMonthChanged;
+  final bool Function(DateTime day)? hasLogFor;
   final bool compact;
 
   @override
@@ -75,6 +77,7 @@ class CycleCalendar extends StatelessWidget {
                 selected: isSameDate(day, selectedDate),
                 today: isSameDate(day, DateTime.now()),
                 status: statusFor(day),
+                hasLog: hasLogFor?.call(day) ?? false,
                 onTap: () => onSelected(day),
               );
             },
@@ -128,6 +131,7 @@ class _DayCell extends StatelessWidget {
     required this.selected,
     required this.today,
     required this.status,
+    required this.hasLog,
     required this.onTap,
   });
 
@@ -136,6 +140,7 @@ class _DayCell extends StatelessWidget {
   final bool selected;
   final bool today;
   final DayStatus status;
+  final bool hasLog;
   final VoidCallback onTap;
 
   @override
@@ -184,15 +189,17 @@ class _DayCell extends StatelessWidget {
               ),
               const SizedBox(height: 3),
               Container(
-                width: 5,
+                width: hasLog ? 14 : 5,
                 height: 5,
                 decoration: BoxDecoration(
                   color: status == DayStatus.normal
-                      ? Colors.transparent
+                      ? hasLog
+                          ? CycleCareColors.lavender
+                          : Colors.transparent
                       : selected
                           ? Colors.white
                           : CycleCareColors.rose,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ],
@@ -216,6 +223,7 @@ class _Legend extends StatelessWidget {
         _LegendItem(color: CycleCareColors.predicted, label: 'Predicted'),
         _LegendItem(color: CycleCareColors.fertile, label: 'Fertile'),
         _LegendItem(color: CycleCareColors.ovulation, label: 'Ovulation'),
+        _LegendItem(color: CycleCareColors.lavender, label: 'Logged'),
       ],
     );
   }

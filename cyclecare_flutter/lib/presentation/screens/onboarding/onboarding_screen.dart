@@ -44,8 +44,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _completeOnboarding() async {
-    // TODO: Save onboarding data to database
-    
     if (!mounted) return;
     
     Navigator.of(context).pushReplacement(

@@ -84,6 +84,14 @@ lint-results_files/
 secrets.properties
 api_keys.properties
 *.env
+.env
+.env.*
+*.env.local
+*.local.env
+ai_config.local.json
+cyclecare_flutter/.env
+cyclecare_flutter/.env.local
+cyclecare_flutter/ai_config.local.json
 
 # OS Files
 .DS_Store

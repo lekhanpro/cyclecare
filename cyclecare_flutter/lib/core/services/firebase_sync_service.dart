@@ -1,33 +1,42 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../data/database/app_database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../features/tracking/data/cycle_repository.dart';
+import '../../features/tracking/domain/cycle_models.dart';
 
 class FirebaseSyncService {
-  final FirebaseFirestore _firestore;
-  final AppDatabase _db;
-
   FirebaseSyncService({
     FirebaseFirestore? firestore,
-    AppDatabase? db,
+    CycleRepository? repository,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _db = db ?? AppDatabase.instance;
+        _repository = repository;
 
-  /// Push all local data to Firestore for the current user.
+  final FirebaseFirestore _firestore;
+  final CycleRepository? _repository;
+
+  Future<CycleRepository> _repo() async {
+    if (_repository != null) return _repository!;
+    final preferences = await SharedPreferences.getInstance();
+    return CycleRepository(preferences);
+  }
+
   Future<void> pushLocalData(User user) async {
     final uid = user.uid;
-    final periods = await _db.getAllPeriods();
-    final logs = await _db.getAllDailyLogs();
+    final repository = await _repo();
+    final periods = repository.loadPeriods();
+    final logs = repository.loadLogs();
+    final preferences = repository.loadPreferences();
 
     final batch = _firestore.batch();
 
-    final periodsRef = _firestore.collection('user_cycles').doc(uid);
-    batch.set(periodsRef, {
+    batch.set(_firestore.collection('user_cycles').doc(uid), {
       'periods': periods.map((p) => p.toJson()).toList(),
+      'preferences': preferences.toJson(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
-    final logsRef = _firestore.collection('user_daily_logs').doc(uid);
-    batch.set(logsRef, {
+    batch.set(_firestore.collection('user_daily_logs').doc(uid), {
       'logs': logs.map((l) => l.toJson()).toList(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
@@ -35,56 +44,59 @@ class FirebaseSyncService {
     await batch.commit();
   }
 
-  /// Pull data from Firestore and merge into local database (local-first).
-  /// Local data is preserved; remote data is added only if no local conflict.
   Future<void> pullRemoteData(User user) async {
     final uid = user.uid;
+    final repository = await _repo();
 
     final cyclesDoc = await _firestore.collection('user_cycles').doc(uid).get();
-    if (cyclesDoc.exists) {
-      final data = cyclesDoc.data();
-      final remotePeriods = (data?['periods'] as List<dynamic>? ?? [])
-          .map((e) => PeriodRecord.fromJson(e as Map<String, dynamic>))
+    if (cyclesDoc.exists && cyclesDoc.data() != null) {
+      final data = cyclesDoc.data()!;
+      final remotePeriods = (data['periods'] as List<dynamic>? ?? [])
+          .map((e) => CycleEvent.fromJson(Map<String, Object?>.from(e as Map)))
           .toList();
-      final localPeriods = await _db.getAllPeriods();
+      final localPeriods = repository.loadPeriods();
       final localIds = localPeriods.map((p) => p.id).toSet();
-      for (final rp in remotePeriods) {
-        if (!localIds.contains(rp.id)) {
-          // Add missing remote period to local storage
-          await _db.insertPeriod(
-            startDate: rp.startDate,
-            endDate: rp.endDate,
-            symptoms: rp.symptoms,
-            notes: rp.notes,
-          );
-        }
+      final mergedPeriods = [
+        ...localPeriods,
+        for (final period in remotePeriods)
+          if (!localIds.contains(period.id)) period,
+      ]..sort((a, b) => b.startDate.compareTo(a.startDate));
+      await repository.savePeriods(mergedPeriods);
+
+      final remotePreferences = data['preferences'];
+      if (remotePreferences is Map &&
+          !repository.loadPreferences().onboardingCompleted) {
+        await repository.savePreferences(
+          CyclePreferences.fromJson(Map<String, Object?>.from(remotePreferences)),
+        );
       }
     }
 
     final logsDoc = await _firestore.collection('user_daily_logs').doc(uid).get();
-    if (logsDoc.exists) {
-      final data = logsDoc.data();
-      final remoteLogs = (data?['logs'] as List<dynamic>? ?? [])
-          .map((e) => DailyLogRecord.fromJson(e as Map<String, dynamic>))
+    if (logsDoc.exists && logsDoc.data() != null) {
+      final data = logsDoc.data()!;
+      final remoteLogs = (data['logs'] as List<dynamic>? ?? [])
+          .map((e) => DailyLog.fromJson(Map<String, Object?>.from(e as Map)))
           .toList();
-      final localLogs = await _db.getAllDailyLogs();
-      final localDates = localLogs.map((l) => l.date.toIso8601String().split('T').first).toSet();
-      for (final rl in remoteLogs) {
-        final dateKey = rl.date.toIso8601String().split('T').first;
-        if (!localDates.contains(dateKey)) {
-          await _db.insertDailyLog(rl);
-        }
-      }
+      final localLogs = repository.loadLogs();
+      final localDates = localLogs
+          .map((log) => log.date.toIso8601String().split('T').first)
+          .toSet();
+      final mergedLogs = [
+        ...localLogs,
+        for (final log in remoteLogs)
+          if (!localDates.contains(log.date.toIso8601String().split('T').first))
+            log,
+      ]..sort((a, b) => b.date.compareTo(a.date));
+      await repository.saveLogs(mergedLogs);
     }
   }
 
-  /// Two-way sync: push local data then pull remote missing data.
   Future<void> sync(User user) async {
     await pushLocalData(user);
     await pullRemoteData(user);
   }
 
-  /// Delete all user data from Firestore (GDPR / account deletion).
   Future<void> deleteRemoteData(User user) async {
     final uid = user.uid;
     final batch = _firestore.batch();
