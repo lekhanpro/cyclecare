@@ -208,15 +208,10 @@ class _GoogleSignInButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.network(
-                    'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                    width: 22,
-                    height: 22,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.g_mobiledata,
-                      size: 28,
-                      color: CycleCareColors.ink,
-                    ),
+                  const Icon(
+                    Icons.g_mobiledata,
+                    size: 30,
+                    color: CycleCareColors.ink,
                   ),
                   const SizedBox(width: 12),
                   const Text(

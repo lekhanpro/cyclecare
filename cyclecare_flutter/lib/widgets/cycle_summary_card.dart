@@ -54,7 +54,9 @@ class CycleSummaryCard extends StatelessWidget {
                     Text(
                       forecast == null
                           ? 'Start with your last period'
-                          : 'Cycle day ${forecast.cycleDay}',
+                          : forecast.isLate
+                              ? '${forecast.daysLate} days late'
+                              : 'Cycle day ${forecast.cycleDay}',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                             color: CycleCareColors.ink,
@@ -76,7 +78,9 @@ class CycleSummaryCard extends StatelessWidget {
           Text(
             forecast == null
                 ? 'Add a period date and CycleCare will estimate your next window.'
-                : 'Next period is expected ${shortDate(forecast.nextPeriodStart)}-${shortDate(forecast.nextPeriodEnd)}.',
+                : forecast.isLate
+                    ? 'Your period was expected around ${shortDate(forecast.nextPeriodStart)}. This can happen for many reasons; seek support if you are concerned.'
+                    : 'Next period is expected ${shortDate(forecast.nextPeriodStart)}-${shortDate(forecast.nextPeriodEnd)}.',
             style: const TextStyle(
               color: CycleCareColors.ink,
               fontSize: 16,
@@ -88,13 +92,17 @@ class CycleSummaryCard extends StatelessWidget {
           Row(
             children: [
               _MetricPill(
-                label: 'In',
-                value: forecast == null ? '--' : '${forecast.daysUntilPeriod} days',
+                label: forecast?.isLate == true ? 'Late by' : 'In',
+                value: forecast == null
+                    ? '--'
+                    : forecast.isLate
+                        ? '${forecast.daysLate} days'
+                        : '${forecast.daysUntilPeriod} days',
               ),
               const SizedBox(width: 10),
               _MetricPill(
-                label: 'Confidence',
-                value: forecast == null ? '--' : '${(forecast.confidence * 100).round()}%',
+                label: 'Phase',
+                value: forecast == null ? '--' : forecast.phase,
               ),
             ],
           ),

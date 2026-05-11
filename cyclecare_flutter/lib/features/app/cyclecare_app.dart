@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/cyclecare_theme.dart';
+import '../../core/services/security_service.dart';
 import '../../presentation/providers/app_providers.dart';
 import '../auth/landing_screen.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
@@ -84,10 +85,139 @@ class _CycleCareAppState extends ConsumerState<CycleCareApp> with WidgetsBinding
           if (!data.preferences.onboardingCompleted) {
             return const LandingScreen();
           }
-          return const MainShell();
+          return const _AppLockGate(child: MainShell());
         },
       ),
     );
+  }
+}
+
+class _AppLockGate extends ConsumerStatefulWidget {
+  const _AppLockGate({required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<_AppLockGate> createState() => _AppLockGateState();
+}
+
+class _AppLockGateState extends ConsumerState<_AppLockGate> {
+  bool _checking = true;
+  bool _unlocked = false;
+  String? _error;
+  final _pinController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLock();
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkLock() async {
+    final security = ref.read(securityServiceProvider);
+    final enabled = await security.isLockEnabled;
+    if (!mounted) return;
+    if (!enabled) {
+      setState(() {
+        _checking = false;
+        _unlocked = true;
+      });
+      return;
+    }
+    final type = await security.lockType;
+    if (type == LockType.biometric) {
+      final ok = await security.authenticateWithBiometric();
+      if (!mounted) return;
+      setState(() {
+        _checking = false;
+        _unlocked = ok;
+        _error = ok ? null : 'Authentication was cancelled.';
+      });
+      return;
+    }
+    setState(() => _checking = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checking) {
+      return const Scaffold(body: Center(child: CupertinoActivityIndicator()));
+    }
+    if (_unlocked) return widget.child;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(CupertinoIcons.lock_shield_fill,
+                    color: CycleCareColors.rose, size: 64),
+                const SizedBox(height: 18),
+                const Text(
+                  'Unlock CycleCare',
+                  style: TextStyle(
+                    color: CycleCareColors.ink,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Your private health data is protected.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: CycleCareColors.muted),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 6,
+                  decoration: InputDecoration(
+                    labelText: 'PIN',
+                    errorText: _error,
+                    counterText: '',
+                  ),
+                  onSubmitted: (_) => _verifyPin(),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _verifyPin,
+                    child: const Text('Unlock'),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _checkLock,
+                  child: const Text('Try biometric'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _verifyPin() async {
+    final ok = await ref
+        .read(securityServiceProvider)
+        .verifyPin(_pinController.text.trim());
+    if (!mounted) return;
+    setState(() {
+      _unlocked = ok;
+      _error = ok ? null : 'Incorrect PIN';
+    });
   }
 }
 

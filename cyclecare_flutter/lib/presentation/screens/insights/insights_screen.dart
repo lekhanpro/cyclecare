@@ -526,7 +526,7 @@ class _MoodPatternsCard extends StatelessWidget {
     final sorted = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final total = sorted.fold<int>(0, (s, e) => s + e.value);
-    final displayCount = sorted.length.clamp(0, 8);
+    final displayCount = sorted.length.clamp(0, 8) as int;
 
     return _InsightCard(
       title: 'Mood Patterns',
@@ -863,7 +863,7 @@ class _CyclePhaseCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: (daysSinceStart / avgCycle).clamp(0.0, 1.0),
+              value: (daysSinceStart / avgCycle).clamp(0.0, 1.0).toDouble(),
               minHeight: 8,
               backgroundColor: colorScheme.surfaceVariant,
               color: phaseColor,

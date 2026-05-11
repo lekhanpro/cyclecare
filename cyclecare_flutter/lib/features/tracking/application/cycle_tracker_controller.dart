@@ -41,6 +41,20 @@ class CycleTrackerState {
     return null;
   }
 
+  bool hasLogFor(DateTime date) => logFor(date) != null;
+
+  CycleEvent? periodFor(DateTime date) {
+    final target = dateOnly(date);
+    for (final period in periods) {
+      final end = period.endDate ??
+          period.startDate.add(Duration(days: preferences.averagePeriodLength - 1));
+      if (!target.isBefore(dateOnly(period.startDate)) && !target.isAfter(dateOnly(end))) {
+        return period;
+      }
+    }
+    return null;
+  }
+
   DayStatus statusFor(DateTime day) {
     final target = dateOnly(day);
     for (final period in periods) {
@@ -49,6 +63,11 @@ class CycleTrackerState {
       if (!target.isBefore(dateOnly(period.startDate)) && !target.isAfter(dateOnly(end))) {
         return DayStatus.period;
       }
+    }
+
+    final log = logFor(target);
+    if (log?.flow != null && log!.flow != FlowIntensity.none) {
+      return DayStatus.period;
     }
 
     final forecast = prediction;
@@ -121,6 +140,18 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
     state = AsyncData(current.copyWith(logs: logs, selectedDate: target));
   }
 
+  Future<void> deleteLog(DateTime date) async {
+    final current = await future;
+    final repository = await ref.read(cycleRepositoryProvider.future);
+    final target = dateOnly(date);
+    final logs = [
+      for (final existing in current.logs)
+        if (dateOnly(existing.date) != target) existing,
+    ];
+    await repository.saveLogs(logs);
+    state = AsyncData(current.copyWith(logs: logs, selectedDate: target));
+  }
+
   Future<void> logPeriodStart(DateTime startDate) async {
     final current = await future;
     final repository = await ref.read(cycleRepositoryProvider.future);
@@ -141,6 +172,56 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
     ));
   }
 
+  Future<void> upsertPeriod({
+    required DateTime startDate,
+    required DateTime endDate,
+    FlowIntensity flow = FlowIntensity.medium,
+    List<String> symptoms = const [],
+    String notes = '',
+    String? existingId,
+  }) async {
+    final current = await future;
+    final repository = await ref.read(cycleRepositoryProvider.future);
+    final start = dateOnly(startDate);
+    final end = dateOnly(endDate);
+    final event = CycleEvent(
+      id: existingId ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      startDate: start,
+      endDate: end.isBefore(start) ? start : end,
+      flow: flow,
+      symptoms: symptoms,
+      notes: notes,
+    );
+    final periods = [
+      for (final existing in current.periods)
+        if (existing.id != event.id) existing,
+      event,
+    ]..sort((a, b) => b.startDate.compareTo(a.startDate));
+    await repository.savePeriods(periods);
+    state = AsyncData(_buildState(
+      periods: periods,
+      logs: current.logs,
+      preferences: current.preferences,
+      selectedDate: start,
+    ));
+  }
+
+  Future<void> deletePeriod(String id) async {
+    final current = await future;
+    final repository = await ref.read(cycleRepositoryProvider.future);
+    final periods = [
+      for (final period in current.periods)
+        if (period.id != id) period,
+    ];
+    await repository.savePeriods(periods);
+    state = AsyncData(_buildState(
+      periods: periods,
+      logs: current.logs,
+      preferences: current.preferences,
+      selectedDate: current.selectedDate,
+    ));
+  }
+
   Future<void> updatePreferences(CyclePreferences preferences) async {
     final current = await future;
     final repository = await ref.read(cycleRepositoryProvider.future);
@@ -157,12 +238,26 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
     required DateTime lastPeriodStart,
     required int cycleLength,
     required int periodLength,
+    TrackingGoal goal = TrackingGoal.trackPeriods,
+    String profileName = '',
+    int? profileBirthYear,
+    bool periodReminderEnabled = true,
+    bool ovulationReminderEnabled = false,
+    bool dailyLogReminderEnabled = false,
+    bool pillReminderEnabled = false,
   }) async {
     final repository = await ref.read(cycleRepositoryProvider.future);
     final start = dateOnly(lastPeriodStart);
     final preferences = CyclePreferences(
       averageCycleLength: cycleLength,
       averagePeriodLength: periodLength,
+      goal: goal,
+      profileName: profileName,
+      profileBirthYear: profileBirthYear,
+      periodReminderEnabled: periodReminderEnabled,
+      ovulationReminderEnabled: ovulationReminderEnabled,
+      dailyLogReminderEnabled: dailyLogReminderEnabled,
+      pillReminderEnabled: pillReminderEnabled,
       onboardingCompleted: true,
     );
     final period = CycleEvent(

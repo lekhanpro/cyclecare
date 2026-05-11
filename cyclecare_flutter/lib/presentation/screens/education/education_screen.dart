@@ -30,6 +30,43 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
     {'id': '12', 'title': 'Endometriosis Explained', 'category': 'Menstrual Health', 'readTime': '7 min', 'summary': 'What is endometriosis and how to manage it.'},
   ];
 
+  static const _articleBodies = {
+    '1': '''
+Your menstrual cycle is a monthly process that prepares your body for pregnancy. Understanding the four phases helps you track your health and predict your periods.
+
+Menstrual phase: the uterine lining sheds. Cramps, bloating, fatigue, and mood changes can happen.
+
+Follicular phase: estrogen rises and ovarian follicles develop.
+
+Ovulation: an egg is released. This is usually the most fertile time.
+
+Luteal phase: progesterone rises. If pregnancy does not occur, hormone levels drop and the cycle restarts.
+
+Speak with a healthcare professional for periods lasting more than 7 days, very heavy bleeding, severe pain, cycles shorter than 21 days or longer than 45 days, or missed periods with concern.
+''',
+    '3': '''
+Basal body temperature tracking works best when measured first thing every morning before getting out of bed. A sustained rise of about 0.2 C can suggest ovulation has already occurred.
+
+Temperature data is most useful over several cycles. Illness, poor sleep, travel, alcohol, and unusual wake times can all affect readings.
+''',
+    '4': '''
+Cervical mucus changes through the cycle. Dry or sticky mucus is usually lower fertility, creamy or watery mucus may appear as estrogen rises, and egg-white mucus is often associated with peak fertility.
+
+These observations are optional and should be interpreted as patterns, not guarantees.
+''',
+    '5': '''
+Pregnancy development changes week by week. The first trimester includes implantation and early organ development; the second trimester often brings more noticeable movement; the third trimester focuses on growth and preparation for birth.
+
+Prenatal care schedules vary. Follow your clinician's guidance for appointments and urgent symptoms.
+''',
+    '7': '''
+Perimenopause can bring more variable cycle timing, hot flashes, night sweats, sleep changes, mood shifts, and dryness. Tracking can help you describe patterns clearly when speaking with a clinician.
+''',
+    '9': '''
+PMS can include mood and physical symptoms before a period. PMDD is more severe and can disrupt daily life. If mood symptoms feel intense, frightening, or hard to manage, reach out to a healthcare professional or trusted adult.
+''',
+  };
+
   List<Map<String, String>> get _filteredArticles {
     return _articles.where((a) {
       final matchCategory = _selectedCategory == 'All' || a['category'] == _selectedCategory;
@@ -176,13 +213,10 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
               Text(article['summary']!, style: Theme.of(context).textTheme.bodyLarge),
               const SizedBox(height: 16),
               Text(
-                'This is a placeholder for the full article content. In the production version, '
-                'articles will be stored as Markdown files in the assets/education/ directory and '
-                'rendered using the flutter_markdown package.\n\n'
-                'The content will cover detailed information about ${article['title']}, '
-                'including evidence-based research, practical tips, and when to consult a healthcare provider.\n\n'
-                'Disclaimer: This content is for educational purposes only and should not be considered '
-                'medical advice. Always consult with your healthcare provider for medical decisions.',
+                _articleBodies[article['id']] ??
+                    '${article['summary']}\n\n'
+                        'Track your own patterns over time and speak with a healthcare professional for severe pain, very heavy bleeding, unusual symptoms, missed periods with concern, or anything that worries you.\n\n'
+                        'Disclaimer: This content is for educational purposes only and should not be considered medical advice.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.6),
               ),
             ],

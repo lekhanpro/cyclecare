@@ -18,13 +18,6 @@ class _BirthControlScreenState extends ConsumerState<BirthControlScreen> {
   @override
   void initState() {
     super.initState();
-    // Generate mock history for last 30 days
-    final now = DateTime.now();
-    for (int i = 29; i >= 0; i--) {
-      final date = now.subtract(Duration(days: i));
-      _history.add({'date': date, 'status': i > 0 ? 'taken' : ''});
-    }
-    _streak = 15; // mock streak
   }
 
   @override

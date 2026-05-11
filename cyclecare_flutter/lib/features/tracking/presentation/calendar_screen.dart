@@ -8,6 +8,7 @@ import '../../../widgets/cycle_calendar.dart';
 import '../../../widgets/soft_card.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/cycle_models.dart';
+import 'log_screen.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -40,6 +41,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               month: _month,
               selectedDate: data.selectedDate,
               statusFor: data.statusFor,
+              hasLogFor: data.hasLogFor,
               onSelected: ref.read(cycleTrackerControllerProvider.notifier).selectDate,
               onMonthChanged: (month) => setState(() => _month = month),
             ),
@@ -52,14 +54,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
-class _DayDetail extends StatelessWidget {
+class _DayDetail extends ConsumerWidget {
   const _DayDetail({required this.data});
 
   final CycleTrackerState data;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final log = data.logFor(data.selectedDate);
+    final period = data.periodFor(data.selectedDate);
     final status = data.statusFor(data.selectedDate);
     final title = switch (status) {
       DayStatus.period => 'Recorded period',
@@ -96,6 +99,11 @@ class _DayDetail extends StatelessWidget {
                     if (log.flow != null) 'Flow: ${log.flow!.name}',
                     if (log.mood != null) 'Mood: ${log.mood}',
                     if (log.symptoms.isNotEmpty) 'Symptoms: ${log.symptoms.join(', ')}',
+                    if (log.painLevel > 0) 'Pain: ${log.painLevel}/10',
+                    if (log.temperatureCelsius != null)
+                      'Temp: ${log.temperatureCelsius!.toStringAsFixed(1)} C',
+                    if (log.weightKg != null)
+                      'Weight: ${log.weightKg!.toStringAsFixed(1)} kg',
                     if (log.notes.isNotEmpty) 'Notes: ${log.notes}',
                   ].join('\n'),
             style: const TextStyle(
@@ -103,6 +111,46 @@ class _DayDetail extends StatelessWidget {
               height: 1.45,
               fontSize: 15,
             ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const LogScreen()),
+                  );
+                },
+                icon: const Icon(CupertinoIcons.pencil),
+                label: Text(log == null ? 'Add log' : 'Edit log'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  final controller = ref.read(cycleTrackerControllerProvider.notifier);
+                  final start = data.selectedDate;
+                  controller.upsertPeriod(
+                    existingId: period?.id,
+                    startDate: period?.startDate ?? start,
+                    endDate: period?.endDate ??
+                        start.add(Duration(days: data.preferences.averagePeriodLength - 1)),
+                  );
+                },
+                icon: const Icon(Icons.water_drop),
+                label: Text(period == null ? 'Add period' : 'Update period'),
+              ),
+              if (period != null)
+                TextButton.icon(
+                  onPressed: () {
+                    ref
+                        .read(cycleTrackerControllerProvider.notifier)
+                        .deletePeriod(period.id);
+                  },
+                  icon: const Icon(CupertinoIcons.trash),
+                  label: const Text('Delete period'),
+                ),
+            ],
           ),
         ],
       ),

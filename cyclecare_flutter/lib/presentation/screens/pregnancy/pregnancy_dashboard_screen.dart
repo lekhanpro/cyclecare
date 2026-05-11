@@ -73,7 +73,7 @@ class _PregnancyDashboardScreenState extends ConsumerState<PregnancyDashboardScr
                       style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
-                    value: _progress.clamp(0, 1),
+                    value: _progress.clamp(0, 1).toDouble(),
                     minHeight: 8,
                     borderRadius: BorderRadius.circular(4),
                   ),

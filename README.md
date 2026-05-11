@@ -1,11 +1,11 @@
 # CycleCare
 
-A beautiful, privacy-first menstrual cycle tracking app for Android built with Kotlin and Jetpack Compose.
+A beautiful, privacy-first menstrual cycle tracking app. The actively developed Android app is now the Flutter project in `cyclecare_flutter/`; the original Kotlin/Jetpack Compose implementation remains in `app/` as the legacy native Android version.
 
 [![Build APK](https://github.com/lekhanpro/cyclecare/actions/workflows/build-apk.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/build-apk.yml)
 [![Deploy Pages](https://github.com/lekhanpro/cyclecare/actions/workflows/pages.yml/badge.svg)](https://lekhanpro.github.io/cyclecare/)
 ![Android](https://img.shields.io/badge/Android-7.0%2B-green)
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9-blue)
+![Flutter](https://img.shields.io/badge/Flutter-3.16%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-pink)
 
 **[Landing Page](https://lekhanpro.github.io/cyclecare/)** | **[Download APK](https://github.com/lekhanpro/cyclecare/releases)** | **[Report Issue](https://github.com/lekhanpro/cyclecare/issues)**
@@ -48,26 +48,27 @@ A beautiful, privacy-first menstrual cycle tracking app for Android built with K
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Language | Kotlin |
-| UI | Jetpack Compose + Material Design 3 |
-| Architecture | MVVM + Clean Architecture |
-| Database | Room (7 tables) |
-| DI | Hilt / Dagger |
-| Async | Coroutines + Flow / StateFlow |
-| Notifications | WorkManager |
-| Auth | Biometric API |
-| Build | Gradle KTS + KSP |
+| Layer | Active Flutter App |
+|-------|--------------------|
+| Language | Dart |
+| UI | Flutter Material/Cupertino widgets |
+| Architecture | Riverpod + feature-first clean structure |
+| Storage | Local-first SharedPreferences repository |
+| Optional Sync | Firebase Auth / Firestore |
+| Notifications | flutter_local_notifications |
+| Security | PIN / biometric via local_auth |
+| Build | Flutter Android |
 
 ## Project Structure
 
 ```
-app/src/main/java/com/cyclecare/app/
-  data/          # Room entities, DAOs, repositories, workers
-  domain/        # Models, repository interfaces, prediction engine
-  presentation/  # Compose screens, ViewModels, theme, navigation
-  di/            # Hilt dependency injection modules
+cyclecare_flutter/lib/
+  core/          # services, theme, providers, utilities
+  features/      # active app screens and tracking flows
+  data/          # local database compatibility layer
+  domain/        # prediction entities/engines
+  widgets/       # reusable UI components
+app/src/main/    # legacy Kotlin/Compose Android implementation
 landing-page/    # Static landing page (HTML/CSS/JS)
 ```
 
@@ -80,17 +81,19 @@ landing-page/    # Static landing page (HTML/CSS/JS)
 git clone https://github.com/lekhanpro/cyclecare.git
 cd cyclecare
 
-# Build debug APK
-./gradlew assembleDebug
+# Build Flutter debug APK
+cd cyclecare_flutter
+flutter pub get
+flutter build apk --debug
 
-# Build release APK
-./gradlew assembleRelease
+# Build Flutter release APK
+flutter build apk --release
 
 # Run tests
-./gradlew test
+flutter test
 ```
 
-The debug APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK will be at `cyclecare_flutter/build/app/outputs/flutter-apk/app-debug.apk`.
 
 ## CI/CD
 
@@ -106,8 +109,8 @@ The debug APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Privacy
 
-- All data stored locally in Room database on device
-- No internet permission required for core functionality
+- All core cycle data is stored locally on device
+- Internet is used only for opt-in AI, Google sign-in, cloud sync, and partner sharing
 - No analytics, telemetry, or data collection
 - PIN + biometric gating for app access
 - Full data export and deletion from Settings
@@ -122,4 +125,4 @@ Contributions welcome. Please open an issue first to discuss changes.
 
 ---
 
-Built with Kotlin + Jetpack Compose for private health tracking.
+Built as a Flutter app for private, local-first cycle care.

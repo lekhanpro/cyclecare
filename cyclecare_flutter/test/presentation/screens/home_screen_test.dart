@@ -28,11 +28,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           cycleTrackerControllerProvider.overrideWith(
-            () => FakeCycleTrackerController.loaded(
-              periods: [],
-              logs: [],
-              preferences: const CyclePreferences(),
-            ),
+            () => FakeCycleTrackerController(),
           ),
         ],
       );
@@ -58,16 +54,6 @@ class FakeCycleTrackerController extends CycleTrackerController {
       preferences: const CyclePreferences(),
       prediction: null,
       selectedDate: DateTime.now(),
-    );
-  }
-
-  static AsyncNotifierProvider<CycleTrackerController, CycleTrackerState> loaded({
-    required List<CycleEvent> periods,
-    required List<DailyLog> logs,
-    required CyclePreferences preferences,
-  }) {
-    return AsyncNotifierProvider<CycleTrackerController, CycleTrackerState>(
-      FakeCycleTrackerController.new,
     );
   }
 }

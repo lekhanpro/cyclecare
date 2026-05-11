@@ -9,11 +9,7 @@ class AppointmentsScreen extends ConsumerStatefulWidget {
 }
 
 class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
-  final List<Map<String, dynamic>> _appointments = [
-    {'title': 'First Prenatal Visit', 'doctor': 'Dr. Smith', 'date': DateTime.now().add(const Duration(days: 7)), 'completed': false},
-    {'title': 'Ultrasound', 'doctor': 'Dr. Johnson', 'date': DateTime.now().add(const Duration(days: 21)), 'completed': false},
-    {'title': 'Blood Work', 'doctor': 'Lab', 'date': DateTime.now().subtract(const Duration(days: 14)), 'completed': true},
-  ];
+  final List<Map<String, dynamic>> _appointments = [];
 
   @override
   Widget build(BuildContext context) {

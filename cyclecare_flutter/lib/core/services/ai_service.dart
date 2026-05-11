@@ -58,6 +58,20 @@ class OpenAICompatibleClient implements AIClient {
   }
 }
 
+class UnavailableAIClient implements AIClient {
+  const UnavailableAIClient();
+
+  @override
+  Future<String> sendMessage({
+    required String systemPrompt,
+    required List<Map<String, String>> messages,
+  }) async {
+    throw AIException(
+      'AI is not configured. Add AI_API_KEY with --dart-define or in your release environment.',
+    );
+  }
+}
+
 class AIException implements Exception {
   AIException(this.message);
   final String message;
@@ -87,7 +101,7 @@ class AIContextBuilder {
     buffer.writeln('- Always include a brief disclaimer that this is educational, not medical advice.');
     buffer.writeln('- Keep responses concise, warm, and easy to understand.');
     buffer.writeln('- Avoid explicit sexual instructions beyond general health and relationship context.');
-    buffer.writeln('- If the user reports severe symptoms, gently suggest seeking medical care.');
+    buffer.writeln('- If the user reports severe pain, very heavy bleeding, unusual symptoms, missed periods with concern, pregnancy concerns, fainting, fever, or anything urgent, recommend speaking with a doctor, guardian, or trusted adult promptly.');
     buffer.writeln('- Use inclusive language where possible.');
     return buffer.toString();
   }
@@ -123,9 +137,12 @@ class AIContextBuilder {
       summary.writeln('Recent daily logs (last 7 days):');
       for (final log in recentLogs.take(7)) {
         final parts = <String>[
-          if (log.flow != null) 'flow: ${log.flow!.name}',
+          if (log.flow != null && log.flow != FlowIntensity.none)
+            'flow: ${log.flow!.name}',
           if (log.mood != null) 'mood: ${log.mood}',
           if (log.symptoms.isNotEmpty) 'symptoms: ${log.symptoms.join(", ")}',
+          if (log.painLevel > 0) 'pain level: ${log.painLevel}/10',
+          if (log.sleepHours != null) 'sleep: ${log.sleepHours!.toStringAsFixed(1)} hours',
         ];
         if (parts.isNotEmpty) {
           summary.writeln('- ${log.date.toIso8601String().split("T").first}: ${parts.join(", ")}');

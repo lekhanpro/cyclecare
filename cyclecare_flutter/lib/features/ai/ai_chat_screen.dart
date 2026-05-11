@@ -17,13 +17,23 @@ class AIChatMessage {
 }
 
 final aiServiceProvider = Provider<AIService>((ref) {
-  // In production, load API key from secure config or env
   const apiKey = String.fromEnvironment('AI_API_KEY', defaultValue: '');
-  const baseUrl = String.fromEnvironment('AI_BASE_URL', defaultValue: 'https://api.openai.com');
-  final client = OpenAICompatibleClient(
-    apiKey: apiKey.isNotEmpty ? apiKey : 'demo-key',
-    baseUrl: baseUrl,
-  );
+  const configuredBaseUrl = String.fromEnvironment('AI_BASE_URL', defaultValue: '');
+  const configuredModel = String.fromEnvironment('AI_MODEL', defaultValue: '');
+  final looksLikeGroq = apiKey.startsWith('gsk_');
+  final baseUrl = configuredBaseUrl.isNotEmpty
+      ? configuredBaseUrl
+      : looksLikeGroq
+          ? 'https://api.groq.com/openai'
+          : 'https://api.openai.com';
+  final model = configuredModel.isNotEmpty
+      ? configuredModel
+      : looksLikeGroq
+          ? 'llama-3.1-8b-instant'
+          : 'gpt-4o-mini';
+  final client = apiKey.isEmpty
+      ? const UnavailableAIClient()
+      : OpenAICompatibleClient(apiKey: apiKey, baseUrl: baseUrl, model: model);
   return AIService(client: client, contextBuilder: const AIContextBuilder());
 });
 

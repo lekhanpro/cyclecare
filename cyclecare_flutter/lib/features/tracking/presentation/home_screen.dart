@@ -11,6 +11,8 @@ import '../../../widgets/cycle_calendar.dart';
 import '../../../widgets/cycle_summary_card.dart';
 import '../../../widgets/primary_button.dart';
 import '../../../widgets/soft_card.dart';
+import '../../../presentation/providers/app_providers.dart';
+import '../../ai/ai_chat_screen.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/cycle_models.dart';
 import 'log_screen.dart';
@@ -97,11 +99,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   month: _month,
                   selectedDate: data.selectedDate,
                   statusFor: data.statusFor,
+                  hasLogFor: data.hasLogFor,
                   onSelected: ref.read(cycleTrackerControllerProvider.notifier).selectDate,
                   onMonthChanged: (month) => setState(() => _month = month),
                 ),
                 const SizedBox(height: 18),
                 _SelectedDayCard(data: data),
+                const SizedBox(height: 18),
+                _TodaySummaryCard(data: data),
+                const SizedBox(height: 18),
+                _AIInsightCard(data: data),
+                const SizedBox(height: 18),
+                const _UpcomingRemindersCard(),
                 const SizedBox(height: 18),
                 Row(
                   children: [
@@ -150,13 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   String _phaseName(CyclePrediction prediction) {
-    final day = prediction.cycleDay;
-    final cycleLen = prediction.averageCycleLength;
-    final periodLen = prediction.averagePeriodLength;
-    if (day <= periodLen) return 'Menstrual';
-    if (day <= cycleLen - 14 - 1) return 'Follicular';
-    if (day <= cycleLen - 14 + 1) return 'Ovulation';
-    return 'Luteal';
+    return prediction.phase;
   }
 }
 
@@ -204,7 +207,7 @@ class _PhaseIndicator extends StatelessWidget {
     final phases = [
       _PhaseInfo('Menstrual', CycleCareColors.rose, prediction.averagePeriodLength),
       _PhaseInfo('Follicular', CycleCareColors.mint,
-          prediction.averageCycleLength - 14 - prediction.averagePeriodLength),
+          (prediction.averageCycleLength - 14 - prediction.averagePeriodLength).clamp(1, 40) as int),
       _PhaseInfo('Ovulation', CycleCareColors.ovulation, 3),
       _PhaseInfo('Luteal', CycleCareColors.lavender, 11),
     ];
@@ -271,6 +274,186 @@ class _PhaseIndicator extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _TodaySummaryCard extends StatelessWidget {
+  const _TodaySummaryCard({required this.data});
+
+  final CycleTrackerState data;
+
+  @override
+  Widget build(BuildContext context) {
+    final log = data.logFor(DateTime.now());
+    final parts = <String>[];
+    if (log != null) {
+      if (log.flow != null && log.flow != FlowIntensity.none) {
+        parts.add('Flow: ${log.flow!.name}');
+      }
+      if (log.mood != null) parts.add('Mood: ${log.mood}');
+      if (log.painLevel > 0) parts.add('Pain: ${log.painLevel}/10');
+      if (log.waterMl > 0) parts.add('Water: ${log.waterMl} ml');
+      if (log.sleepHours != null) {
+        parts.add('Sleep: ${log.sleepHours!.toStringAsFixed(1)}h');
+      }
+      if (log.medicineTaken) parts.add('Medicine taken');
+    }
+    return SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Today\'s health summary',
+            style: TextStyle(
+              color: CycleCareColors.ink,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            parts.isEmpty
+                ? 'No log yet today. A quick check-in helps predictions and insights improve.'
+                : parts.join(' · '),
+            style: const TextStyle(
+              color: CycleCareColors.muted,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AIInsightCard extends StatelessWidget {
+  const _AIInsightCard({required this.data});
+
+  final CycleTrackerState data;
+
+  @override
+  Widget build(BuildContext context) {
+    final prediction = data.prediction;
+    final message = prediction == null
+        ? 'Add your last period to unlock gentle cycle insights.'
+        : prediction.isLate
+            ? 'Your period is later than expected. Cycle timing can shift with stress, illness, travel, sleep changes, and many other factors. If you have severe pain, very heavy bleeding, unusual symptoms, or pregnancy concerns, speak with a doctor or trusted adult.'
+            : 'You are in the ${prediction.phase.toLowerCase()} phase. Your next period estimate will keep adapting as you log more cycles.';
+    return SoftCard(
+      color: const Color(0xFFFDF7FF),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: CycleCareColors.lavender.withOpacity(0.28),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(CupertinoIcons.sparkles, color: CycleCareColors.rose),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'CycleCare AI insight',
+                  style: TextStyle(
+                    color: CycleCareColors.ink,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            style: const TextStyle(color: CycleCareColors.muted, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const AIChatScreen()),
+                );
+              },
+              icon: const Icon(CupertinoIcons.chat_bubble_2),
+              label: const Text('Ask AI'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UpcomingRemindersCard extends ConsumerWidget {
+  const _UpcomingRemindersCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reminders = ref.watch(remindersProvider);
+    return reminders.when(
+      loading: () => const SoftCard(
+        child: Center(child: CupertinoActivityIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (items) {
+        final enabled = items.where((item) => item.enabled).take(3).toList();
+        return SoftCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Upcoming reminders',
+                style: TextStyle(
+                  color: CycleCareColors.ink,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (enabled.isEmpty)
+                const Text(
+                  'No reminders are enabled. You can turn them on in Settings.',
+                  style: TextStyle(color: CycleCareColors.muted, height: 1.4),
+                )
+              else
+                for (final reminder in enabled)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        const Icon(CupertinoIcons.bell, size: 16, color: CycleCareColors.rose),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${reminder.title} · ${_formatTime(reminder.hour, reminder.minute)}',
+                            style: const TextStyle(
+                              color: CycleCareColors.muted,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatTime(int hour, int minute) {
+    final hr = hour % 12 == 0 ? 12 : hour % 12;
+    final suffix = hour < 12 ? 'AM' : 'PM';
+    return '$hr:${minute.toString().padLeft(2, '0')} $suffix';
   }
 }
 
