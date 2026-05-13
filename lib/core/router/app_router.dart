@@ -55,7 +55,7 @@ const _shellRoutes = [
 ];
 
 @riverpod
-GoRouter appRouter(AppRouterRef ref) {
+GoRouter appRouter(Ref ref) {
   final trackerAsync = ref.watch(cycleTrackerControllerProvider);
 
   return GoRouter(
