@@ -63,11 +63,15 @@ class _PredictionAccuracyCard extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _StatRow('Confidence', '${(prediction.confidence * 100).round()}%'),
-                _StatRow('Cycle pattern', prediction.isIrregular ? 'Irregular' : 'Fairly regular'),
-                _StatRow('Next estimate', shortDate(prediction.nextPeriodStart)),
+                _StatRow(
+                    'Confidence', '${(prediction.confidence * 100).round()}%'),
+                _StatRow('Cycle pattern',
+                    prediction.isIrregular ? 'Irregular' : 'Fairly regular'),
+                _StatRow(
+                    'Next estimate', shortDate(prediction.nextPeriodStart)),
                 if (prediction.isLate)
-                  _StatRow('Late detection', '${prediction.daysLate} days late'),
+                  _StatRow(
+                      'Late detection', '${prediction.daysLate} days late'),
               ],
             ),
     );
@@ -101,7 +105,11 @@ class _PeriodLengthTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final lengths = periods
         .where((period) => period.endDate != null)
-        .map((period) => dateOnly(period.endDate!).difference(dateOnly(period.startDate)).inDays + 1)
+        .map((period) =>
+            dateOnly(period.endDate!)
+                .difference(dateOnly(period.startDate))
+                .inDays +
+            1)
         .where((length) => length > 0)
         .toList()
       ..sort();
@@ -109,7 +117,8 @@ class _PeriodLengthTrendCard extends StatelessWidget {
       title: 'Period length trend',
       icon: Icons.water_drop,
       child: lengths.length < 2
-          ? const Text('Period length appears here once you have several completed periods.')
+          ? const Text(
+              'Period length appears here once you have several completed periods.')
           : _LineMiniChart(values: lengths.map((e) => e.toDouble()).toList()),
     );
   }
@@ -184,7 +193,9 @@ class _FlowHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flowLogs = logs.where((log) => log.flow != null && log.flow != FlowIntensity.none).toList();
+    final flowLogs = logs
+        .where((log) => log.flow != null && log.flow != FlowIntensity.none)
+        .toList();
     return _InsightCard(
       title: 'Flow history',
       icon: Icons.water_drop_outlined,
@@ -366,9 +377,12 @@ class _BarMiniChart extends StatelessWidget {
           borderData: FlBorderData(show: false),
           gridData: const FlGridData(show: false),
           titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -402,7 +416,8 @@ class _BarMiniChart extends StatelessWidget {
                     toY: values[i],
                     width: 22,
                     color: AppColors.rose,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(8)),
                   ),
                 ],
               ),
@@ -418,7 +433,9 @@ List<int> _cycleLengths(List<CycleEvent> periods) {
     ..sort((a, b) => a.startDate.compareTo(b.startDate));
   final lengths = <int>[];
   for (var i = 1; i < sorted.length; i++) {
-    final length = dateOnly(sorted[i].startDate).difference(dateOnly(sorted[i - 1].startDate)).inDays;
+    final length = dateOnly(sorted[i].startDate)
+        .difference(dateOnly(sorted[i - 1].startDate))
+        .inDays;
     if (length >= 15 && length <= 90) {
       lengths.add(length);
     }

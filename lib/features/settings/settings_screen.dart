@@ -129,7 +129,8 @@ class SettingsScreen extends ConsumerWidget {
                             color: AppColors.muted,
                           ),
                         ),
-                        onTap: () => _editCycleLength(context, ref, tracker.preferences.averageCycleLength),
+                        onTap: () => _editCycleLength(context, ref,
+                            tracker.preferences.averageCycleLength),
                       ),
                       const Divider(height: 1),
                       ListTile(
@@ -141,7 +142,8 @@ class SettingsScreen extends ConsumerWidget {
                             color: AppColors.muted,
                           ),
                         ),
-                        onTap: () => _editPeriodLength(context, ref, tracker.preferences.averagePeriodLength),
+                        onTap: () => _editPeriodLength(context, ref,
+                            tracker.preferences.averagePeriodLength),
                       ),
                     ],
                   ),
@@ -158,7 +160,8 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 SwitchListTile(
                   title: const Text('Privacy mode'),
-                  subtitle: const Text('Hides content when app is in background'),
+                  subtitle:
+                      const Text('Hides content when app is in background'),
                   secondary: const Icon(Icons.visibility_off_rounded),
                   value: settings.privacyMode,
                   onChanged: (v) =>
@@ -324,8 +327,7 @@ class SettingsScreen extends ConsumerWidget {
                             : null,
                       ),
                       const SizedBox(height: 4),
-                      Text(p.label,
-                          style: AppTextStyles.textTheme.labelSmall),
+                      Text(p.label, style: AppTextStyles.textTheme.labelSmall),
                     ],
                   ),
                 );
@@ -413,8 +415,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, selected),
               child: const Text('Save')),
@@ -424,9 +425,8 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _exportData(BuildContext context, WidgetRef ref) async {
-    final json = await ref
-        .read(cycleTrackerControllerProvider.notifier)
-        .exportJson();
+    final json =
+        await ref.read(cycleTrackerControllerProvider.notifier).exportJson();
     await Share.share(json, subject: 'CycleCare data export');
   }
 
@@ -461,7 +461,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showDisclaimer(BuildContext context) {    showDialog<void>(
+  void _showDisclaimer(BuildContext context) {
+    showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Medical Disclaimer'),
@@ -605,7 +606,10 @@ class _LockSettingsSheetState extends ConsumerState<_LockSettingsSheet> {
       setState(() => _error = 'PINs do not match');
       return;
     }
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     await SecurityService().setPin(pin);
     if (mounted) {
       Navigator.pop(context);

@@ -57,16 +57,18 @@ class CycleSummaryCard extends StatelessWidget {
                           : forecast.isLate
                               ? '${forecast.daysLate} days late'
                               : 'Cycle day ${forecast.cycleDay}',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                              ),
                     ),
                   ],
                 ),
               ),
               CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 color: AppColors.rose,
                 borderRadius: BorderRadius.circular(16),
                 onPressed: onLogPeriod,

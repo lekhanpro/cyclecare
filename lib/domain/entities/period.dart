@@ -46,7 +46,9 @@ class Period {
     return Period(
       id: json['id'] as int,
       startDate: DateTime.parse(json['startDate'] as String),
-      endDate: json['endDate'] != null ? DateTime.parse(json['endDate'] as String) : null,
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'] as String)
+          : null,
       symptoms: (json['symptoms'] as List<dynamic>?)?.cast<String>() ?? [],
       notes: json['notes'] as String?,
     );

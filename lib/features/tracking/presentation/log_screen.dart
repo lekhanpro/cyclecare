@@ -170,25 +170,29 @@ class _LogScreenState extends ConsumerState<LogScreen> {
                       label: 'Cervical mucus',
                       values: cervicalMucusOptions,
                       selected: _cervicalMucus,
-                      onSelected: (value) => setState(() => _cervicalMucus = value),
+                      onSelected: (value) =>
+                          setState(() => _cervicalMucus = value),
                     ),
                     _ChoiceWrap(
                       label: 'Position',
                       values: cervicalPositionOptions,
                       selected: _cervicalPosition,
-                      onSelected: (value) => setState(() => _cervicalPosition = value),
+                      onSelected: (value) =>
+                          setState(() => _cervicalPosition = value),
                     ),
                     _ChoiceWrap(
                       label: 'Firmness',
                       values: cervicalFirmnessOptions,
                       selected: _cervicalFirmness,
-                      onSelected: (value) => setState(() => _cervicalFirmness = value),
+                      onSelected: (value) =>
+                          setState(() => _cervicalFirmness = value),
                     ),
                     _ChoiceWrap(
                       label: 'Opening',
                       values: cervicalOpeningOptions,
                       selected: _cervicalOpening,
-                      onSelected: (value) => setState(() => _cervicalOpening = value),
+                      onSelected: (value) =>
+                          setState(() => _cervicalOpening = value),
                     ),
                   ],
                 ),
@@ -218,7 +222,8 @@ class _LogScreenState extends ConsumerState<LogScreen> {
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        const Text('Sleep', style: TextStyle(fontWeight: FontWeight.w700)),
+                        const Text('Sleep',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
                         Expanded(
                           child: Slider(
                             value: _sleepHours,
@@ -226,7 +231,8 @@ class _LogScreenState extends ConsumerState<LogScreen> {
                             max: 14,
                             divisions: 28,
                             label: '${_sleepHours.toStringAsFixed(1)}h',
-                            onChanged: (value) => setState(() => _sleepHours = value),
+                            onChanged: (value) =>
+                                setState(() => _sleepHours = value),
                           ),
                         ),
                         SizedBox(
@@ -242,7 +248,8 @@ class _LogScreenState extends ConsumerState<LogScreen> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Text('Water', style: TextStyle(fontWeight: FontWeight.w700)),
+                        const Text('Water',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
                         const Spacer(),
                         IconButton(
                           tooltip: 'Remove water',
@@ -275,7 +282,8 @@ class _LogScreenState extends ConsumerState<LogScreen> {
                       value: _medicineTaken,
                       activeColor: AppColors.rose,
                       title: const Text('Taken today'),
-                      onChanged: (value) => setState(() => _medicineTaken = value),
+                      onChanged: (value) =>
+                          setState(() => _medicineTaken = value),
                     ),
                     TextField(
                       controller: _medicineController,
@@ -341,7 +349,8 @@ class _LogScreenState extends ConsumerState<LogScreen> {
     _cervicalPosition = log?.cervicalPosition;
     _cervicalFirmness = log?.cervicalFirmness;
     _cervicalOpening = log?.cervicalOpening;
-    _temperatureController.text = log?.temperatureCelsius?.toStringAsFixed(1) ?? '';
+    _temperatureController.text =
+        log?.temperatureCelsius?.toStringAsFixed(1) ?? '';
     _weightController.text = log?.weightKg?.toStringAsFixed(1) ?? '';
     _sleepHours = log?.sleepHours ?? 7;
     _waterMl = log?.waterMl ?? 0;
@@ -394,7 +403,9 @@ class _LogScreenState extends ConsumerState<LogScreen> {
   }
 
   Future<void> _deleteLog(DateTime selectedDate) async {
-    await ref.read(cycleTrackerControllerProvider.notifier).deleteLog(selectedDate);
+    await ref
+        .read(cycleTrackerControllerProvider.notifier)
+        .deleteLog(selectedDate);
     setState(() => _loadedDate = null);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -495,7 +506,8 @@ class _ChoiceWrap extends StatelessWidget {
                 SymptomChip(
                   label: value,
                   selected: selected == value,
-                  onSelected: (isSelected) => onSelected(isSelected ? value : null),
+                  onSelected: (isSelected) =>
+                      onSelected(isSelected ? value : null),
                 ),
             ],
           ),

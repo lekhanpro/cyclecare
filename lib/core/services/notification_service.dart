@@ -103,7 +103,8 @@ class NotificationService {
     if (_initialized) return;
     tz.initializeTimeZones();
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -130,7 +131,9 @@ class NotificationService {
     final raw = prefs.getString(_remindersKey);
     if (raw == null) return _defaultReminders();
     final list = jsonDecode(raw) as List<dynamic>;
-    return list.map((e) => Reminder.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => Reminder.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> saveReminders(List<Reminder> reminders) async {
@@ -166,7 +169,8 @@ class NotificationService {
     );
 
     final now = DateTime.now();
-    var scheduled = DateTime(now.year, now.month, now.day, reminder.hour, reminder.minute);
+    var scheduled =
+        DateTime(now.year, now.month, now.day, reminder.hour, reminder.minute);
     if (scheduled.isBefore(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }

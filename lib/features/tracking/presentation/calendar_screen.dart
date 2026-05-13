@@ -42,7 +42,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               selectedDate: data.selectedDate,
               statusFor: data.statusFor,
               hasLogFor: data.hasLogFor,
-              onSelected: ref.read(cycleTrackerControllerProvider.notifier).selectDate,
+              onSelected:
+                  ref.read(cycleTrackerControllerProvider.notifier).selectDate,
               onMonthChanged: (month) => setState(() => _month = month),
             ),
             const SizedBox(height: 18),
@@ -98,7 +99,8 @@ class _DayDetail extends ConsumerWidget {
                 : [
                     if (log.flow != null) 'Flow: ${log.flow!.name}',
                     if (log.mood != null) 'Mood: ${log.mood}',
-                    if (log.symptoms.isNotEmpty) 'Symptoms: ${log.symptoms.join(', ')}',
+                    if (log.symptoms.isNotEmpty)
+                      'Symptoms: ${log.symptoms.join(', ')}',
                     if (log.painLevel > 0) 'Pain: ${log.painLevel}/10',
                     if (log.temperatureCelsius != null)
                       'Temp: ${log.temperatureCelsius!.toStringAsFixed(1)} C',
@@ -128,13 +130,15 @@ class _DayDetail extends ConsumerWidget {
               ),
               OutlinedButton.icon(
                 onPressed: () {
-                  final controller = ref.read(cycleTrackerControllerProvider.notifier);
+                  final controller =
+                      ref.read(cycleTrackerControllerProvider.notifier);
                   final start = data.selectedDate;
                   controller.upsertPeriod(
                     existingId: period?.id,
                     startDate: period?.startDate ?? start,
                     endDate: period?.endDate ??
-                        start.add(Duration(days: data.preferences.averagePeriodLength - 1)),
+                        start.add(Duration(
+                            days: data.preferences.averagePeriodLength - 1)),
                   );
                 },
                 icon: const Icon(Icons.water_drop),

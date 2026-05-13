@@ -58,7 +58,8 @@ class SecurityService {
   }
 
   Future<void> setPin(String pin) async {
-    await _secureStorage.write(key: _pinKey, value: EncryptionUtil.hashPin(pin));
+    await _secureStorage.write(
+        key: _pinKey, value: EncryptionUtil.hashPin(pin));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_lockEnabledKey, true);
     await prefs.setString(_lockTypeKey, LockType.pin.name);

@@ -72,7 +72,8 @@ class CyclePredictionEngine {
     }
 
     // Adjust with cervical mucus data if available
-    if (cervicalMucusHistory != null && cervicalMucusHistory.contains('Egg-white')) {
+    if (cervicalMucusHistory != null &&
+        cervicalMucusHistory.contains('Egg-white')) {
       confidence = min(0.95, confidence + 0.05);
     }
 
@@ -135,7 +136,8 @@ class CyclePredictionEngine {
   static double _standardDeviation(List<int> values) {
     final mean = values.reduce((a, b) => a + b) / values.length;
     final variance =
-        values.map((v) => pow(v - mean, 2)).reduce((a, b) => a + b) / values.length;
+        values.map((v) => pow(v - mean, 2)).reduce((a, b) => a + b) /
+            values.length;
     return sqrt(variance);
   }
 
@@ -163,7 +165,8 @@ class CyclePredictionEngine {
       ovulationDate: prediction.ovulationDate,
       fertileWindowStart:
           prediction.fertileWindowStart.subtract(const Duration(days: 2)),
-      fertileWindowEnd: prediction.fertileWindowEnd.add(const Duration(days: 2)),
+      fertileWindowEnd:
+          prediction.fertileWindowEnd.add(const Duration(days: 2)),
       confidenceScore: prediction.confidenceScore * 0.7, // Lower confidence
       currentPhase: prediction.currentPhase,
       cycleDay: prediction.cycleDay,

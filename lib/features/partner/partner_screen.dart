@@ -85,7 +85,8 @@ class _PartnerScreenState extends State<PartnerScreen> {
                         children: [
                           Text(
                             _inviteCode!,
-                            style: AppTextStyles.textTheme.headlineMedium?.copyWith(
+                            style: AppTextStyles.textTheme.headlineMedium
+                                ?.copyWith(
                               fontWeight: FontWeight.w900,
                               letterSpacing: 6,
                             ),
@@ -97,8 +98,7 @@ class _PartnerScreenState extends State<PartnerScreen> {
                               Clipboard.setData(
                                   ClipboardData(text: _inviteCode!));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Code copied!')),
+                                const SnackBar(content: Text('Code copied!')),
                               );
                             },
                           ),

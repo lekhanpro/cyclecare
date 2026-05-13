@@ -62,8 +62,7 @@ class PetNotifier extends AsyncNotifier<PetState> {
     final current = state.valueOrNull ?? const PetState();
     final now = DateTime.now();
     final lastFed = current.lastFed;
-    if (lastFed != null &&
-        now.difference(lastFed).inHours < 4) {
+    if (lastFed != null && now.difference(lastFed).inHours < 4) {
       return; // cooldown
     }
     await _save(current.copyWith(
@@ -77,8 +76,7 @@ class PetNotifier extends AsyncNotifier<PetState> {
     final current = state.valueOrNull ?? const PetState();
     final now = DateTime.now();
     final lastPetted = current.lastPetted;
-    if (lastPetted != null &&
-        now.difference(lastPetted).inMinutes < 30) {
+    if (lastPetted != null && now.difference(lastPetted).inMinutes < 30) {
       return; // cooldown
     }
     await _save(current.copyWith(
@@ -95,7 +93,8 @@ class PetNotifier extends AsyncNotifier<PetState> {
 
   Future<void> setPetName(String name) async {
     final current = state.valueOrNull ?? const PetState();
-    await _save(current.copyWith(name: name.trim().isEmpty ? 'Luna' : name.trim()));
+    await _save(
+        current.copyWith(name: name.trim().isEmpty ? 'Luna' : name.trim()));
   }
 
   Future<void> incrementStreak() async {

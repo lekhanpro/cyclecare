@@ -259,7 +259,8 @@ class CyclePreferences {
       averagePeriodLength: averagePeriodLength ?? this.averagePeriodLength,
       lutealPhaseLength: lutealPhaseLength ?? this.lutealPhaseLength,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
-      periodReminderEnabled: periodReminderEnabled ?? this.periodReminderEnabled,
+      periodReminderEnabled:
+          periodReminderEnabled ?? this.periodReminderEnabled,
       ovulationReminderEnabled:
           ovulationReminderEnabled ?? this.ovulationReminderEnabled,
       dailyLogReminderEnabled:
@@ -300,8 +301,10 @@ class CyclePreferences {
       lutealPhaseLength: json['lutealPhaseLength'] as int? ?? 14,
       remindersEnabled: json['remindersEnabled'] as bool? ?? true,
       periodReminderEnabled: json['periodReminderEnabled'] as bool? ?? true,
-      ovulationReminderEnabled: json['ovulationReminderEnabled'] as bool? ?? false,
-      dailyLogReminderEnabled: json['dailyLogReminderEnabled'] as bool? ?? false,
+      ovulationReminderEnabled:
+          json['ovulationReminderEnabled'] as bool? ?? false,
+      dailyLogReminderEnabled:
+          json['dailyLogReminderEnabled'] as bool? ?? false,
       pillReminderEnabled: json['pillReminderEnabled'] as bool? ?? false,
       reminderHour: json['reminderHour'] as int? ?? 9,
       reminderMinute: json['reminderMinute'] as int? ?? 0,

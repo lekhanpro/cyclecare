@@ -58,7 +58,8 @@ class CycleRepository {
   }
 
   Future<void> savePreferences(CyclePreferences preferences) {
-    return _preferences.setString(_preferencesKey, jsonEncode(preferences.toJson()));
+    return _preferences.setString(
+        _preferencesKey, jsonEncode(preferences.toJson()));
   }
 
   Future<String> exportJson() async {
@@ -75,5 +76,4 @@ class CycleRepository {
     await _preferences.remove(_logsKey);
     await _preferences.remove(_preferencesKey);
   }
-
 }

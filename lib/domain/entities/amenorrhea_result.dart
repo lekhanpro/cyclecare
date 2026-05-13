@@ -5,7 +5,7 @@ enum AmenorrheaSeverity {
   mild,
   moderate,
   severe;
-  
+
   String get displayName {
     switch (this) {
       case AmenorrheaSeverity.none:
@@ -18,7 +18,7 @@ enum AmenorrheaSeverity {
         return 'Missed Period';
     }
   }
-  
+
   String get description {
     switch (this) {
       case AmenorrheaSeverity.none:
@@ -31,7 +31,7 @@ enum AmenorrheaSeverity {
         return 'You have missed multiple cycles';
     }
   }
-  
+
   int get thresholdDays {
     switch (this) {
       case AmenorrheaSeverity.none:
@@ -44,7 +44,7 @@ enum AmenorrheaSeverity {
         return 90;
     }
   }
-  
+
   static AmenorrheaSeverity fromDays(int days) {
     if (days >= 90) return AmenorrheaSeverity.severe;
     if (days >= 60) return AmenorrheaSeverity.moderate;

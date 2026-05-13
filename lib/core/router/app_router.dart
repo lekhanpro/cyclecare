@@ -65,7 +65,8 @@ GoRouter appRouter(AppRouterRef ref) {
       final isLoading = trackerAsync.isLoading;
       if (isLoading) return AppRoutes.splash;
 
-      final onboarded = trackerAsync.valueOrNull?.preferences.onboardingCompleted ?? false;
+      final onboarded =
+          trackerAsync.valueOrNull?.preferences.onboardingCompleted ?? false;
       final loc = state.matchedLocation;
 
       // Not onboarded → send to landing/onboarding
@@ -110,16 +111,21 @@ GoRouter appRouter(AppRouterRef ref) {
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [
           StatefulShellBranch(routes: [
-            GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
+            GoRoute(
+                path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: AppRoutes.calendar, builder: (_, __) => const CalendarScreen()),
+            GoRoute(
+                path: AppRoutes.calendar,
+                builder: (_, __) => const CalendarScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: AppRoutes.log, builder: (_, __) => const LogScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: AppRoutes.insights, builder: (_, __) => const InsightsScreen()),
+            GoRoute(
+                path: AppRoutes.insights,
+                builder: (_, __) => const InsightsScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: AppRoutes.pet, builder: (_, __) => const PetScreen()),

@@ -66,8 +66,8 @@ class BirthControlNotifier extends AsyncNotifier<BirthControlState> {
     final lastTakenStr = prefs.getString(_lastTakenKey);
     final lastTaken =
         lastTakenStr != null ? DateTime.tryParse(lastTakenStr) : null;
-    final takenToday = lastTaken != null &&
-        _isSameDay(lastTaken, DateTime.now());
+    final takenToday =
+        lastTaken != null && _isSameDay(lastTaken, DateTime.now());
 
     return BirthControlState(
       method: BirthControlMethod.values.firstWhere(
@@ -102,10 +102,10 @@ class BirthControlNotifier extends AsyncNotifier<BirthControlState> {
 
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
-    final newStreak = current.lastTaken != null &&
-            _isSameDay(current.lastTaken!, yesterday)
-        ? current.streak + 1
-        : 1;
+    final newStreak =
+        current.lastTaken != null && _isSameDay(current.lastTaken!, yesterday)
+            ? current.streak + 1
+            : 1;
 
     await prefs.setInt(_streakKey, newStreak);
     await prefs.setString(_lastTakenKey, now.toIso8601String());
@@ -158,8 +158,9 @@ class BirthControlScreen extends ConsumerWidget {
                       return ChoiceChip(
                         label: Text('${m.emoji} ${m.label}'),
                         selected: selected,
-                        onSelected: (_) =>
-                            ref.read(birthControlProvider.notifier).setMethod(m),
+                        onSelected: (_) => ref
+                            .read(birthControlProvider.notifier)
+                            .setMethod(m),
                       );
                     }).toList(),
                   ),

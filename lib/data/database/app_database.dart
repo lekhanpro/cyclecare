@@ -129,7 +129,8 @@ class AppDatabase {
   int _nextLogId = 1;
 
   final _periodsController = StreamController<List<PeriodRecord>>.broadcast();
-  final _dailyLogsController = StreamController<List<DailyLogRecord>>.broadcast();
+  final _dailyLogsController =
+      StreamController<List<DailyLogRecord>>.broadcast();
 
   /// Load persisted data from SharedPreferences
   Future<void> initialize() async {
@@ -137,17 +138,21 @@ class AppDatabase {
     final periodsJson = prefs.getString('periods');
     if (periodsJson != null) {
       final list = jsonDecode(periodsJson) as List;
-      _periods.addAll(list.map((e) => PeriodRecord.fromJson(e as Map<String, dynamic>)));
+      _periods.addAll(
+          list.map((e) => PeriodRecord.fromJson(e as Map<String, dynamic>)));
       if (_periods.isNotEmpty) {
-        _nextPeriodId = _periods.map((p) => p.id).reduce((a, b) => a > b ? a : b) + 1;
+        _nextPeriodId =
+            _periods.map((p) => p.id).reduce((a, b) => a > b ? a : b) + 1;
       }
     }
     final logsJson = prefs.getString('daily_logs');
     if (logsJson != null) {
       final list = jsonDecode(logsJson) as List;
-      _dailyLogs.addAll(list.map((e) => DailyLogRecord.fromJson(e as Map<String, dynamic>)));
+      _dailyLogs.addAll(
+          list.map((e) => DailyLogRecord.fromJson(e as Map<String, dynamic>)));
       if (_dailyLogs.isNotEmpty) {
-        _nextLogId = _dailyLogs.map((l) => l.id).reduce((a, b) => a > b ? a : b) + 1;
+        _nextLogId =
+            _dailyLogs.map((l) => l.id).reduce((a, b) => a > b ? a : b) + 1;
       }
     }
     _periodsController.add(List.unmodifiable(_periods));
@@ -156,13 +161,15 @@ class AppDatabase {
 
   Future<void> _savePeriods() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('periods', jsonEncode(_periods.map((p) => p.toJson()).toList()));
+    await prefs.setString(
+        'periods', jsonEncode(_periods.map((p) => p.toJson()).toList()));
     _periodsController.add(List.unmodifiable(_periods));
   }
 
   Future<void> _saveDailyLogs() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('daily_logs', jsonEncode(_dailyLogs.map((l) => l.toJson()).toList()));
+    await prefs.setString(
+        'daily_logs', jsonEncode(_dailyLogs.map((l) => l.toJson()).toList()));
     _dailyLogsController.add(List.unmodifiable(_dailyLogs));
   }
 
@@ -171,7 +178,9 @@ class AppDatabase {
     yield List.unmodifiable(_periods);
     yield* _periodsController.stream;
   }
-  Future<List<PeriodRecord>> getAllPeriods() async => List.unmodifiable(_periods);
+
+  Future<List<PeriodRecord>> getAllPeriods() async =>
+      List.unmodifiable(_periods);
 
   Future<PeriodRecord?> getLatestPeriod() async {
     if (_periods.isEmpty) return null;
@@ -203,14 +212,18 @@ class AppDatabase {
     yield List.unmodifiable(_dailyLogs);
     yield* _dailyLogsController.stream;
   }
-  Future<List<DailyLogRecord>> getAllDailyLogs() async => List.unmodifiable(_dailyLogs);
+
+  Future<List<DailyLogRecord>> getAllDailyLogs() async =>
+      List.unmodifiable(_dailyLogs);
 
   Future<DailyLogRecord?> getDailyLogForDate(DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));
     try {
       return _dailyLogs.firstWhere(
-        (l) => l.date.isAfter(start.subtract(const Duration(seconds: 1))) && l.date.isBefore(end),
+        (l) =>
+            l.date.isAfter(start.subtract(const Duration(seconds: 1))) &&
+            l.date.isBefore(end),
       );
     } catch (_) {
       return null;

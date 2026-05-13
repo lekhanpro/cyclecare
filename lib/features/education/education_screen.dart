@@ -226,7 +226,8 @@ class _EducationScreenState extends State<EducationScreen> {
   }
 
   void _showBookmarks() {
-    final bookmarked = _articles.where((a) => _bookmarks.contains(a.id)).toList();
+    final bookmarked =
+        _articles.where((a) => _bookmarks.contains(a.id)).toList();
     showModalBottomSheet<void>(
       context: context,
       builder: (_) => Padding(
@@ -247,8 +248,8 @@ class _EducationScreenState extends State<EducationScreen> {
                   ))
             else
               ...bookmarked.map((a) => ListTile(
-                    leading: Text(a.emoji,
-                        style: const TextStyle(fontSize: 24)),
+                    leading:
+                        Text(a.emoji, style: const TextStyle(fontSize: 24)),
                     title: Text(a.title),
                     onTap: () {
                       Navigator.pop(context);
@@ -320,7 +321,9 @@ class _ArticleCard extends StatelessWidget {
           ),
           IconButton(
             icon: Icon(
-              bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+              bookmarked
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
               color: bookmarked
                   ? Theme.of(context).colorScheme.primary
                   : AppColors.muted,
@@ -347,8 +350,7 @@ class _ArticleDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Text(article.emoji,
-                  style: const TextStyle(fontSize: 64)),
+              child: Text(article.emoji, style: const TextStyle(fontSize: 64)),
             ),
             const SizedBox(height: 16),
             Text(article.title,

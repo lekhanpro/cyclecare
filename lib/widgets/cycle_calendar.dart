@@ -37,7 +37,8 @@ class CycleCalendar extends StatelessWidget {
             children: [
               IconButton(
                 tooltip: 'Previous month',
-                onPressed: () => onMonthChanged(DateTime(month.year, month.month - 1)),
+                onPressed: () =>
+                    onMonthChanged(DateTime(month.year, month.month - 1)),
                 icon: const Icon(CupertinoIcons.chevron_left),
               ),
               Expanded(
@@ -53,7 +54,8 @@ class CycleCalendar extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'Next month',
-                onPressed: () => onMonthChanged(DateTime(month.year, month.month + 1)),
+                onPressed: () =>
+                    onMonthChanged(DateTime(month.year, month.month + 1)),
                 icon: const Icon(CupertinoIcons.chevron_right),
               ),
             ],
@@ -184,7 +186,8 @@ class _DayCell extends StatelessWidget {
                 style: TextStyle(
                   color: foreground,
                   fontSize: 15,
-                  fontWeight: selected || today ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight:
+                      selected || today ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 3),

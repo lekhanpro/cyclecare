@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/security_service.dart';
 import '../../core/theme/cyclecare_theme.dart';
 
-final _securityServiceProvider = Provider<SecurityService>((_) => SecurityService());
+final _securityServiceProvider =
+    Provider<SecurityService>((_) => SecurityService());
 
 class AppLockScreen extends ConsumerStatefulWidget {
   const AppLockScreen({super.key, required this.child});
@@ -49,7 +50,10 @@ class _AppLockScreenState extends ConsumerState<AppLockScreen>
     final enabled = await security.isLockEnabled;
     if (!mounted) return;
     if (!enabled) {
-      setState(() { _checking = false; _unlocked = true; });
+      setState(() {
+        _checking = false;
+        _unlocked = true;
+      });
       return;
     }
     final type = await security.lockType;

@@ -126,7 +126,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _loading ? null : _signInWithGoogle,
-                icon: const Text('G', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                icon: const Text('G',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
                 label: const Text('Continue with Google'),
               ),
             ),
@@ -181,7 +183,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       setState(() => _error = 'Please enter your email and password.');
       return;
     }
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final service = ref.read(authServiceProvider);
       if (_isRegister) {
@@ -191,21 +196,36 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       }
       if (mounted) context.go(AppRoutes.home);
     } on AuthServiceException catch (e) {
-      setState(() { _error = e.message; _loading = false; });
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
     } catch (e) {
-      setState(() { _error = 'Something went wrong. Please try again.'; _loading = false; });
+      setState(() {
+        _error = 'Something went wrong. Please try again.';
+        _loading = false;
+      });
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       await ref.read(authServiceProvider).signInWithGoogle();
       if (mounted) context.go(AppRoutes.home);
     } on AuthServiceException catch (e) {
-      setState(() { _error = e.message; _loading = false; });
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
     } catch (e) {
-      setState(() { _error = 'Google sign-in failed. Please try again.'; _loading = false; });
+      setState(() {
+        _error = 'Google sign-in failed. Please try again.';
+        _loading = false;
+      });
     }
   }
 }

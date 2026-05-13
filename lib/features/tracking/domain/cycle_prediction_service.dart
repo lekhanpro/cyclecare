@@ -43,14 +43,16 @@ class CyclePredictionService {
     );
 
     final lastStart = dateOnly(ordered.first.startDate);
-    final expectedPeriodStart = lastStart.add(Duration(days: averageCycleLength));
+    final expectedPeriodStart =
+        lastStart.add(Duration(days: averageCycleLength));
     var nextPeriodStart = expectedPeriodStart;
     final isLate = today.isAfter(expectedPeriodStart);
     if (isLate) {
       nextPeriodStart = expectedPeriodStart;
     } else {
       while (nextPeriodStart.isBefore(today)) {
-        nextPeriodStart = nextPeriodStart.add(Duration(days: averageCycleLength));
+        nextPeriodStart =
+            nextPeriodStart.add(Duration(days: averageCycleLength));
       }
     }
 
@@ -63,7 +65,8 @@ class CyclePredictionService {
     final fertileStart = ovulationDate.subtract(const Duration(days: 5));
     final fertileEnd = ovulationDate.add(const Duration(days: 1));
     final cycleDay = today.difference(lastStart).inDays + 1;
-    final ovulationCycleDay = averageCycleLength - preferences.lutealPhaseLength;
+    final ovulationCycleDay =
+        averageCycleLength - preferences.lutealPhaseLength;
     final phase = _phaseFor(
       cycleDay: cycleDay,
       periodLength: averagePeriodLength,
@@ -82,8 +85,9 @@ class CyclePredictionService {
       fertileWindowEnd: fertileEnd,
       averageCycleLength: averageCycleLength,
       averagePeriodLength: averagePeriodLength,
-      confidence:
-          (variabilityScore * 0.7 + sampleScore * 0.3).clamp(0.1, 0.99).toDouble(),
+      confidence: (variabilityScore * 0.7 + sampleScore * 0.3)
+          .clamp(0.1, 0.99)
+          .toDouble(),
       isIrregular: stdDev >= 4.5,
       cycleDay: cycleDay < 1 ? 1 : cycleDay,
       daysUntilPeriod: isLate ? 0 : nextPeriodStart.difference(today).inDays,
@@ -127,13 +131,19 @@ class CyclePredictionService {
   int _averagePeriodLength(List<CycleEvent> periods, int fallback) {
     final lengths = periods
         .where((period) => period.endDate != null)
-        .map((period) => dateOnly(period.endDate!).difference(dateOnly(period.startDate)).inDays + 1)
+        .map((period) =>
+            dateOnly(period.endDate!)
+                .difference(dateOnly(period.startDate))
+                .inDays +
+            1)
         .where((length) => length >= 1 && length <= 14)
         .toList();
     if (lengths.isEmpty) {
       return fallback.clamp(2, 10) as int;
     }
-    return (lengths.reduce((a, b) => a + b) / lengths.length).round().clamp(2, 10) as int;
+    return (lengths.reduce((a, b) => a + b) / lengths.length)
+        .round()
+        .clamp(2, 10) as int;
   }
 
   double _standardDeviation(List<int> values) {
@@ -141,7 +151,9 @@ class CyclePredictionService {
       return 0;
     }
     final mean = values.reduce((a, b) => a + b) / values.length;
-    final variance = values.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) / values.length;
+    final variance =
+        values.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) /
+            values.length;
     return sqrt(variance);
   }
 }

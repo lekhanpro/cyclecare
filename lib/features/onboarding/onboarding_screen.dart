@@ -130,8 +130,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     cycleLength: _cycleLength,
                     periodLength: _periodLength,
                     onLastPeriodChanged: (d) => setState(() => _lastPeriod = d),
-                    onCycleLengthChanged: (v) => setState(() => _cycleLength = v),
-                    onPeriodLengthChanged: (v) => setState(() => _periodLength = v),
+                    onCycleLengthChanged: (v) =>
+                        setState(() => _cycleLength = v),
+                    onPeriodLengthChanged: (v) =>
+                        setState(() => _periodLength = v),
                   ),
                   _PetPage(
                     selected: _petType,
@@ -159,7 +161,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Expanded(
                     flex: 2,
                     child: PrimaryButton(
-                      label: _page == _totalPages - 1 ? 'Start CycleCare 🌸' : 'Continue',
+                      label: _page == _totalPages - 1
+                          ? 'Start CycleCare 🌸'
+                          : 'Continue',
                       loading: _saving,
                       onPressed: _next,
                     ),
@@ -212,7 +216,8 @@ class _WelcomePage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           SoftCard(
-            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
+            color:
+                Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -362,7 +367,8 @@ class _CycleLengthPage extends StatelessWidget {
                     final picked = await showDatePicker(
                       context: context,
                       initialDate: lastPeriod,
-                      firstDate: DateTime.now().subtract(const Duration(days: 90)),
+                      firstDate:
+                          DateTime.now().subtract(const Duration(days: 90)),
                       lastDate: DateTime.now(),
                     );
                     if (picked != null) onLastPeriodChanged(picked);

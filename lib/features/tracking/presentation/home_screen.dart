@@ -63,8 +63,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 selectedDate: data.selectedDate,
                 statusFor: data.statusFor,
                 hasLogFor: data.hasLogFor,
-                onSelected:
-                    ref.read(cycleTrackerControllerProvider.notifier).selectDate,
+                onSelected: ref
+                    .read(cycleTrackerControllerProvider.notifier)
+                    .selectDate,
                 onMonthChanged: (month) => setState(() => _month = month),
               ),
               const SizedBox(height: 18),
@@ -430,8 +431,8 @@ class AmenorrheaBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: _severityColor(result.severity).withOpacity(0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: _severityColor(result.severity).withOpacity(0.3)),
+        border:
+            Border.all(color: _severityColor(result.severity).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

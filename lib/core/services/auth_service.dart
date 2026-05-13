@@ -7,8 +7,8 @@ class AuthService {
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
   })  : _auth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ??
-            GoogleSignIn(scopes: ['email', 'profile']);
+        _googleSignIn =
+            googleSignIn ?? GoogleSignIn(scopes: ['email', 'profile']);
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;

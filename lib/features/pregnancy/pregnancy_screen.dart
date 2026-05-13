@@ -107,9 +107,8 @@ class PregnancyScreen extends ConsumerWidget {
       body: pregAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (preg) => preg.isActive
-            ? _ActivePregnancyView(preg: preg)
-            : _SetupView(),
+        data: (preg) =>
+            preg.isActive ? _ActivePregnancyView(preg: preg) : _SetupView(),
       ),
     );
   }
@@ -224,8 +223,12 @@ class _ActivePregnancyView extends ConsumerWidget {
           ),
           child: Column(
             children: [
-              Text('Week $weeks', style: AppTextStyles.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900)),
-              Text('of pregnancy', style: AppTextStyles.textTheme.bodyLarge?.copyWith(color: AppColors.muted)),
+              Text('Week $weeks',
+                  style: AppTextStyles.textTheme.displaySmall
+                      ?.copyWith(fontWeight: FontWeight.w900)),
+              Text('of pregnancy',
+                  style: AppTextStyles.textTheme.bodyLarge
+                      ?.copyWith(color: AppColors.muted)),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -315,8 +318,7 @@ class _ActivePregnancyView extends ConsumerWidget {
         const SizedBox(height: 16),
 
         OutlinedButton.icon(
-          onPressed: () =>
-              ref.read(pregnancyProvider.notifier).deactivate(),
+          onPressed: () => ref.read(pregnancyProvider.notifier).deactivate(),
           icon: const Icon(Icons.close_rounded),
           label: const Text('Exit pregnancy mode'),
           style: OutlinedButton.styleFrom(
@@ -336,14 +338,19 @@ class _ActivePregnancyView extends ConsumerWidget {
 
   String _weekInfo(int weeks) {
     if (weeks < 4) return 'Very early pregnancy. The embryo is implanting.';
-    if (weeks < 8) return 'Major organs are beginning to form. Morning sickness may start.';
-    if (weeks < 12) return 'The embryo becomes a fetus. Heartbeat is detectable.';
-    if (weeks < 16) return 'Baby can make facial expressions. You may start showing.';
+    if (weeks < 8)
+      return 'Major organs are beginning to form. Morning sickness may start.';
+    if (weeks < 12)
+      return 'The embryo becomes a fetus. Heartbeat is detectable.';
+    if (weeks < 16)
+      return 'Baby can make facial expressions. You may start showing.';
     if (weeks < 20) return 'You may feel the first movements (quickening).';
-    if (weeks < 24) return 'Baby\'s hearing is developing. Viability milestone approaching.';
+    if (weeks < 24)
+      return 'Baby\'s hearing is developing. Viability milestone approaching.';
     if (weeks < 28) return 'Baby opens eyes. Brain development is rapid.';
     if (weeks < 32) return 'Baby is practicing breathing movements.';
-    if (weeks < 36) return 'Baby is gaining weight rapidly. Getting into position.';
+    if (weeks < 36)
+      return 'Baby is gaining weight rapidly. Getting into position.';
     if (weeks < 40) return 'Full term! Baby could arrive any day.';
     return 'Past due date. Stay in close contact with your healthcare provider.';
   }

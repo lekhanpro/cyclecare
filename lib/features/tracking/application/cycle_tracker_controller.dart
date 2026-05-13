@@ -47,8 +47,10 @@ class CycleTrackerState {
     final target = dateOnly(date);
     for (final period in periods) {
       final end = period.endDate ??
-          period.startDate.add(Duration(days: preferences.averagePeriodLength - 1));
-      if (!target.isBefore(dateOnly(period.startDate)) && !target.isAfter(dateOnly(end))) {
+          period.startDate
+              .add(Duration(days: preferences.averagePeriodLength - 1));
+      if (!target.isBefore(dateOnly(period.startDate)) &&
+          !target.isAfter(dateOnly(end))) {
         return period;
       }
     }
@@ -59,8 +61,10 @@ class CycleTrackerState {
     final target = dateOnly(day);
     for (final period in periods) {
       final end = period.endDate ??
-          period.startDate.add(Duration(days: preferences.averagePeriodLength - 1));
-      if (!target.isBefore(dateOnly(period.startDate)) && !target.isAfter(dateOnly(end))) {
+          period.startDate
+              .add(Duration(days: preferences.averagePeriodLength - 1));
+      if (!target.isBefore(dateOnly(period.startDate)) &&
+          !target.isAfter(dateOnly(end))) {
         return DayStatus.period;
       }
     }
@@ -159,7 +163,8 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
     final event = CycleEvent(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       startDate: start,
-      endDate: start.add(Duration(days: current.preferences.averagePeriodLength - 1)),
+      endDate: start
+          .add(Duration(days: current.preferences.averagePeriodLength - 1)),
     );
     final periods = [event, ...current.periods]
       ..sort((a, b) => b.startDate.compareTo(a.startDate));

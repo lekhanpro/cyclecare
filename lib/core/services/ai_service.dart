@@ -87,21 +87,27 @@ class AIContextBuilder {
     required String trackingMode,
   }) {
     final buffer = StringBuffer();
-    buffer.writeln('You are CycleCare AI, a friendly, knowledgeable health-education assistant specialized in menstrual health, hormonal cycles, fertility awareness, and general wellness. You are NOT a medical doctor. You never diagnose conditions or prescribe treatments. You always encourage users to consult qualified healthcare professionals for medical concerns.');
+    buffer.writeln(
+        'You are CycleCare AI, a friendly, knowledgeable health-education assistant specialized in menstrual health, hormonal cycles, fertility awareness, and general wellness. You are NOT a medical doctor. You never diagnose conditions or prescribe treatments. You always encourage users to consult qualified healthcare professionals for medical concerns.');
     buffer.writeln();
     if (allowPersonalData) {
-      buffer.writeln('You have access to the user\'s own cycle tracking data (periods, symptoms, moods, and predictions). Use this data to personalize explanations and highlight patterns when relevant. Do NOT mention specific intimate details unless the user explicitly asks about them. Keep summaries high-level and educational.');
+      buffer.writeln(
+          'You have access to the user\'s own cycle tracking data (periods, symptoms, moods, and predictions). Use this data to personalize explanations and highlight patterns when relevant. Do NOT mention specific intimate details unless the user explicitly asks about them. Keep summaries high-level and educational.');
     } else {
-      buffer.writeln('You do NOT have access to the user\'s personal tracking data. Provide general, evidence-based educational information only.');
+      buffer.writeln(
+          'You do NOT have access to the user\'s personal tracking data. Provide general, evidence-based educational information only.');
     }
     buffer.writeln();
     buffer.writeln('Tracking mode: $trackingMode');
     buffer.writeln();
     buffer.writeln('Guidelines:');
-    buffer.writeln('- Always include a brief disclaimer that this is educational, not medical advice.');
+    buffer.writeln(
+        '- Always include a brief disclaimer that this is educational, not medical advice.');
     buffer.writeln('- Keep responses concise, warm, and easy to understand.');
-    buffer.writeln('- Avoid explicit sexual instructions beyond general health and relationship context.');
-    buffer.writeln('- If the user reports severe pain, very heavy bleeding, unusual symptoms, missed periods with concern, pregnancy concerns, fainting, fever, or anything urgent, recommend speaking with a doctor, guardian, or trusted adult promptly.');
+    buffer.writeln(
+        '- Avoid explicit sexual instructions beyond general health and relationship context.');
+    buffer.writeln(
+        '- If the user reports severe pain, very heavy bleeding, unusual symptoms, missed periods with concern, pregnancy concerns, fainting, fever, or anything urgent, recommend speaking with a doctor, guardian, or trusted adult promptly.');
     buffer.writeln('- Use inclusive language where possible.');
     return buffer.toString();
   }
@@ -128,8 +134,10 @@ class AIContextBuilder {
       summary.writeln();
       summary.writeln('Current prediction:');
       summary.writeln('- Cycle day: ${prediction.cycleDay}');
-      summary.writeln('- Days until next period: ${prediction.daysUntilPeriod}');
-      summary.writeln('- Fertile window: ${prediction.fertileWindowStart.toIso8601String().split("T").first} to ${prediction.fertileWindowEnd.toIso8601String().split("T").first}');
+      summary
+          .writeln('- Days until next period: ${prediction.daysUntilPeriod}');
+      summary.writeln(
+          '- Fertile window: ${prediction.fertileWindowStart.toIso8601String().split("T").first} to ${prediction.fertileWindowEnd.toIso8601String().split("T").first}');
     }
 
     if (recentLogs.isNotEmpty) {
@@ -142,10 +150,12 @@ class AIContextBuilder {
           if (log.mood != null) 'mood: ${log.mood}',
           if (log.symptoms.isNotEmpty) 'symptoms: ${log.symptoms.join(", ")}',
           if (log.painLevel > 0) 'pain level: ${log.painLevel}/10',
-          if (log.sleepHours != null) 'sleep: ${log.sleepHours!.toStringAsFixed(1)} hours',
+          if (log.sleepHours != null)
+            'sleep: ${log.sleepHours!.toStringAsFixed(1)} hours',
         ];
         if (parts.isNotEmpty) {
-          summary.writeln('- ${log.date.toIso8601String().split("T").first}: ${parts.join(", ")}');
+          summary.writeln(
+              '- ${log.date.toIso8601String().split("T").first}: ${parts.join(", ")}');
         }
       }
     }
@@ -157,7 +167,8 @@ class AIContextBuilder {
       });
       context.add({
         'role': 'assistant',
-        'content': 'Thank you for sharing. I\'ll keep this context in mind for our conversation.',
+        'content':
+            'Thank you for sharing. I\'ll keep this context in mind for our conversation.',
       });
     }
 

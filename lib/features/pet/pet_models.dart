@@ -117,9 +117,9 @@ class PetState {
         lastPetted: json['lastPetted'] != null
             ? DateTime.tryParse(json['lastPetted'] as String)
             : null,
-        achievements: (json['achievements'] as List<dynamic>?)
-                ?.cast<String>() ??
-            const [],
+        achievements:
+            (json['achievements'] as List<dynamic>?)?.cast<String>() ??
+                const [],
       );
 }
 

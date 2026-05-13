@@ -42,7 +42,8 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
     final isDark = prefs.getBool(_darkKey) ?? false;
     final privacy = prefs.getBool(_privacyKey) ?? false;
     return AppSettings(
-      palette: AppPalette.values[paletteIndex.clamp(0, AppPalette.values.length - 1)],
+      palette: AppPalette
+          .values[paletteIndex.clamp(0, AppPalette.values.length - 1)],
       isDark: isDark,
       privacyMode: privacy,
     );
@@ -51,19 +52,22 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
   Future<void> setPalette(AppPalette palette) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_paletteKey, palette.index);
-    state = AsyncData((state.valueOrNull ?? const AppSettings()).copyWith(palette: palette));
+    state = AsyncData(
+        (state.valueOrNull ?? const AppSettings()).copyWith(palette: palette));
   }
 
   Future<void> setDark(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_darkKey, value);
-    state = AsyncData((state.valueOrNull ?? const AppSettings()).copyWith(isDark: value));
+    state = AsyncData(
+        (state.valueOrNull ?? const AppSettings()).copyWith(isDark: value));
   }
 
   Future<void> setPrivacy(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_privacyKey, value);
-    state = AsyncData((state.valueOrNull ?? const AppSettings()).copyWith(privacyMode: value));
+    state = AsyncData((state.valueOrNull ?? const AppSettings())
+        .copyWith(privacyMode: value));
   }
 }
 
