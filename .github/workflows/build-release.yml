@@ -1,31 +1,37 @@
-name: Build Release
+name: Build & Release
 
 on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v2.0.0)'
+        required: true
+        default: 'v2.0.0'
 
 jobs:
   build-release:
-    name: Build Signed Release
+    name: Build Signed Release APK & AAB
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter 3.24.5
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
 
       - name: Create .env
         run: |
@@ -35,18 +41,30 @@ jobs:
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/cyclecare-release.jks
+          ls -la android/app/cyclecare-release.jks
 
       - name: Create key.properties
         run: |
-          cat > android/key.properties << EOF
+          cat > android/key.properties << 'EOF'
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=cyclecare-release.jks
           EOF
 
+      - name: Patch app_links compileSdk (known Flutter plugin issue)
+        run: |
+          APP_LINKS=$(find ~/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null | head -1)
+          if [ -n "$APP_LINKS" ]; then
+            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
+            echo "Patched: $APP_LINKS"
+          fi
+
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Run tests
+        run: flutter test --no-pub
 
       - name: Build release APK
         run: flutter build apk --release --no-pub
@@ -54,22 +72,65 @@ jobs:
       - name: Build release AAB
         run: flutter build appbundle --release --no-pub
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: cyclecare-release-apk-${{ github.ref_name }}
-          path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Get release tag
+        id: tag
+        run: echo "tag=${GITHUB_REF_NAME:-${{ github.event.inputs.tag }}}" >> $GITHUB_OUTPUT
 
-      - name: Upload AAB
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cyclecare-release-aab-${{ github.ref_name }}
+          name: cyclecare-${{ steps.tag.outputs.tag }}-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclecare-${{ steps.tag.outputs.tag }}-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "CycleCare ${{ steps.tag.outputs.tag }}"
+          body: |
+            ## CycleCare ${{ steps.tag.outputs.tag }}
+
+            ### 📱 Download
+            - **APK** — Install directly on Android (enable "Install from unknown sources")
+            - **AAB** — For Play Store submission
+
+            ### ✨ What's in this release
+            - Complete Flutter rebuild from scratch
+            - Material 3 design with 8 pastel color palettes
+            - Cycle tracking with AI-powered prediction engine
+            - Daily health log (flow, mood, symptoms, BBT, sleep, water, weight)
+            - Interactive calendar with phase visualization
+            - Insights dashboard with charts
+            - AI chat companion (powered by Groq Llama via Supabase Edge Function)
+            - Virtual pet with XP, levels & achievements
+            - Birth control tracker with daily check-in streak
+            - Pregnancy mode with kick counter
+            - Health conditions education (PCOS, endometriosis, PMDD)
+            - Partner sharing with invite codes
+            - Firebase Auth + Google Sign-In
+            - FCM push notifications
+            - Offline-first architecture
+            - App lock (PIN + biometric)
+
+            ### 🔧 Requirements
+            - Android 6.0+ (API 23+)
+            - ~60 MB storage
+
+            ### ⚕️ Disclaimer
+            CycleCare is for educational and personal tracking purposes only. Not a medical device.
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
-          generate_release_notes: true
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
