@@ -30,6 +30,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Patch app_links compileSdk
+        run: |
+          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" 2>/dev/null | xargs grep -l "flutter.compileSdkVersion" 2>/dev/null | head -1)
+          if [ -n "$APP_LINKS" ]; then
+            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
+            echo "Patched: $APP_LINKS"
+          fi
+
       - name: Check formatting
         run: dart format --output=none lib/ test/
         continue-on-error: true
@@ -69,6 +77,14 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Patch app_links compileSdk
+        run: |
+          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" 2>/dev/null | xargs grep -l "flutter.compileSdkVersion" 2>/dev/null | head -1)
+          if [ -n "$APP_LINKS" ]; then
+            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
+            echo "Patched: $APP_LINKS"
+          fi
 
       - name: Build debug APK
         run: flutter build apk --debug --no-pub

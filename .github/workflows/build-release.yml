@@ -54,10 +54,16 @@ jobs:
 
       - name: Patch app_links compileSdk (known Flutter plugin issue)
         run: |
-          APP_LINKS=$(find ~/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null | head -1)
+          # Find app_links build.gradle in pub cache (works on Linux/macOS)
+          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" 2>/dev/null | xargs grep -l "flutter.compileSdkVersion" 2>/dev/null | head -1)
           if [ -n "$APP_LINKS" ]; then
+            echo "Patching: $APP_LINKS"
             sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
-            echo "Patched: $APP_LINKS"
+            sed -i 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 35/g' "$APP_LINKS"
+            echo "Patched successfully"
+            grep "compileSdk" "$APP_LINKS"
+          else
+            echo "app_links build.gradle not found or already patched"
           fi
 
       - name: Install dependencies
