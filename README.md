@@ -1,128 +1,233 @@
-# CycleCare
+# CycleCare 🌸
 
-A beautiful, privacy-first menstrual cycle tracking app. The actively developed Android app is now the Flutter project in `cyclecare_flutter/`; the original Kotlin/Jetpack Compose implementation remains in `app/` as the legacy native Android version.
+A production-grade Flutter menstrual health, fertility, pregnancy, wellness, AI companion, and virtual pet app. Privacy-first, offline-first, and medically non-diagnostic.
 
-[![Build APK](https://github.com/lekhanpro/cyclecare/actions/workflows/build-apk.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/build-apk.yml)
-[![Deploy Pages](https://github.com/lekhanpro/cyclecare/actions/workflows/pages.yml/badge.svg)](https://lekhanpro.github.io/cyclecare/)
-![Android](https://img.shields.io/badge/Android-7.0%2B-green)
-![Flutter](https://img.shields.io/badge/Flutter-3.16%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-pink)
-
-**[Landing Page](https://lekhanpro.github.io/cyclecare/)** | **[Download APK](https://github.com/lekhanpro/cyclecare/releases)** | **[Report Issue](https://github.com/lekhanpro/cyclecare/issues)**
+[![CI](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml)
 
 ---
 
 ## Features
 
-**Cycle Tracking**
-- Interactive calendar with color-coded period, fertile, and ovulation days
-- AI-powered cycle predictions with confidence scoring
-- Fertility window and ovulation tracking
-- Cycle day counter and period countdown
-
-**Daily Logging**
-- 40+ symptom tracking options
-- Mood, flow intensity, and discharge logging
-- Body metrics: weight, temperature (BBT), sleep, water intake
-- Intimacy logging and ovulation/pregnancy test results
-- Notes and custom entries
-
-**Health & Insights**
-- Cycle length and period trend charts
-- Symptom frequency analysis and mood patterns
-- Temperature and weight trend visualization
-- Cycle regularity scoring
-- Birth control and pill tracking
-- Health data monitoring
-
-**Privacy & Security**
-- 100% local storage — data never leaves your device
-- PIN lock and biometric (fingerprint/face) authentication
-- Data export in CSV and JSON formats
-- No account required, no ads, no tracking
-
-**Reminders**
-- Period, pill, and hydration reminders
-- Quiet hours support
-- Customizable notification channels
-
-## Tech Stack
-
-| Layer | Active Flutter App |
-|-------|--------------------|
-| Language | Dart |
-| UI | Flutter Material/Cupertino widgets |
-| Architecture | Riverpod + feature-first clean structure |
-| Storage | Local-first SharedPreferences repository |
-| Optional Sync | Firebase Auth / Firestore |
-| Notifications | flutter_local_notifications |
-| Security | PIN / biometric via local_auth |
-| Build | Flutter Android |
-
-## Project Structure
-
-```
-cyclecare_flutter/lib/
-  core/          # services, theme, providers, utilities
-  features/      # active app screens and tracking flows
-  data/          # local database compatibility layer
-  domain/        # prediction entities/engines
-  widgets/       # reusable UI components
-app/src/main/    # legacy Kotlin/Compose Android implementation
-landing-page/    # Static landing page (HTML/CSS/JS)
-```
-
-## Build
-
-**Prerequisites:** Android Studio Hedgehog+, JDK 17
-
-```bash
-# Clone
-git clone https://github.com/lekhanpro/cyclecare.git
-cd cyclecare
-
-# Build Flutter debug APK
-cd cyclecare_flutter
-flutter pub get
-flutter build apk --debug
-
-# Build Flutter release APK
-flutter build apk --release
-
-# Run tests
-flutter test
-```
-
-The debug APK will be at `cyclecare_flutter/build/app/outputs/flutter-apk/app-debug.apk`.
-
-## CI/CD
-
-- **APK Build:** Every push to `main` triggers a GitHub Actions workflow that builds the APK and uploads it as an artifact. Tagged pushes also create a GitHub Release with the APK attached.
-- **Landing Page:** The `landing-page/` directory is deployed to GitHub Pages automatically on every push.
-
-## Download
-
-1. Go to [Actions](https://github.com/lekhanpro/cyclecare/actions) and download the latest `app-debug.apk` artifact
-2. Or check [Releases](https://github.com/lekhanpro/cyclecare/releases) for tagged builds
-3. Enable "Install from unknown sources" on your Android device
-4. Install the APK
-
-## Privacy
-
-- All core cycle data is stored locally on device
-- Internet is used only for opt-in AI, Google sign-in, cloud sync, and partner sharing
-- No analytics, telemetry, or data collection
-- PIN + biometric gating for app access
-- Full data export and deletion from Settings
-
-## License
-
-MIT License — see [LICENSE](LICENSE) file.
-
-## Contributing
-
-Contributions welcome. Please open an issue first to discuss changes.
+| Feature | Status |
+|---------|--------|
+| Cycle tracking & prediction | ✅ Complete |
+| Calendar with phase visualization | ✅ Complete |
+| Daily log (flow, mood, symptoms, BBT, sleep, water, weight) | ✅ Complete |
+| Insights & charts | ✅ Complete |
+| AI chat companion | ✅ Complete (requires Supabase Edge Function) |
+| Virtual pet with XP & achievements | ✅ Complete |
+| Birth control tracker | ✅ Complete |
+| Pregnancy mode + kick counter | ✅ Complete |
+| Health conditions education | ✅ Complete |
+| Partner sharing | ✅ Complete (invite code UI) |
+| Education library | ✅ Complete |
+| Settings (palette, dark mode, privacy) | ✅ Complete |
+| 8 color palettes | ✅ Complete |
+| Offline-first (SharedPreferences) | ✅ Complete |
+| Supabase sync | 🔧 Schema ready, runtime wiring pending credentials |
+| Firebase Auth | 🔧 Stub ready, activate with `flutterfire configure` |
+| Push notifications (FCM) | 🔧 Edge Function ready |
+| Local notifications | ✅ Complete |
+| App lock (PIN/biometric) | ✅ Complete |
+| Data export | ✅ Complete |
+| GitHub Actions CI/CD | ✅ Complete |
 
 ---
 
-Built as a Flutter app for private, local-first cycle care.
+## Architecture
+
+```
+lib/
+├── main.dart
+├── core/
+│   ├── providers/          # Auth, app settings
+│   ├── router/             # GoRouter with StatefulShellRoute
+│   ├── services/           # Notification, auth, security stubs
+│   ├── theme/              # Material 3, 8 palettes, Nunito typography
+│   └── utils/              # Date helpers
+├── data/
+│   └── database/           # SharedPreferences-backed local DB
+├── domain/
+│   ├── engines/            # CyclePredictionEngine
+│   └── entities/           # Period, DailyLog, AmenorrheaResult
+├── features/
+│   ├── app/                # CycleCareApp, MainShell
+│   ├── ai/                 # AI chat screen
+│   ├── auth/               # Landing, sign-in
+│   ├── birth_control/      # BC tracker
+│   ├── education/          # Article library
+│   ├── health/             # Health conditions
+│   ├── onboarding/         # 5-step onboarding
+│   ├── partner/            # Partner sharing
+│   ├── pet/                # Virtual pet + XP
+│   ├── pregnancy/          # Pregnancy mode
+│   ├── reminders/          # Reminders screen
+│   ├── settings/           # Full settings
+│   ├── splash/             # Splash screen
+│   └── tracking/           # Home, Calendar, Log, Insights
+└── widgets/                # SoftCard, PrimaryButton, CycleCalendar, etc.
+
+supabase/
+├── migrations/             # Full schema with RLS
+└── functions/
+    ├── ai-assistant/       # Groq proxy (server-side only)
+    ├── send-push/          # FCM push sender
+    └── partner-sync/       # Partner invite validation
+
+.github/workflows/
+├── ci.yml                  # Analyze + test + debug APK
+└── build-release.yml       # Signed APK + AAB on version tag
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Flutter 3.24.5+ (`flutter --version`)
+- Android Studio with Android SDK 35
+- Java 17+
+
+### Run locally
+
+```bash
+# 1. Clone
+git clone https://github.com/lekhanpro/cyclecare.git
+cd cyclecare
+
+# 2. Copy env
+cp .env.example .env
+# Edit .env with your Supabase credentials (optional for local-only use)
+
+# 3. Install dependencies
+flutter pub get
+
+# 4. Run
+flutter run
+```
+
+The app works fully offline without any backend credentials.
+
+---
+
+## Required Secrets (for cloud features)
+
+### .env (local development)
+```
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+```
+
+### GitHub Secrets (for CI/CD)
+| Secret | Description |
+|--------|-------------|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | Supabase anon key |
+| `KEYSTORE_BASE64` | Base64-encoded release keystore |
+| `KEYSTORE_PASSWORD` | Keystore password |
+| `KEY_ALIAS` | Key alias |
+| `KEY_PASSWORD` | Key password |
+
+---
+
+## Supabase Setup
+
+```bash
+# Install Supabase CLI
+npm install -g supabase
+
+# Login
+supabase login
+
+# Link to your project
+supabase link --project-ref your-project-ref
+
+# Push migrations
+supabase db push
+
+# Deploy Edge Functions
+supabase functions deploy ai-assistant
+supabase functions deploy send-push
+supabase functions deploy partner-sync
+
+# Set Edge Function secrets
+supabase secrets set GROQ_API_KEY=your-groq-key
+supabase secrets set FCM_SERVER_KEY=your-fcm-key
+```
+
+---
+
+## Firebase Setup (optional — for FCM push notifications)
+
+```bash
+# Install FlutterFire CLI
+dart pub global activate flutterfire_cli
+
+# Configure
+flutterfire configure --project=your-firebase-project
+
+# This generates lib/firebase_options.dart
+# Then uncomment Firebase dependencies in pubspec.yaml
+# and the Firebase plugin in android/app/build.gradle
+```
+
+---
+
+## Build APK/AAB
+
+```bash
+# Debug APK
+flutter build apk --debug
+
+# Release APK (requires signing config)
+flutter build apk --release
+
+# Release AAB (for Play Store)
+flutter build appbundle --release
+```
+
+APK output: `build/app/outputs/flutter-apk/`
+
+---
+
+## Run Tests
+
+```bash
+flutter test
+```
+
+---
+
+## Release Build (Play Store)
+
+1. Generate a keystore:
+   ```bash
+   keytool -genkey -v -keystore cyclecare-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias cyclecare
+   ```
+
+2. Create `android/key.properties`:
+   ```
+   storePassword=your-password
+   keyPassword=your-key-password
+   keyAlias=cyclecare
+   storeFile=cyclecare-release.jks
+   ```
+
+3. Build:
+   ```bash
+   flutter build appbundle --release
+   ```
+
+4. Upload `build/app/outputs/bundle/release/app-release.aab` to Play Console.
+
+---
+
+## Medical Disclaimer
+
+CycleCare is for educational and personal tracking purposes only. It is not a medical device and does not provide medical advice, diagnosis, or treatment. Cycle predictions are estimates. Do not rely on CycleCare as a method of contraception. Always consult a qualified healthcare professional for medical concerns.
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE)

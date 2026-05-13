@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F48FB1"/>
+      <stop offset="100%" style="stop-color:#E86F91"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+  <!-- Heart shape -->
+  <path d="M512 730 C490 710 260 570 260 400 C260 305 330 240 420 240 C468 240 510 265 512 290 C514 265 556 240 604 240 C694 240 764 305 764 400 C764 570 534 710 512 730Z" fill="white" opacity="0.95"/>
+  <!-- Small decorative dots (cycle phases) -->
+  <circle cx="512" cy="185" r="22" fill="white" opacity="0.6"/>
+  <circle cx="690" cy="248" r="16" fill="white" opacity="0.4"/>
+  <circle cx="334" cy="248" r="16" fill="white" opacity="0.4"/>
+  <circle cx="790" cy="380" r="12" fill="white" opacity="0.3"/>
+  <circle cx="234" cy="380" r="12" fill="white" opacity="0.3"/>
+</svg>

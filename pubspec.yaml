@@ -1,0 +1,97 @@
+name: cyclecare
+description: CycleCare – privacy-first menstrual health, fertility, wellness & AI companion app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.24.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── State management ──────────────────────────────────────────────────────
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # ── Navigation ────────────────────────────────────────────────────────────
+  go_router: ^14.2.7
+
+  # ── Local storage (offline-first) ─────────────────────────────────────────
+  shared_preferences: ^2.3.2
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # ── Backend ───────────────────────────────────────────────────────────────
+  supabase_flutter: ^2.5.6
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.4.1
+  firebase_messaging: ^15.1.5
+  google_sign_in: ^6.2.2
+
+  # ── Network ───────────────────────────────────────────────────────────────
+  dio: ^5.7.0
+  http: ^1.2.2
+  connectivity_plus: ^6.1.0
+
+  # ── UI ────────────────────────────────────────────────────────────────────
+  google_fonts: ^6.2.1
+  table_calendar: ^3.1.2
+  fl_chart: ^0.69.0
+  lottie: ^3.1.2
+  flutter_svg: ^2.0.10+1
+  cached_network_image: ^3.4.1
+
+  # ── Notifications ─────────────────────────────────────────────────────────
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+
+  # ── Security ──────────────────────────────────────────────────────────────
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^9.2.3
+
+  # ── Utilities ─────────────────────────────────────────────────────────────
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  crypto: ^3.0.6
+  share_plus: ^10.1.4
+  url_launcher: ^6.3.1
+  permission_handler: ^11.3.1
+  image_picker: ^1.1.2
+  flutter_dotenv: ^5.2.1
+
+  # ── Icons ─────────────────────────────────────────────────────────────────
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.12
+  riverpod_generator: ^2.4.3
+  custom_lint: ^0.6.7
+  riverpod_lint: ^2.3.13
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
+    - assets/images/
+    - assets/lottie/
+    - assets/education/
+    - .env
+
+  # Fonts served via google_fonts package at runtime (no bundled assets needed)
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#E86F91"
+  adaptive_icon_foreground: "assets/images/app_icon.png"

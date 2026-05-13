@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "694802505438",
+    "project_id": "cyclecare-7a491",
+    "storage_bucket": "cyclecare-7a491.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:694802505438:android:81c6b2e92b9706d421ac4f",
+        "android_client_info": {
+          "package_name": "com.lekhanpro.cyclecare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnANiAYm0jKpRMvc2-ileJrpX-LSxbnLU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
