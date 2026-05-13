@@ -1,0 +1,25 @@
+// CycleCare Gradle init script — patches app_links compileSdk issue
+// This runs before any project is evaluated
+allprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            // No-op — just ensuring the script loads
+        }
+    }
+}
+
+// Patch app_links compileSdk after project evaluation
+gradle.projectsLoaded {
+    rootProject.allprojects {
+        afterEvaluate { project ->
+            if (project.name == 'app_links') {
+                try {
+                    project.android.compileSdkVersion 35
+                    println "Patched app_links compileSdkVersion to 35"
+                } catch (Exception e) {
+                    println "app_links patch skipped: ${e.message}"
+                }
+            }
+        }
+    }
+}

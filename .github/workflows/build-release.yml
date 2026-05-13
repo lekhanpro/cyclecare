@@ -54,17 +54,23 @@ jobs:
 
       - name: Patch app_links compileSdk (known Flutter plugin issue)
         run: |
-          # Find app_links build.gradle in pub cache (works on Linux/macOS)
-          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" 2>/dev/null | xargs grep -l "flutter.compileSdkVersion" 2>/dev/null | head -1)
-          if [ -n "$APP_LINKS" ]; then
-            echo "Patching: $APP_LINKS"
-            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
-            sed -i 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 35/g' "$APP_LINKS"
-            echo "Patched successfully"
-            grep "compileSdk" "$APP_LINKS"
+          echo "Searching for app_links build.gradle..."
+          FILE=$(find / -name "build.gradle" -path "*app_links*" 2>/dev/null | head -1)
+          if [ -n "$FILE" ]; then
+            echo "Found: $FILE"
+            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$FILE"
+            sed -i 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 35/g' "$FILE"
+            echo "Patched. Contents:"
+            grep -n "compileSdk" "$FILE" || true
           else
-            echo "app_links build.gradle not found or already patched"
+            echo "WARNING: app_links build.gradle not found"
           fi
+
+      - name: Copy Gradle init script
+        run: |
+          mkdir -p $HOME/.gradle/init.d
+          cp android/cyclecare.init.gradle $HOME/.gradle/init.d/cyclecare.gradle
+          echo "Init script installed"
 
       - name: Install dependencies
         run: flutter pub get
