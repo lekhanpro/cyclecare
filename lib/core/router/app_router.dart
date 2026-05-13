@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/app/main_shell.dart';
 import '../../features/auth/landing_screen.dart';
@@ -22,8 +21,6 @@ import '../../features/education/education_screen.dart';
 import '../../features/splash/splash_screen.dart';
 import '../providers/auth_providers.dart';
 import '../../features/tracking/application/cycle_tracker_controller.dart';
-
-part 'app_router.g.dart';
 
 // ─── Route names ─────────────────────────────────────────────────────────────
 class AppRoutes {
@@ -54,8 +51,10 @@ const _shellRoutes = [
   AppRoutes.pet,
 ];
 
-@riverpod
-GoRouter appRouter(Ref ref) {
+// ─── Router provider ─────────────────────────────────────────────────────────
+final appRouterProvider = Provider<GoRouter>((ref) => _buildRouter(ref));
+
+GoRouter _buildRouter(Ref ref) {
   final trackerAsync = ref.watch(cycleTrackerControllerProvider);
 
   return GoRouter(
