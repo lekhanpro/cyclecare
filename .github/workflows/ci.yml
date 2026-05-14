@@ -10,7 +10,7 @@ jobs:
   test:
     name: Analyze & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -25,8 +25,8 @@ jobs:
 
       - name: Create .env
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}" > .env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || 'placeholder' }}" >> .env
+          echo "SUPABASE_URL=https://placeholder.supabase.co" > .env
+          echo "SUPABASE_ANON_KEY=placeholder" >> .env
 
       - name: Install dependencies
         run: flutter pub get
@@ -62,11 +62,19 @@ jobs:
 
       - name: Create .env
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}" > .env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || 'placeholder' }}" >> .env
+          echo "SUPABASE_URL=https://placeholder.supabase.co" > .env
+          echo "SUPABASE_ANON_KEY=placeholder" >> .env
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Patch app_links compileSdk (CI fix)
+        run: |
+          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null | head -1)
+          if [ -n "$APP_LINKS" ]; then
+            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
+            echo "Patched app_links: $APP_LINKS"
+          fi
 
       - name: Build debug APK
         run: flutter build apk --debug --no-pub

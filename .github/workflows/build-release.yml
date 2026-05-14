@@ -5,11 +5,6 @@ on:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag (e.g. v2.0.0)'
-        required: true
-        default: 'v2.0.0'
 
 jobs:
   build-release:
@@ -42,19 +37,28 @@ jobs:
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/cyclecare-release.jks
-          ls -la android/app/cyclecare-release.jks
 
       - name: Create key.properties
         run: |
-          cat > android/key.properties << 'KEYEOF'
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=cyclecare-release.jks
-          KEYEOF
+          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=%s\n' \
+            '${{ secrets.KEYSTORE_PASSWORD }}' \
+            '${{ secrets.KEY_PASSWORD }}' \
+            '${{ secrets.KEY_ALIAS }}' \
+            'cyclecare-release.jks' > android/key.properties
 
       - name: Install Flutter dependencies
         run: flutter pub get
+
+      - name: Patch app_links compileSdk (CI fix)
+        run: |
+          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null | head -1)
+          if [ -n "$APP_LINKS" ]; then
+            echo "Patching: $APP_LINKS"
+            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
+            echo "Patched successfully"
+          else
+            echo "app_links build.gradle not found, skipping patch"
+          fi
 
       - name: Run tests
         run: flutter test --no-pub
@@ -80,32 +84,33 @@ jobs:
           body: |
             ## CycleCare ${{ steps.tag.outputs.TAG }}
 
-            ### Download
-            - **APK** (direct install): `app-release.apk`
-            - **AAB** (Play Store): `app-release.aab`
+            ### 📥 Download
+            | File | Description |
+            |------|-------------|
+            | `app-release.apk` | Direct install on Android |
+            | `app-release.aab` | Play Store bundle |
 
-            ### What's in this release
-            - Complete Flutter rebuild from scratch
+            ### ✨ What's new
+            - Complete Flutter rebuild from Kotlin
             - Material 3 design with 8 pastel palettes
-            - Cycle tracking with AI-powered prediction
+            - Cycle tracking with AI-powered prediction engine
             - Daily health logging (flow, mood, symptoms, BBT, sleep, water, weight)
             - Virtual pet companion with XP & achievements
             - Firebase Auth + FCM push notifications
-            - Offline-first with Supabase cloud sync
+            - Offline-first with optional Supabase cloud sync
             - Birth control tracker, pregnancy mode, partner sharing
-            - AI chat via Groq (server-side only)
+            - AI chat via Groq (server-side only, key never in client)
 
-            ### Install APK on Android
-            1. Download `app-release.apk`
-            2. Enable "Install from unknown sources" in Android settings
-            3. Open the APK file to install
+            ### 📱 Install APK
+            1. Download `app-release.apk` below
+            2. On your Android phone: Settings → Security → Allow unknown sources
+            3. Open the downloaded APK to install
 
-            > Minimum Android version: 6.0 (API 23)
+            > **Minimum Android:** 6.0 (API 23)
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
           draft: false
           prerelease: false
-          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
