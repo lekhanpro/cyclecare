@@ -84,7 +84,6 @@ flutter:
     - assets/images/
     - assets/lottie/
     - assets/education/
-    - .env
 
   # Fonts served via google_fonts package at runtime (no bundled assets needed)
 

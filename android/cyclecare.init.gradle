@@ -1,25 +1,25 @@
-// CycleCare Gradle init script — patches app_links compileSdk issue
-// This runs before any project is evaluated
-allprojects {
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            // No-op — just ensuring the script loads
-        }
+// CycleCare Gradle init script
+// Fixes app_links plugin that reads flutter.compileSdkVersion
+// which is only available in the app project, not library subprojects.
+// Place in ~/.gradle/init.d/ or reference via --init-script
+
+initscript {
+    repositories {
+        google()
+        mavenCentral()
     }
 }
 
-// Patch app_links compileSdk after project evaluation
-gradle.projectsLoaded {
-    rootProject.allprojects {
-        afterEvaluate { project ->
-            if (project.name == 'app_links') {
-                try {
-                    project.android.compileSdkVersion 35
-                    println "Patched app_links compileSdkVersion to 35"
-                } catch (Exception e) {
-                    println "app_links patch skipped: ${e.message}"
-                }
-            }
+allprojects {
+    // Make flutter extension properties available to all subprojects
+    ext {
+        if (!project.hasProperty('flutter')) {
+            flutter = [
+                compileSdkVersion: 35,
+                minSdkVersion: 23,
+                targetSdkVersion: 35,
+                ndkVersion: '27.0.12077973',
+            ]
         }
     }
 }

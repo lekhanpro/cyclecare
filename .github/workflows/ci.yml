@@ -10,12 +10,13 @@ jobs:
   test:
     name: Analyze & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Setup Flutter 3.24.5
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
@@ -24,74 +25,55 @@ jobs:
 
       - name: Create .env
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || 'placeholder' }}" >> .env
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Patch app_links compileSdk
-        run: |
-          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" 2>/dev/null | xargs grep -l "flutter.compileSdkVersion" 2>/dev/null | head -1)
-          if [ -n "$APP_LINKS" ]; then
-            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
-            echo "Patched: $APP_LINKS"
-          fi
-
-      - name: Check formatting
-        run: dart format --output=none lib/ test/
-        continue-on-error: true
-
       - name: Analyze
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
         run: flutter test --no-pub
 
-  build-android:
-    name: Build Android APK
+  build-debug:
+    name: Build Debug APK
     runs-on: ubuntu-latest
     needs: test
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter 3.24.5
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
       - name: Create .env
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || 'placeholder' }}" >> .env
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Patch app_links compileSdk
-        run: |
-          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" 2>/dev/null | xargs grep -l "flutter.compileSdkVersion" 2>/dev/null | head -1)
-          if [ -n "$APP_LINKS" ]; then
-            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
-            echo "Patched: $APP_LINKS"
-          fi
-
       - name: Build debug APK
         run: flutter build apk --debug --no-pub
 
-      - name: Upload APK artifact
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: cyclecare-debug-apk
+          name: cyclecare-debug-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7

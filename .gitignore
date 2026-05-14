@@ -83,8 +83,6 @@ build/
 MASTER_IMPLEMENTATION_PLAN.pdf
 MASTER_IMPLEMENTATION_PLAN.tex
 
-# Generated icon script output (large PNG)
-assets/images/app_icon.png
 
 # Scripts that contain local paths
 scripts/create_placeholder_icon.dart
