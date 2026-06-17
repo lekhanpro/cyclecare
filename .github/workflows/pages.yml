@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/site/**'
+      - 'docs/index.html'
       - 'README.md'
   workflow_dispatch:
 
