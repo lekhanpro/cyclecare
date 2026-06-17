@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CycleCare — Your Cycle, Your Way</title>
-  <meta name="description" content="Privacy-first menstrual health, fertility and wellness companion. Offline-first Flutter app with AI chat, virtual pet, and beautiful design." />
-  <meta property="og:title" content="CycleCare — Your Cycle, Your Way" />
-  <meta property="og:description" content="Privacy-first menstrual health app with AI companion, virtual pet, and beautiful pastel design." />
+  <title>CycleCare — Privacy-first cycle care startup</title>
+  <meta name="description" content="CycleCare is an early-stage, privacy-first mobile health startup building an offline-first Android cycle tracking companion with AI-assisted education, reminders, analytics, and secure local data control." />
+  <meta property="og:title" content="CycleCare — Privacy-first cycle care startup" />
+  <meta property="og:description" content="Early-stage Flutter health-tech product building private cycle tracking, AI-assisted education, local-first storage, reminders, and wellness insights." />
   <meta property="og:image" content="https://raw.githubusercontent.com/lekhanpro/cyclecare/main/assets/images/app_icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -130,6 +130,42 @@
     .stat { text-align: center; }
     .stat-num { font-size: 32px; font-weight: 900; color: var(--rose); }
     .stat-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+    /* ── STARTUP SNAPSHOT ── */
+    .snapshot { background: var(--white); border-bottom: 1px solid var(--line); }
+    .snapshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .snapshot-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px;
+      background: #FFFCFB;
+    }
+    .snapshot-card h3 {
+      color: var(--rose);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .snapshot-card p {
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.45;
+    }
+    .snapshot-card small {
+      display: block;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.45;
+    }
 
     /* ── FEATURES ── */
     section { padding: 80px 24px; }
@@ -261,6 +297,7 @@
     <span>🌸</span> CycleCare
   </a>
   <div class="nav-links">
+    <a href="#startup">Startup</a>
     <a href="#features">Features</a>
     <a href="#tech">Tech</a>
     <a href="#architecture">Architecture</a>
@@ -274,10 +311,10 @@
   <div class="hero-content">
     <div class="hero-badge">
       <span class="dot"></span>
-      Flutter 3.24.5 · Android · Open Source
+      Early-stage health-tech startup · Android MVP · AWS-ready
     </div>
-    <h1>Your Cycle,<br/>Your Way</h1>
-    <p>Privacy-first menstrual health, fertility & wellness companion. Offline-first, AI-powered, beautifully designed.</p>
+    <h1>CycleCare<br/>Private cycle care</h1>
+    <p>CycleCare is building a privacy-first menstrual health, fertility and wellness companion for Android. The product combines offline-first tracking, prediction logic, reminders, analytics, and safe AI-assisted education for people who want useful health insights without ads or unnecessary data collection.</p>
     <div class="hero-cta">
       <a href="https://github.com/lekhanpro/cyclecare/releases/latest" class="btn-primary">
         ⬇ Download APK
@@ -287,10 +324,49 @@
       </a>
     </div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">15</div><div class="stat-label">Database Tables</div></div>
-      <div class="stat"><div class="stat-num">8</div><div class="stat-label">Color Palettes</div></div>
-      <div class="stat"><div class="stat-num">59</div><div class="stat-label">Dart Files</div></div>
-      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Offline-First</div></div>
+      <div class="stat"><div class="stat-num">MVP</div><div class="stat-label">Android product</div></div>
+      <div class="stat"><div class="stat-num">AWS</div><div class="stat-label">Startup-ready infra</div></div>
+      <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Education assistant</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Privacy-first</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- STARTUP SNAPSHOT -->
+<section class="snapshot" id="startup">
+  <p class="section-label">Startup snapshot</p>
+  <h2>Built to become a trusted cycle-care platform</h2>
+  <p class="section-sub">This page is the public product website for CycleCare, an early-stage startup project led by Lekhan HR.</p>
+  <div class="snapshot-grid">
+    <div class="snapshot-card">
+      <h3>Company</h3>
+      <p>CycleCare</p>
+      <small>Founder-led early-stage startup project focused on privacy-first mobile health software.</small>
+    </div>
+    <div class="snapshot-card">
+      <h3>Product</h3>
+      <p>Android cycle tracking and wellness companion</p>
+      <small>Flutter app with local-first tracking, predictions, AI education, reminders, and insights.</small>
+    </div>
+    <div class="snapshot-card">
+      <h3>Stage</h3>
+      <p>MVP / early product</p>
+      <small>Actively developed with public releases, CI/CD, documentation, and open-source repository.</small>
+    </div>
+    <div class="snapshot-card">
+      <h3>Website</h3>
+      <p>cyclecare.lekhanhr.online</p>
+      <small>Corporate-domain subdomain for startup program verification and product discovery.</small>
+    </div>
+    <div class="snapshot-card">
+      <h3>AWS and Kiro use</h3>
+      <p>Spec-driven development, app automation, CI/CD and AI workflow planning</p>
+      <small>Kiro credits would support faster product iteration, tests, release automation, privacy reviews, and backend integration work.</small>
+    </div>
+    <div class="snapshot-card">
+      <h3>Data posture</h3>
+      <p>No ads, local-first storage, opt-in cloud features</p>
+      <small>Designed for sensitive health data with export/delete controls and safe, non-diagnostic AI messaging.</small>
     </div>
   </div>
 </section>
