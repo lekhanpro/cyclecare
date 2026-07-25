@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/cyclecare_theme.dart';
 
+/// Passive loading screen. Navigation away from here is owned entirely by
+/// the router's redirect (see `app_router.dart`), which re-runs when the
+/// cycle tracker finishes loading via `refreshListenable`.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 

@@ -42,52 +42,61 @@ class AppRoutes {
   static const education = '/education';
 }
 
-// ─── Shell nav index mapping ──────────────────────────────────────────────────
-const _shellRoutes = [
-  AppRoutes.home,
-  AppRoutes.calendar,
-  AppRoutes.log,
-  AppRoutes.insights,
-  AppRoutes.pet,
-];
+// ─── Router notifier — drives GoRouter refresh ────────────────────────────────
+class _RouterNotifier extends ChangeNotifier {
+  _RouterNotifier(this._ref) {
+    _ref.listen<AsyncValue<CycleTrackerState>>(
+      cycleTrackerControllerProvider,
+      (_, __) => notifyListeners(),
+    );
+  }
+
+  final Ref _ref;
+
+  bool get _isLoading =>
+      _ref.read(cycleTrackerControllerProvider).isLoading;
+
+  bool get _onboarded =>
+      _ref.read(cycleTrackerControllerProvider).valueOrNull
+          ?.preferences.onboardingCompleted ??
+      false;
+
+  String? redirect(BuildContext context, GoRouterState state) {
+    if (_isLoading) return AppRoutes.splash;
+
+    final loc = state.matchedLocation;
+
+    if (!_onboarded) {
+      // Note: splash is deliberately NOT allowed here. Once loading finishes,
+      // an un-onboarded user sitting on splash must be moved to landing —
+      // returning null would leave them on the spinner indefinitely.
+      if (loc == AppRoutes.landing ||
+          loc == AppRoutes.signIn ||
+          loc == AppRoutes.onboarding) {
+        return null;
+      }
+      return AppRoutes.landing;
+    }
+
+    if (loc == AppRoutes.splash ||
+        loc == AppRoutes.landing ||
+        loc == AppRoutes.onboarding) {
+      return AppRoutes.home;
+    }
+
+    return null;
+  }
+}
 
 // ─── Router provider ─────────────────────────────────────────────────────────
-final appRouterProvider = Provider<GoRouter>((ref) => _buildRouter(ref));
-
-GoRouter _buildRouter(Ref ref) {
-  final trackerAsync = ref.watch(cycleTrackerControllerProvider);
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = _RouterNotifier(ref);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
-    redirect: (context, state) {
-      final isLoading = trackerAsync.isLoading;
-      if (isLoading) return AppRoutes.splash;
-
-      final onboarded =
-          trackerAsync.valueOrNull?.preferences.onboardingCompleted ?? false;
-      final loc = state.matchedLocation;
-
-      // Not onboarded → send to landing/onboarding
-      if (!onboarded) {
-        if (loc == AppRoutes.splash ||
-            loc == AppRoutes.landing ||
-            loc == AppRoutes.signIn ||
-            loc == AppRoutes.onboarding) {
-          return null; // allow
-        }
-        return AppRoutes.landing;
-      }
-
-      // Onboarded → skip auth/onboarding screens
-      if (loc == AppRoutes.splash ||
-          loc == AppRoutes.landing ||
-          loc == AppRoutes.onboarding) {
-        return AppRoutes.home;
-      }
-
-      return null;
-    },
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
     routes: [
       GoRoute(
         path: AppRoutes.splash,
@@ -105,13 +114,13 @@ GoRouter _buildRouter(Ref ref) {
         path: AppRoutes.onboarding,
         builder: (_, __) => const OnboardingScreen(),
       ),
-      // ── Main shell with bottom nav ────────────────────────────────────────
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(
-                path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
+                path: AppRoutes.home,
+                builder: (_, __) => const HomeScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
@@ -119,7 +128,9 @@ GoRouter _buildRouter(Ref ref) {
                 builder: (_, __) => const CalendarScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: AppRoutes.log, builder: (_, __) => const LogScreen()),
+            GoRoute(
+                path: AppRoutes.log,
+                builder: (_, __) => const LogScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
@@ -127,11 +138,12 @@ GoRouter _buildRouter(Ref ref) {
                 builder: (_, __) => const InsightsScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: AppRoutes.pet, builder: (_, __) => const PetScreen()),
+            GoRoute(
+                path: AppRoutes.pet,
+                builder: (_, __) => const PetScreen()),
           ]),
         ],
       ),
-      // ── Full-screen routes ────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.aiChat,
         builder: (_, __) => const AIChatScreen(),
@@ -162,9 +174,7 @@ GoRouter _buildRouter(Ref ref) {
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Text('Page not found: ${state.error}'),
-      ),
+      body: Center(child: Text('Page not found: ${state.error}')),
     ),
   );
-}
+});

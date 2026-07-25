@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +45,22 @@ Future<void> main() async {
     ),
   );
 
-  // ── Firebase + FCM ────────────────────────────────────────────────────────
+  runApp(
+    const ProviderScope(
+      child: CycleCareApp(),
+    ),
+  );
+
+  // Messaging and local notifications are deliberately started *after*
+  // runApp and never awaited here. Requesting the FCM permission blocks on a
+  // system dialog on Android 13+/iOS, and awaiting it before the first frame
+  // leaves the user staring at a blank window until they respond.
+  unawaited(_initMessaging());
+  unawaited(_initLocalNotifications());
+}
+
+// ── Firebase + FCM — off the startup critical path ───────────────────────────
+Future<void> _initMessaging() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -51,24 +68,6 @@ Future<void> main() async {
 
     // Background message handler
     FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
-
-    // Request permission (Android 13+ / iOS)
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-    debugPrint('FCM permission: ${settings.authorizationStatus}');
-
-    // Get + save FCM token
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null) {
-      await _saveFcmToken(token);
-    }
-
-    // Refresh token listener
-    FirebaseMessaging.instance.onTokenRefresh.listen(_saveFcmToken);
 
     // Foreground messages → show as local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -92,21 +91,34 @@ Future<void> main() async {
     if (initial != null) {
       debugPrint('Launched from notification: ${initial.data}');
     }
+
+    // Request permission (Android 13+ / iOS) — shows a system dialog
+    final settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+    debugPrint('FCM permission: ${settings.authorizationStatus}');
+
+    // Get + save FCM token
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
+      await _saveFcmToken(token);
+    }
+
+    // Refresh token listener
+    FirebaseMessaging.instance.onTokenRefresh.listen(_saveFcmToken);
   } catch (e) {
     // Firebase unavailable — app works in local-only mode
     debugPrint('Firebase init error: $e');
   }
+}
 
-  // ── Local notifications ───────────────────────────────────────────────────
+Future<void> _initLocalNotifications() async {
   try {
     await NotificationService().initialize();
   } catch (_) {}
-
-  runApp(
-    const ProviderScope(
-      child: CycleCareApp(),
-    ),
-  );
 }
 
 /// Persist FCM token locally so it can be synced to Supabase when signed in

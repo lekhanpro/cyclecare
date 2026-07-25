@@ -5,10 +5,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/cyclecare_theme.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../widgets/cycle_calendar.dart';
-import '../../../widgets/soft_card.dart';
+import '../../../widgets/glass_card.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/cycle_models.dart';
 import 'log_screen.dart';
+
+/// Backdrop gradient for the currently selected day's cycle phase. The glass
+/// cards blur against this, so it carries the app's phase colour.
+List<Color> _gradientFor(DayStatus status) => switch (status) {
+      DayStatus.period => AppColors.menstrualGradient,
+      DayStatus.predictedPeriod => AppColors.menstrualGradient,
+      DayStatus.fertile => AppColors.follicularGradient,
+      DayStatus.ovulation => AppColors.ovulationGradient,
+      DayStatus.normal => AppColors.lutealGradient,
+    };
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -30,25 +40,43 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(cycleTrackerControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendar')),
+      // Transparent chrome so the phase backdrop reads edge to edge and the
+      // glass surfaces have something saturated to blur against.
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const Text('Calendar'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: state.when(
         loading: () => const Center(child: CupertinoActivityIndicator()),
         error: (error, _) => Center(child: Text('$error')),
-        data: (data) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
-          children: [
-            CycleCalendar(
-              month: _month,
-              selectedDate: data.selectedDate,
-              statusFor: data.statusFor,
-              hasLogFor: data.hasLogFor,
-              onSelected:
-                  ref.read(cycleTrackerControllerProvider.notifier).selectDate,
-              onMonthChanged: (month) => setState(() => _month = month),
+        data: (data) => PhaseBackdrop(
+          colors: _gradientFor(data.statusFor(data.selectedDate)),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+              children: [
+                GlassCard(
+                  padding: const EdgeInsets.all(8),
+                  child: CycleCalendar(
+                    month: _month,
+                    selectedDate: data.selectedDate,
+                    statusFor: data.statusFor,
+                    hasLogFor: data.hasLogFor,
+                    onSelected: ref
+                        .read(cycleTrackerControllerProvider.notifier)
+                        .selectDate,
+                    onMonthChanged: (month) => setState(() => _month = month),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _DayDetail(data: data),
+              ],
             ),
-            const SizedBox(height: 18),
-            _DayDetail(data: data),
-          ],
+          ),
         ),
       ),
     );
@@ -72,7 +100,7 @@ class _DayDetail extends ConsumerWidget {
       DayStatus.ovulation => 'Ovulation estimate',
       DayStatus.normal => 'No special marker',
     };
-    return SoftCard(
+    return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
