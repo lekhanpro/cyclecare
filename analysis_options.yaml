@@ -40,7 +40,6 @@ analyzer:
     - "lib/domain/**"
     - "lib/presentation/**"
     - "lib/core/constants/app_constants.dart"
-    - "lib/core/theme/app_theme.dart"
     - "lib/core/utils/date_utils.dart"
     - "lib/core/utils/encryption_util.dart"
     - "lib/core/utils/notification_helper.dart"

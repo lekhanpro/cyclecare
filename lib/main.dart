@@ -16,6 +16,7 @@ import 'firebase_options.dart';
 // ── Background FCM handler — must be top-level ────────────────────────────────
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
+  if (!DefaultFirebaseOptions.isConfigured) return;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // FCM shows the notification automatically in background/terminated state
 }
@@ -61,6 +62,14 @@ Future<void> main() async {
 
 // ── Firebase + FCM — off the startup critical path ───────────────────────────
 Future<void> _initMessaging() async {
+  // Asked, not caught. On a platform without credentials there is nothing to
+  // initialise and no error to report — remote push is simply unavailable, and
+  // every other feature is local-first.
+  if (!DefaultFirebaseOptions.isConfigured) {
+    debugPrint('Firebase not configured for this platform — skipping push.');
+    return;
+  }
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

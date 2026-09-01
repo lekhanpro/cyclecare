@@ -28,7 +28,9 @@ enum AppPalette {
       };
 
   Color get seed => switch (this) {
-        AppPalette.pinkRose => const Color(0xFFE86F91),
+        // The default brand is a deep berry with reliable white-text contrast.
+        // Period rose remains a separate semantic colour below.
+        AppPalette.pinkRose => const Color(0xFFA33A60),
         AppPalette.lavender => const Color(0xFF9B7FE8),
         AppPalette.mint => const Color(0xFF3DBFA0),
         AppPalette.peach => const Color(0xFFFF8C69),

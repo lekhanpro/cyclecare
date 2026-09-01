@@ -45,6 +45,28 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<!-- Permission usage strings.
+	     iOS terminates the process the instant a protected API is touched
+	     without one of these present, so an app that ships without them
+	     crashes on the first Face ID unlock or photo pick rather than
+	     degrading. Each string says what the data is used for, which is what
+	     App Review checks for. -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>CycleCare uses Face ID to unlock the app so your cycle and health data stays private on a shared or lost device.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>CycleCare uses the camera only if you choose to take a profile photo. Photos stay on your device.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CycleCare accesses your photo library only if you choose a profile photo. Photos stay on your device.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CycleCare saves an exported copy of your cycle data to your library only when you ask it to.</string>
+	<!-- Health data is never read or written by this build. Declared so the
+	     intent is explicit if HealthKit is added later. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

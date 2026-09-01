@@ -8,7 +8,7 @@ import '../core/theme/cyclecare_theme.dart';
 /// translucent fill, with the hairline top highlight that gives iOS materials
 /// their sense of depth.
 ///
-/// Unlike [SoftCard] (an opaque elevated card), this samples and blurs whatever
+/// Unlike `SoftCard` (an opaque elevated card), this samples and blurs whatever
 /// is painted behind it, so it needs a colourful or gradient backdrop to read
 /// correctly. Over a flat white background it will look almost invisible.
 class GlassCard extends StatelessWidget {

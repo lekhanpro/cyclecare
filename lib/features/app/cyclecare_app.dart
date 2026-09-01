@@ -19,7 +19,7 @@ class CycleCareApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(settings.palette.seed),
       darkTheme: AppTheme.dark(settings.palette.seed),
-      themeMode: settings.isDark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: settings.themeMode,
       routerConfig: router,
       builder: (context, child) {
         // Wrap with app lock

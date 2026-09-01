@@ -89,8 +89,12 @@ flutter:
 
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
+  remove_alpha_ios: true
   image_path: "assets/images/app_icon.png"
   min_sdk_android: 21
   adaptive_icon_background: "#E86F91"
-  adaptive_icon_foreground: "assets/images/app_icon.png"
+  # Must be the transparent mark, not the full tile - passing app_icon.png here
+  # bakes the rose background into the adaptive foreground layer and double-draws
+  # it over adaptive_icon_background.
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
