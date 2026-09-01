@@ -1,556 +1,665 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CycleCare — Privacy-first cycle care startup</title>
-  <meta name="description" content="CycleCare is an early-stage, privacy-first mobile health startup building an offline-first Android cycle tracking companion with AI-assisted education, reminders, analytics, and secure local data control." />
-  <meta property="og:title" content="CycleCare — Privacy-first cycle care startup" />
-  <meta property="og:description" content="Early-stage Flutter health-tech product building private cycle tracking, AI-assisted education, local-first storage, reminders, and wellness insights." />
-  <meta property="og:image" content="https://raw.githubusercontent.com/lekhanpro/cyclecare/main/assets/images/app_icon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CycleCare — Your cycle, your way</title>
 
-    :root {
-      --rose: #E86F91;
-      --rose-light: #FCE4EC;
-      --lavender: #9B7FE8;
-      --mint: #3DBFA0;
-      --peach: #FFB199;
-      --cream: #FFF8F6;
-      --ink: #2D2530;
-      --muted: #81747F;
-      --white: #FFFFFF;
-      --card: #FFFFFF;
-      --line: #F0DEE5;
-    }
+<meta name="description" content="CycleCare is a privacy-first menstrual health, fertility and wellness tracker built with Flutter. Offline-first, local storage only, no account required, open source." />
+<meta name="theme-color" content="#E86F91" />
+<link rel="canonical" href="https://cyclecare.lekhanhr.online/" />
 
-    html { scroll-behavior: smooth; }
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="CycleCare" />
+<meta property="og:title" content="CycleCare — Your cycle, your way" />
+<meta property="og:description" content="Privacy-first menstrual health, fertility & wellness tracking that stays on your device. Offline-first, ad-free, no account required." />
+<meta property="og:url" content="https://cyclecare.lekhanhr.online/" />
+<meta property="og:image" content="https://cyclecare.lekhanhr.online/assets/cyclecare-social-preview.png" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="640" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="CycleCare — Your cycle, your way" />
+<meta name="twitter:description" content="Privacy-first cycle, fertility & wellness tracking that stays on your device." />
+<meta name="twitter:image" content="https://cyclecare.lekhanhr.online/assets/cyclecare-social-preview.png" />
 
-    body {
-      font-family: 'Nunito', sans-serif;
-      background: var(--cream);
-      color: var(--ink);
-      line-height: 1.6;
-    }
+<link rel="icon" type="image/svg+xml" href="assets/cyclecare-icon.svg" />
+<link rel="apple-touch-icon" href="assets/cyclecare-icon-512.png" />
 
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: rgba(255,248,246,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--line);
-      padding: 0 24px;
-      height: 64px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; color: var(--ink); text-decoration: none; }
-    .nav-logo span { font-size: 28px; }
-    .nav-links { display: flex; gap: 8px; align-items: center; }
-    .nav-links a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 20px; transition: all .2s; }
-    .nav-links a:hover { background: var(--rose-light); color: var(--rose); }
-    .btn-download {
-      background: var(--rose); color: white; padding: 10px 22px;
-      border-radius: 24px; font-weight: 800; font-size: 14px;
-      text-decoration: none; transition: all .2s;
-      box-shadow: 0 4px 14px rgba(232,111,145,0.35);
-    }
-    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,111,145,0.45); }
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet" />
 
-    /* ── HERO ── */
-    .hero {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 100px 24px 60px;
-      background: linear-gradient(135deg, #FFF0F5 0%, #F3EEFF 50%, #E8F8F4 100%);
-      text-align: center;
-      position: relative; overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute; top: -200px; right: -200px;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(232,111,145,0.12) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .hero::after {
-      content: '';
-      position: absolute; bottom: -150px; left: -150px;
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(155,127,232,0.1) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .hero-content { position: relative; z-index: 1; max-width: 720px; }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: white; border: 1px solid var(--line);
-      padding: 8px 18px; border-radius: 24px;
-      font-size: 13px; font-weight: 700; color: var(--muted);
-      margin-bottom: 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    }
-    .hero-badge .dot { width: 8px; height: 8px; background: var(--mint); border-radius: 50%; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
-    .hero h1 {
-      font-size: clamp(42px, 7vw, 72px);
-      font-weight: 900; line-height: 1.1;
-      background: linear-gradient(135deg, var(--rose) 0%, var(--lavender) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 20px;
-    }
-    .hero p {
-      font-size: clamp(16px, 2.5vw, 20px);
-      color: var(--muted); max-width: 560px; margin: 0 auto 40px;
-      font-weight: 500;
-    }
-    .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      background: var(--rose); color: white;
-      padding: 16px 36px; border-radius: 28px;
-      font-weight: 800; font-size: 16px; text-decoration: none;
-      box-shadow: 0 6px 24px rgba(232,111,145,0.4);
-      transition: all .25s; display: flex; align-items: center; gap: 8px;
-    }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(232,111,145,0.5); }
-    .btn-secondary {
-      background: white; color: var(--ink);
-      padding: 16px 36px; border-radius: 28px;
-      font-weight: 700; font-size: 16px; text-decoration: none;
-      border: 2px solid var(--line);
-      transition: all .25s; display: flex; align-items: center; gap: 8px;
-    }
-    .btn-secondary:hover { border-color: var(--rose); color: var(--rose); transform: translateY(-2px); }
-    .hero-stats {
-      display: flex; gap: 40px; justify-content: center;
-      margin-top: 60px; flex-wrap: wrap;
-    }
-    .stat { text-align: center; }
-    .stat-num { font-size: 32px; font-weight: 900; color: var(--rose); }
-    .stat-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "CycleCare",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Android",
+  "description": "Privacy-first menstrual health, fertility and wellness tracker. Offline-first, local storage only, no account required.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "url": "https://cyclecare.lekhanhr.online/",
+  "author": { "@type": "Person", "name": "Lekhan H R" },
+  "license": "https://github.com/lekhanpro/cyclecare/blob/main/LICENSE"
+}
+</script>
 
-    /* ── STARTUP SNAPSHOT ── */
-    .snapshot { background: var(--white); border-bottom: 1px solid var(--line); }
-    .snapshot-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .snapshot-card {
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 22px;
-      background: #FFFCFB;
-    }
-    .snapshot-card h3 {
-      color: var(--rose);
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .snapshot-card p {
-      color: var(--ink);
-      font-size: 15px;
-      font-weight: 800;
-      line-height: 1.45;
-    }
-    .snapshot-card small {
-      display: block;
-      color: var(--muted);
-      margin-top: 8px;
-      line-height: 1.45;
-    }
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    /* ── FEATURES ── */
-    section { padding: 80px 24px; }
-    .section-label {
-      text-align: center; font-size: 13px; font-weight: 800;
-      color: var(--rose); letter-spacing: 2px; text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    h2 {
-      text-align: center; font-size: clamp(28px, 4vw, 42px);
-      font-weight: 900; color: var(--ink); margin-bottom: 16px;
-    }
-    .section-sub {
-      text-align: center; color: var(--muted); font-size: 17px;
-      max-width: 560px; margin: 0 auto 56px; font-weight: 500;
-    }
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px; max-width: 1100px; margin: 0 auto;
-    }
-    .feature-card {
-      background: var(--card); border-radius: 24px;
-      padding: 28px; border: 1px solid var(--line);
-      transition: all .25s;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    }
-    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-    .feature-icon {
-      width: 52px; height: 52px; border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px; margin-bottom: 16px;
-    }
-    .feature-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
-    .feature-card p { color: var(--muted); font-size: 14px; line-height: 1.6; font-weight: 500; }
+:root{
+  --rose:#E86F91;      --rose-light:#FF8FAB;  --rose-deep:#D9577D;  --rose-tint:#FCE4EC;
+  --fertile:#3DBFA0;   --follicular:#4AABDB;  --ovulation:#9B7FE8;  --luteal:#FFB199;
+  --ink:#2D2530;       --ink-soft:#4A3F4E;    --muted:#81747F;      --subtle:#B0A4AE;
+  --line:#F0DEE5;      --cream:#FFF8F6;       --white:#FFFFFF;
+  --dark-bg:#1A1520;   --dark-card:#2E2736;   --dark-line:#3D3547;  --dark-text:#F5F0F8;  --dark-muted:#9E95A5;
+  --maxw:1180px;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --shadow-sm:0 2px 12px rgba(45,37,48,.05);
+  --shadow-md:0 18px 44px -20px rgba(45,37,48,.28);
+  --shadow-rose:0 18px 40px -14px rgba(232,111,145,.5);
+}
 
-    /* ── TECH STACK ── */
-    .tech-section { background: var(--ink); color: white; }
-    .tech-section h2 { color: white; }
-    .tech-section .section-sub { color: rgba(255,255,255,0.6); }
-    .tech-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px; max-width: 900px; margin: 0 auto;
-    }
-    .tech-item {
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px; padding: 20px;
-      display: flex; align-items: center; gap: 14px;
-      transition: all .2s;
-    }
-    .tech-item:hover { background: rgba(255,255,255,0.1); }
-    .tech-emoji { font-size: 28px; }
-    .tech-name { font-weight: 700; font-size: 15px; }
-    .tech-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  font-family:'Nunito',system-ui,sans-serif;
+  background:var(--cream);color:var(--ink);line-height:1.65;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+section{position:relative}
 
-    /* ── ARCHITECTURE ── */
-    .arch-section { background: linear-gradient(135deg, #FFF0F5, #F3EEFF); }
-    .arch-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px; max-width: 1000px; margin: 0 auto;
-    }
-    .arch-card {
-      background: white; border-radius: 20px; padding: 24px;
-      border: 1px solid var(--line);
-    }
-    .arch-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 10px; color: var(--rose); }
-    .arch-card ul { list-style: none; }
-    .arch-card li { font-size: 13px; color: var(--muted); padding: 3px 0; font-weight: 500; }
-    .arch-card li::before { content: '→ '; color: var(--rose); font-weight: 700; }
+.eyebrow{
+  font-size:12.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--rose);display:inline-flex;align-items:center;gap:8px;
+}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--rose);border-radius:2px;display:inline-block}
+h1,h2,h3{letter-spacing:-.02em;line-height:1.08}
+.h2{font-size:clamp(30px,4.6vw,50px);font-weight:900;color:var(--ink);margin:16px 0 14px}
+.lead{font-size:clamp(16px,2vw,19px);color:var(--muted);font-weight:500;max-width:56ch}
 
-    /* ── DOWNLOAD ── */
-    .download-section {
-      background: linear-gradient(135deg, var(--rose) 0%, var(--lavender) 100%);
-      color: white; text-align: center;
-    }
-    .download-section h2 { color: white; }
-    .download-section .section-sub { color: rgba(255,255,255,0.8); }
-    .download-cards {
-      display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
-      max-width: 700px; margin: 0 auto;
-    }
-    .download-card {
-      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 24px; padding: 28px 36px; flex: 1; min-width: 240px;
-      backdrop-filter: blur(10px); transition: all .25s;
-    }
-    .download-card:hover { background: rgba(255,255,255,0.22); transform: translateY(-3px); }
-    .download-card .icon { font-size: 40px; margin-bottom: 12px; }
-    .download-card h3 { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
-    .download-card p { font-size: 13px; opacity: .8; margin-bottom: 20px; }
-    .btn-white {
-      background: white; color: var(--rose);
-      padding: 12px 28px; border-radius: 20px;
-      font-weight: 800; font-size: 14px; text-decoration: none;
-      display: inline-block; transition: all .2s;
-    }
-    .btn-white:hover { transform: scale(1.04); }
+/* ─── buttons ─── */
+.btn{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+  border-radius:999px;padding:14px 26px;transition:transform .25s var(--ease),box-shadow .25s var(--ease),background .2s,color .2s,border-color .2s;cursor:pointer;border:1.5px solid transparent;white-space:nowrap}
+.btn svg{width:18px;height:18px}
+.btn-primary{background:var(--rose);color:#fff;box-shadow:var(--shadow-rose)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 46px -14px rgba(232,111,145,.62)}
+.btn-ghost{background:var(--white);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow-sm)}
+.btn-ghost:hover{border-color:var(--rose);color:var(--rose-deep);transform:translateY(-2px)}
 
-    /* ── DISCLAIMER ── */
-    .disclaimer {
-      background: var(--rose-light); border-top: 1px solid var(--line);
-      padding: 24px; text-align: center;
-      font-size: 13px; color: var(--muted); font-weight: 500;
-    }
+/* ─── nav ─── */
+header{position:fixed;inset:0 0 auto 0;z-index:50;transition:all .3s var(--ease)}
+header .bar{
+  display:flex;align-items:center;justify-content:space-between;
+  height:70px;max-width:var(--maxw);margin:0 auto;padding:0 24px;transition:all .3s var(--ease);
+}
+header.scrolled{background:rgba(255,248,246,.82);backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid var(--line)}
+header.scrolled .bar{height:60px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:900;font-size:19px}
+.brand img{height:30px;width:30px}
+.brand .name{background:linear-gradient(120deg,var(--ink),var(--ink));-webkit-background-clip:text;background-clip:text}
+.brand .name b{color:var(--rose)}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-links a.link{color:var(--ink-soft);font-weight:700;font-size:14.5px;padding:9px 15px;border-radius:999px;transition:background .2s,color .2s}
+.nav-links a.link:hover{background:var(--rose-tint);color:var(--rose-deep)}
+.nav-cta{display:flex;align-items:center;gap:10px;margin-left:8px}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:999px;border:1.5px solid var(--line);background:var(--white);transition:all .2s}
+.icon-btn:hover{border-color:var(--rose);color:var(--rose)}
+.icon-btn svg{width:20px;height:20px}
+.menu-toggle{display:none;background:none;border:none;cursor:pointer;width:44px;height:44px;color:var(--ink)}
 
-    /* ── FOOTER ── */
-    footer {
-      background: var(--ink); color: rgba(255,255,255,0.5);
-      padding: 40px 24px; text-align: center;
-      font-size: 14px;
-    }
-    footer a { color: var(--rose); text-decoration: none; font-weight: 700; }
-    footer a:hover { text-decoration: underline; }
-    .footer-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+/* ─── hero ─── */
+.hero{padding:150px 0 90px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;animation:float 18s var(--ease) infinite}
+.blob.b1{width:520px;height:520px;background:radial-gradient(circle,rgba(232,111,145,.42),transparent 68%);top:-160px;right:-120px}
+.blob.b2{width:460px;height:460px;background:radial-gradient(circle,rgba(155,127,232,.32),transparent 68%);top:120px;left:-160px;animation-delay:-6s}
+.blob.b3{width:420px;height:420px;background:radial-gradient(circle,rgba(61,191,160,.26),transparent 68%);bottom:-160px;right:18%;animation-delay:-11s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(28px,-34px) scale(1.06)}66%{transform:translate(-24px,20px) scale(.96)}}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero-copy{max-width:600px}
+.hero h1{font-size:clamp(40px,6.4vw,74px);font-weight:900;margin:22px 0 22px}
+.hero h1 .grad{background:linear-gradient(115deg,var(--rose) 0%,var(--ovulation) 60%,var(--follicular) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero .lead{font-size:clamp(16.5px,2.1vw,20px)}
+.hero-actions{display:flex;gap:14px;margin:34px 0 26px;flex-wrap:wrap}
+.hero-badges{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--ink-soft)}
+.hero-badge svg{width:17px;height:17px;color:var(--fertile)}
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 600px) {
-      nav { padding: 0 16px; }
-      .nav-links a:not(.btn-download) { display: none; }
-      .hero-stats { gap: 24px; }
-    }
-  </style>
+/* phone mockup */
+.hero-visual{position:relative;display:flex;justify-content:center;align-items:center;min-height:560px}
+.phone{
+  position:relative;width:290px;aspect-ratio:9/19.3;border-radius:44px;
+  background:#0e0b12;padding:11px;
+  box-shadow:0 50px 90px -32px rgba(45,37,48,.5),0 0 0 1.5px rgba(45,37,48,.08);
+  z-index:2;
+}
+.phone::before{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#0e0b12;border-radius:0 0 16px 16px;z-index:3}
+.phone .screen{width:100%;height:100%;border-radius:34px;overflow:hidden;background:var(--cream)}
+.phone .screen img{width:100%;height:100%;object-fit:cover;object-position:top}
+.hero-visual .phone{animation:phoneIn 1s var(--ease) both}
+@keyframes phoneIn{from{opacity:0;transform:translateY(30px) rotate(-3deg)}to{opacity:1;transform:translateY(0) rotate(-2.5deg)}}
+.float-card{
+  position:absolute;background:var(--white);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow-md);padding:14px 16px;z-index:3;display:flex;align-items:center;gap:12px;
+  animation:cardFloat 6s var(--ease) infinite;
+}
+.float-card .fc-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none}
+.float-card .fc-ico svg{width:20px;height:20px}
+.float-card b{font-size:14px;font-weight:800;display:block;line-height:1.2}
+.float-card span{font-size:12px;color:var(--muted);font-weight:600}
+.float-card.fc1{top:64px;left:-38px;animation-delay:-1s}
+.float-card.fc2{bottom:96px;right:-46px;animation-delay:-3.5s}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* ─── marquee trust ─── */
+.trust{padding:26px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--white)}
+.trust-row{display:flex;justify-content:space-around;gap:24px;flex-wrap:wrap;text-align:center}
+.trust-item .n{font-size:clamp(26px,3.4vw,38px);font-weight:900;color:var(--rose)}
+.trust-item .l{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* ─── section head ─── */
+.sec{padding:96px 0}
+.sec-head{max-width:640px;margin-bottom:56px}
+.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.sec-head.center .eyebrow{justify-content:center}
+
+/* ─── showcase alternating rows ─── */
+.showcase{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;margin-bottom:110px}
+.showcase:last-child{margin-bottom:0}
+.showcase.flip .sc-visual{order:2}
+.sc-copy h3{font-size:clamp(24px,3vw,34px);font-weight:900;margin:14px 0 12px}
+.sc-copy p{color:var(--muted);font-size:16.5px;font-weight:500;margin-bottom:20px}
+.sc-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.sc-list li{display:flex;gap:12px;align-items:flex-start;font-weight:600;font-size:15px;color:var(--ink-soft)}
+.sc-list li svg{width:20px;height:20px;color:var(--rose);flex:none;margin-top:2px}
+.sc-visual{position:relative;display:flex;justify-content:center}
+.sc-frame{
+  position:relative;width:270px;aspect-ratio:9/19.3;border-radius:40px;background:#0e0b12;padding:10px;
+  box-shadow:0 40px 80px -30px rgba(45,37,48,.45),0 0 0 1.5px rgba(45,37,48,.07);
+}
+.sc-frame .screen{width:100%;height:100%;border-radius:31px;overflow:hidden}
+.sc-frame .screen img{width:100%;height:100%;object-fit:cover;object-position:top}
+.sc-glow{position:absolute;inset:-40px;z-index:-1;border-radius:50%;filter:blur(60px);opacity:.5}
+
+/* ─── bento feature grid ─── */
+.bento{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tile{background:var(--white);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:var(--shadow-sm);
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .2s}
+.tile:hover{transform:translateY(-5px);box-shadow:var(--shadow-md);border-color:transparent}
+.tile .t-ico{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:16px}
+.tile .t-ico svg{width:24px;height:24px}
+.tile h3{font-size:18px;font-weight:800;margin-bottom:7px}
+.tile p{color:var(--muted);font-size:14.5px;font-weight:500;line-height:1.6}
+.tile.wide{grid-column:span 2}
+
+/* ─── gallery marquee ─── */
+.gallery{padding:70px 0 96px;overflow:hidden}
+.marquee{display:flex;gap:20px;width:max-content;animation:scrollx 44s linear infinite}
+.marquee:hover{animation-play-state:paused}
+.marquee .shot{width:200px;aspect-ratio:9/19.3;border-radius:26px;overflow:hidden;border:1px solid var(--line);
+  background:#0e0b12;padding:7px;box-shadow:var(--shadow-md);flex:none}
+.marquee .shot img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:20px}
+@keyframes scrollx{to{transform:translateX(-50%)}}
+.gallery-mask{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+
+/* ─── privacy (dark) ─── */
+.privacy{background:var(--dark-bg);color:var(--dark-text);border-radius:40px;margin:0 24px;overflow:hidden;position:relative}
+.privacy-inner{max-width:var(--maxw);margin:0 auto;padding:90px 24px}
+.privacy .h2{color:#fff}
+.privacy .eyebrow{color:var(--rose-light)}
+.privacy .eyebrow::before{background:var(--rose-light)}
+.privacy-lead{color:var(--dark-muted);font-size:18px;font-weight:500;max-width:60ch;margin-bottom:44px}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.pcard{background:var(--dark-card);border:1px solid var(--dark-line);border-radius:20px;padding:24px}
+.pcard .p-ico{width:44px;height:44px;border-radius:12px;background:rgba(232,111,145,.16);display:grid;place-items:center;margin-bottom:14px;color:var(--rose-light)}
+.pcard .p-ico svg{width:22px;height:22px}
+.pcard h4{font-size:16px;font-weight:800;margin-bottom:6px}
+.pcard p{color:var(--dark-muted);font-size:13.5px;font-weight:500;line-height:1.55}
+.privacy-glow{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(232,111,145,.2),transparent 70%);top:-200px;right:-100px;filter:blur(40px)}
+
+/* ─── how it works ─── */
+.how{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;counter-reset:s}
+.step{position:relative;padding:28px;border-radius:22px;background:var(--cream);border:1px solid var(--line)}
+.step::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-weight:900;font-size:15px;color:var(--rose);letter-spacing:.05em}
+.step h4{font-size:19px;font-weight:800;margin:10px 0 8px}
+.step p{color:var(--muted);font-size:14.5px;font-weight:500}
+
+/* ─── final CTA ─── */
+.cta{padding:100px 0}
+.cta-box{background:linear-gradient(125deg,var(--rose) 0%,var(--rose-deep) 45%,var(--ovulation) 100%);
+  border-radius:36px;padding:70px 40px;text-align:center;color:#fff;position:relative;overflow:hidden;box-shadow:0 40px 80px -30px rgba(232,111,145,.6)}
+.cta-box::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.18),transparent 40%),radial-gradient(circle at 85% 80%,rgba(255,255,255,.14),transparent 40%)}
+.cta-box>*{position:relative}
+.cta-box h2{font-size:clamp(30px,4.4vw,48px);font-weight:900;margin-bottom:14px}
+.cta-box p{font-size:18px;font-weight:500;opacity:.92;max-width:48ch;margin:0 auto 34px}
+.cta-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-white{background:#fff;color:var(--rose-deep);box-shadow:0 14px 30px -10px rgba(0,0,0,.3)}
+.btn-white:hover{transform:translateY(-3px);box-shadow:0 20px 40px -12px rgba(0,0,0,.36)}
+.btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+.btn-outline:hover{background:rgba(255,255,255,.14);border-color:#fff;transform:translateY(-2px)}
+.cta-note{margin-top:22px;font-size:13.5px;opacity:.8;font-weight:600}
+
+/* ─── disclaimer + footer ─── */
+.disclaimer{background:var(--rose-tint);padding:22px 24px;text-align:center}
+.disclaimer p{max-width:80ch;margin:0 auto;font-size:13.5px;color:var(--ink-soft);font-weight:600;display:flex;gap:10px;align-items:center;justify-content:center}
+.disclaimer svg{width:18px;height:18px;color:var(--rose-deep);flex:none}
+footer{background:var(--dark-bg);color:var(--dark-muted);padding:56px 24px 34px}
+.foot-grid{max-width:var(--maxw);margin:0 auto;display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;align-items:flex-start}
+.foot-brand{max-width:300px}
+.foot-brand .brand{color:#fff;margin-bottom:12px}
+.foot-brand p{font-size:14px;color:var(--dark-muted);font-weight:500}
+.foot-cols{display:flex;gap:56px;flex-wrap:wrap}
+.foot-col h5{font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--subtle);margin-bottom:14px}
+.foot-col a{display:block;color:var(--dark-muted);font-weight:600;font-size:14.5px;padding:5px 0;transition:color .2s}
+.foot-col a:hover{color:var(--rose-light)}
+.foot-bottom{max-width:var(--maxw);margin:40px auto 0;padding-top:24px;border-top:1px solid var(--dark-line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13.5px;font-weight:600}
+.foot-bottom a{color:var(--rose-light)}
+
+/* ─── reveal animation ─── */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal[data-d="1"]{transition-delay:.08s}
+.reveal[data-d="2"]{transition-delay:.16s}
+.reveal[data-d="3"]{transition-delay:.24s}
+
+/* ─── responsive ─── */
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr;gap:10px}
+  .hero-visual{min-height:520px;margin-top:20px}
+  .showcase{grid-template-columns:1fr;gap:34px;margin-bottom:72px}
+  .showcase.flip .sc-visual{order:0}
+  .bento{grid-template-columns:1fr 1fr}
+  .tile.wide{grid-column:span 2}
+  .pgrid{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .nav-links .link{display:none}
+  .menu-toggle{display:inline-flex}
+  .nav-cta .btn-primary{display:none}
+  .bento{grid-template-columns:1fr}
+  .tile.wide{grid-column:span 1}
+  .pgrid{grid-template-columns:1fr}
+  .foot-grid{flex-direction:column}
+  .sec{padding:70px 0}
+  .privacy{margin:0 14px}
+  .mobile-open .nav-links{display:flex;flex-direction:column;position:absolute;top:70px;left:14px;right:14px;
+    background:var(--white);border:1px solid var(--line);border-radius:20px;padding:12px;gap:4px;box-shadow:var(--shadow-md)}
+  .mobile-open .nav-links .link{display:block;text-align:center;font-size:16px;padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body>
 
 <!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">
-    <span>🌸</span> CycleCare
-  </a>
-  <div class="nav-links">
-    <a href="#startup">Startup</a>
-    <a href="#features">Features</a>
-    <a href="#tech">Tech</a>
-    <a href="#architecture">Architecture</a>
-    <a href="https://github.com/lekhanpro/cyclecare" target="_blank">GitHub</a>
-    <a href="https://github.com/lekhanpro/cyclecare/releases/latest" class="btn-download">⬇ Download APK</a>
+<header id="hdr">
+  <div class="bar">
+    <a href="#top" class="brand" aria-label="CycleCare home">
+      <img src="assets/cyclecare-mark.svg" alt="" />
+      <span class="name">Cycle<b>Care</b></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="link" href="#features">Features</a>
+      <a class="link" href="#privacy">Privacy</a>
+      <a class="link" href="#how">How it works</a>
+      <a class="link" href="#gallery">Screens</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="icon-btn" href="https://github.com/lekhanpro/cyclecare" target="_blank" rel="noopener" aria-label="GitHub repository">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+      </a>
+      <a class="btn btn-primary" href="https://github.com/lekhanpro/cyclecare/releases/latest" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+        Download
+      </a>
+      <button class="menu-toggle" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
   </div>
-</nav>
+</header>
+
+<span id="top"></span>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-content">
-    <div class="hero-badge">
-      <span class="dot"></span>
-      Early-stage health-tech startup · Android MVP · AWS-ready
+  <div class="hero-bg" aria-hidden="true">
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  </div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow reveal">Privacy-first cycle tracking</span>
+      <h1 class="reveal" data-d="1">Your cycle,<br/><span class="grad">your way.</span></h1>
+      <p class="lead reveal" data-d="2">Menstrual health, fertility and everyday wellbeing — tracked in an app that keeps your data on your device. Offline-first, ad-free, and no account required.</p>
+      <div class="hero-actions reveal" data-d="3">
+        <a class="btn btn-primary" href="https://github.com/lekhanpro/cyclecare/releases/latest" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+          Download for Android
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/lekhanpro/cyclecare" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4M6 8l-4 4 4 4m8-13-4 18"/></svg>
+          View source
+        </a>
+      </div>
+      <div class="hero-badges reveal" data-d="3">
+        <span class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No account needed</span>
+        <span class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Works fully offline</span>
+        <span class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Open source · MIT</span>
+      </div>
     </div>
-    <h1>CycleCare<br/>Private cycle care</h1>
-    <p>CycleCare is building a privacy-first menstrual health, fertility and wellness companion for Android. The product combines offline-first tracking, prediction logic, reminders, analytics, and safe AI-assisted education for people who want useful health insights without ads or unnecessary data collection.</p>
-    <div class="hero-cta">
-      <a href="https://github.com/lekhanpro/cyclecare/releases/latest" class="btn-primary">
-        ⬇ Download APK
+    <div class="hero-visual">
+      <div class="float-card fc1">
+        <span class="fc-ico" style="background:var(--rose-tint);color:var(--rose-deep)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-7-9a4 4 0 0 1 7-2.65A4 4 0 0 1 19 12c0 4.65-7 9-7 9Z"/></svg>
+        </span>
+        <div><b>Cycle day 3</b><span>Menstrual phase</span></div>
+      </div>
+      <div class="float-card fc2">
+        <span class="fc-ico" style="background:#E0F7F4;color:var(--fertile)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+        </span>
+        <div><b>High accuracy</b><span>Learns your pattern</span></div>
+      </div>
+      <div class="phone">
+        <div class="screen"><img src="screenshots/home.png" alt="CycleCare home screen showing the current cycle day and phase" width="290" height="622" loading="eager"/></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section class="trust reveal">
+  <div class="wrap trust-row">
+    <div class="trust-item"><div class="n">0</div><div class="l">Trackers &amp; ads</div></div>
+    <div class="trust-item"><div class="n">100%</div><div class="l">On-device data</div></div>
+    <div class="trust-item"><div class="n">8</div><div class="l">Colour themes</div></div>
+    <div class="trust-item"><div class="n">43</div><div class="l">Tests passing</div></div>
+    <div class="trust-item"><div class="n">MIT</div><div class="l">Open source</div></div>
+  </div>
+</section>
+
+<!-- SHOWCASE -->
+<section class="sec wrap" id="features">
+  <div class="sec-head center reveal">
+    <span class="eyebrow">The core</span>
+    <h2 class="h2">Tracking that earns your trust</h2>
+    <p class="lead" style="margin:0 auto">Recorded days are filled in, predictions are outlined — so an estimate is never mistaken for something you logged.</p>
+  </div>
+
+  <div class="showcase reveal">
+    <div class="sc-copy">
+      <span class="eyebrow">Prediction</span>
+      <h3>Forecasts that show their confidence</h3>
+      <p>A weighted moving average leans on your most recent cycles and tells you how sure it is — plain language, not a false-precision percentage.</p>
+      <ul class="sc-list">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Next period, fertile window and ovulation</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Irregularity flagged, not hidden</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Three cycles projected ahead</li>
+      </ul>
+    </div>
+    <div class="sc-visual">
+      <span class="sc-glow" style="background:radial-gradient(circle,rgba(232,111,145,.5),transparent 70%)"></span>
+      <div class="sc-frame"><div class="screen"><img src="screenshots/home.png" alt="Home screen with cycle ring and prediction" loading="lazy"/></div></div>
+    </div>
+  </div>
+
+  <div class="showcase flip reveal">
+    <div class="sc-visual">
+      <span class="sc-glow" style="background:radial-gradient(circle,rgba(155,127,232,.5),transparent 70%)"></span>
+      <div class="sc-frame"><div class="screen"><img src="screenshots/calendar.png" alt="Month calendar with colour-coded cycle phases" loading="lazy"/></div></div>
+    </div>
+    <div class="sc-copy">
+      <span class="eyebrow">Calendar</span>
+      <h3>Every phase, colour-coded at a glance</h3>
+      <p>Period, predicted period, fertile window, ovulation and the premenstrual window on one month view — each with a tap-through day detail.</p>
+      <ul class="sc-list">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Phase colours stay fixed across every theme</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Toggle fertile &amp; ovulation overlays</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Per-day detail sheet</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="showcase reveal">
+    <div class="sc-copy">
+      <span class="eyebrow">Insights</span>
+      <h3>Your patterns, charted honestly</h3>
+      <p>Cycle length, regularity, symptoms, mood, pain and basal body temperature — turned into trends you can actually read.</p>
+      <ul class="sc-list">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cycle &amp; period length history</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Symptom &amp; mood frequency</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Pain and BBT trends</li>
+      </ul>
+    </div>
+    <div class="sc-visual">
+      <span class="sc-glow" style="background:radial-gradient(circle,rgba(74,171,219,.5),transparent 70%)"></span>
+      <div class="sc-frame"><div class="screen"><img src="screenshots/insights-charts.png" alt="Insights screen with cycle length and symptom charts" loading="lazy"/></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BENTO FEATURES -->
+<section class="sec wrap">
+  <div class="sec-head center reveal">
+    <span class="eyebrow">Everything in one place</span>
+    <h2 class="h2">One app, the whole picture</h2>
+    <p class="lead" style="margin:0 auto">Beyond the cycle — the health, planning and daily-log tools that usually live in five separate apps.</p>
+  </div>
+  <div class="bento">
+    <div class="tile wide reveal">
+      <span class="t-ico" style="background:var(--rose-tint);color:var(--rose-deep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M3 20h2M5 20V8a2 2 0 0 1 2-2h2M12 20V4M12 4h3a2 2 0 0 1 2 2v14"/></svg></span>
+      <h3>Daily log with everything that matters</h3>
+      <p>Flow, mood, 16 symptoms, pain 0–10, BBT, sleep, water, weight, cervical signs, medication, notes — plus your own custom tags. As detailed as you want, never demanding.</p>
+    </div>
+    <div class="tile reveal" data-d="1">
+      <span class="t-ico" style="background:#EDE7F6;color:var(--ovulation)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg></span>
+      <h3>Smart reminders</h3>
+      <p>Local notifications for period, ovulation, fertile window, daily log and the pill.</p>
+    </div>
+    <div class="tile reveal">
+      <span class="t-ico" style="background:#E0F7F4;color:var(--fertile)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg></span>
+      <h3>Health library</h3>
+      <p>Plain-language explainers for PCOS, endometriosis, PMDD, perimenopause and amenorrhea, plus a pain diary.</p>
+    </div>
+    <div class="tile reveal" data-d="1">
+      <span class="t-ico" style="background:#FFF3EE;color:#E08A6B"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-7-9a4 4 0 0 1 7-2.65A4 4 0 0 1 19 12c0 4.65-7 9-7 9Z"/></svg></span>
+      <h3>Pregnancy mode</h3>
+      <p>Due-date calculator, week-by-week guidance, a kick counter and an appointment list.</p>
+    </div>
+    <div class="tile reveal">
+      <span class="t-ico" style="background:var(--rose-tint);color:var(--rose-deep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <h3>Birth control</h3>
+      <p>Daily pill check-in with undo, streaks, pack layout and adherence stats.</p>
+    </div>
+    <div class="tile reveal" data-d="1">
+      <span class="t-ico" style="background:#E1F0FA;color:var(--follicular)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M8 8h4M8 12h8M8 16h8"/></svg></span>
+      <h3>Learn library</h3>
+      <p>A searchable, bookmarkable article library across cycle basics, fertility and pregnancy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY MARQUEE -->
+<section class="gallery" id="gallery">
+  <div class="sec-head center wrap reveal">
+    <span class="eyebrow">See it in motion</span>
+    <h2 class="h2">Designed to be lived in</h2>
+    <p class="lead" style="margin:0 auto">One shared design system, eight palettes, and a light and dark theme that never recolours what your data means.</p>
+  </div>
+  <div class="gallery-mask">
+    <div class="marquee" id="marquee">
+      <!-- populated + duplicated by JS for seamless loop -->
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section class="privacy" id="privacy">
+  <span class="privacy-glow" aria-hidden="true"></span>
+  <div class="privacy-inner">
+    <div class="sec-head reveal" style="margin-bottom:40px">
+      <span class="eyebrow">Why it's different</span>
+      <h2 class="h2">Your health data never leaves your phone</h2>
+      <p class="privacy-lead">Most trackers are data businesses wearing a health app. CycleCare is built the other way around: there is no account wall, no analytics SDK, and no ad network. Signing in is optional and gates nothing.</p>
+    </div>
+    <div class="pgrid">
+      <div class="pcard reveal">
+        <span class="p-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4Z"/></svg></span>
+        <h4>Local-first storage</h4>
+        <p>Every entry lives on your device. The app makes no network calls in normal use.</p>
+      </div>
+      <div class="pcard reveal" data-d="1">
+        <span class="p-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+        <h4>App lock</h4>
+        <p>Optional PIN, hashed into secure storage, plus biometric unlock.</p>
+      </div>
+      <div class="pcard reveal" data-d="2">
+        <span class="p-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+        <h4>No trackers</h4>
+        <p>Zero analytics, crash reporting or advertising SDKs. Nothing profiles you.</p>
+      </div>
+      <div class="pcard reveal" data-d="3">
+        <span class="p-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg></span>
+        <h4>Export &amp; delete</h4>
+        <p>Take everything with you as JSON, or erase all of it, in one tap from Settings.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec how" id="how">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="eyebrow">How it works</span>
+      <h2 class="h2">Set up in under a minute</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <h4>Install &amp; open</h4>
+        <p>Download the APK and open the app. There is no sign-up screen to get past.</p>
+      </div>
+      <div class="step reveal" data-d="1">
+        <h4>Log your last period</h4>
+        <p>Onboarding asks a few quick questions. Rough numbers are fine — it learns your real pattern.</p>
+      </div>
+      <div class="step reveal" data-d="2">
+        <h4>Track your way</h4>
+        <p>Log as much or as little as you like. Predictions and insights sharpen with every cycle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta wrap">
+  <div class="cta-box reveal">
+    <h2>Start tracking on your terms</h2>
+    <p>Free, open source, and yours. Download the Android build or read every line of the source.</p>
+    <div class="cta-actions">
+      <a class="btn btn-white" href="https://github.com/lekhanpro/cyclecare/releases/latest" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+        Download for Android
       </a>
-      <a href="https://github.com/lekhanpro/cyclecare" class="btn-secondary">
-        ⭐ View on GitHub
+      <a class="btn btn-outline" href="https://github.com/lekhanpro/cyclecare" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        Star on GitHub
       </a>
     </div>
-    <div class="hero-stats">
-      <div class="stat"><div class="stat-num">MVP</div><div class="stat-label">Android product</div></div>
-      <div class="stat"><div class="stat-num">AWS</div><div class="stat-label">Startup-ready infra</div></div>
-      <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Education assistant</div></div>
-      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Privacy-first</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- STARTUP SNAPSHOT -->
-<section class="snapshot" id="startup">
-  <p class="section-label">Startup snapshot</p>
-  <h2>Built to become a trusted cycle-care platform</h2>
-  <p class="section-sub">This page is the public product website for CycleCare, an early-stage startup project led by Lekhan HR.</p>
-  <div class="snapshot-grid">
-    <div class="snapshot-card">
-      <h3>Company</h3>
-      <p>CycleCare</p>
-      <small>Founder-led early-stage startup project focused on privacy-first mobile health software.</small>
-    </div>
-    <div class="snapshot-card">
-      <h3>Product</h3>
-      <p>Android cycle tracking and wellness companion</p>
-      <small>Flutter app with local-first tracking, predictions, AI education, reminders, and insights.</small>
-    </div>
-    <div class="snapshot-card">
-      <h3>Stage</h3>
-      <p>MVP / early product</p>
-      <small>Actively developed with public releases, CI/CD, documentation, and open-source repository.</small>
-    </div>
-    <div class="snapshot-card">
-      <h3>Website</h3>
-      <p>cyclecare.lekhanhr.online</p>
-      <small>Corporate-domain subdomain for startup program verification and product discovery.</small>
-    </div>
-    <div class="snapshot-card">
-      <h3>AWS and Kiro use</h3>
-      <p>Spec-driven development, app automation, CI/CD and AI workflow planning</p>
-      <small>Kiro credits would support faster product iteration, tests, release automation, privacy reviews, and backend integration work.</small>
-    </div>
-    <div class="snapshot-card">
-      <h3>Data posture</h3>
-      <p>No ads, local-first storage, opt-in cloud features</p>
-      <small>Designed for sensitive health data with export/delete controls and safe, non-diagnostic AI messaging.</small>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section id="features">
-  <p class="section-label">What's inside</p>
-  <h2>Everything you need</h2>
-  <p class="section-sub">Built by combining the best ideas from Flo, Clue, MyCalendar and Glow — with privacy at the core.</p>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FCE4EC">🌸</div>
-      <h3>Cycle Prediction</h3>
-      <p>Weighted moving average engine that adapts to your personal pattern. Predicts period, fertile window, and ovulation with confidence scoring.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#EDE7F6">📅</div>
-      <h3>Interactive Calendar</h3>
-      <p>Month view with color-coded period days, predicted window, fertile phase, ovulation marker, and PMS/luteal phase indicators.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#E0F2F1">📝</div>
-      <h3>Full Daily Log</h3>
-      <p>Flow, mood, 16 symptoms, pain level, BBT, cervical mucus, sleep, water intake, weight, exercise, and free-text notes.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FFF3E0">📊</div>
-      <h3>Insights & Charts</h3>
-      <p>Cycle length trends, symptom frequency bars, mood patterns, pain charts, and flow history — all powered by fl_chart.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#EDE7F6">🤖</div>
-      <h3>AI Chat Companion</h3>
-      <p>Phase-aware health education via Groq Llama 3. The API key lives only in the Supabase Edge Function — never in the app.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FCE4EC">🐰</div>
-      <h3>Virtual Pet</h3>
-      <p>A companion that grows with your tracking streak. Earn XP for logging, unlock 9 achievements, level up your pet.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#E0F2F1">💊</div>
-      <h3>Birth Control</h3>
-      <p>Daily pill check-in with streak tracking. Supports 8 methods: pill, patch, ring, IUD, implant, injection, condom.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FFF3E0">🤰</div>
-      <h3>Pregnancy Mode</h3>
-      <p>Week-by-week tracker, due date calculator, kick counter with session logging, and trimester highlights.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FCE4EC">🔒</div>
-      <h3>Privacy First</h3>
-      <p>No account required. All data stored locally. Optional cloud sync via Supabase. PIN + biometric app lock. Privacy mode.</p>
-    </div>
-  </div>
-</section>
-
-<!-- TECH STACK -->
-<section id="tech" class="tech-section">
-  <p class="section-label" style="color:rgba(255,255,255,0.5)">Built with</p>
-  <h2>Modern Tech Stack</h2>
-  <p class="section-sub">Production-grade dependencies, all pinned to stable versions.</p>
-  <div class="tech-grid">
-    <div class="tech-item">
-      <span class="tech-emoji">💙</span>
-      <div><div class="tech-name">Flutter 3.24.5</div><div class="tech-desc">Cross-platform UI framework</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">🎯</span>
-      <div><div class="tech-name">Dart 3.5.4</div><div class="tech-desc">Null-safe, modern language</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">⚡</span>
-      <div><div class="tech-name">Riverpod 2.x</div><div class="tech-desc">Reactive state management</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">🧭</span>
-      <div><div class="tech-name">GoRouter 14.x</div><div class="tech-desc">Declarative navigation</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">🟢</span>
-      <div><div class="tech-name">Supabase</div><div class="tech-desc">PostgreSQL + Edge Functions</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">🔥</span>
-      <div><div class="tech-name">Firebase</div><div class="tech-desc">Auth + FCM push</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">🤖</span>
-      <div><div class="tech-name">Groq Llama 3</div><div class="tech-desc">AI via server-side proxy</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">📈</span>
-      <div><div class="tech-name">fl_chart</div><div class="tech-desc">Beautiful data charts</div></div>
-    </div>
-    <div class="tech-item">
-      <span class="tech-emoji">🔤</span>
-      <div><div class="tech-name">Google Fonts</div><div class="tech-desc">Nunito typeface</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ARCHITECTURE -->
-<section id="architecture" class="arch-section">
-  <p class="section-label">How it's built</p>
-  <h2>Clean Architecture</h2>
-  <p class="section-sub">Strict separation of concerns. Presentation never touches Supabase or Firebase directly.</p>
-  <div class="arch-grid">
-    <div class="arch-card">
-      <h4>🎨 Presentation</h4>
-      <ul>
-        <li>Flutter widgets only</li>
-        <li>Consumes Riverpod providers</li>
-        <li>No direct backend calls</li>
-        <li>GoRouter navigation</li>
-      </ul>
-    </div>
-    <div class="arch-card">
-      <h4>⚙️ Domain</h4>
-      <ul>
-        <li>Pure Dart — no Flutter</li>
-        <li>CyclePredictionService</li>
-        <li>Business models</li>
-        <li>Repository interfaces</li>
-      </ul>
-    </div>
-    <div class="arch-card">
-      <h4>💾 Data</h4>
-      <ul>
-        <li>SharedPreferences (local)</li>
-        <li>Supabase (cloud sync)</li>
-        <li>Offline-first writes</li>
-        <li>Background sync queue</li>
-      </ul>
-    </div>
-    <div class="arch-card">
-      <h4>🔧 Core</h4>
-      <ul>
-        <li>8 pastel palettes</li>
-        <li>Material 3 theme</li>
-        <li>Auth providers</li>
-        <li>Notification service</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- DOWNLOAD -->
-<section class="download-section">
-  <p class="section-label" style="color:rgba(255,255,255,0.6)">Get the app</p>
-  <h2>Download CycleCare</h2>
-  <p class="section-sub">Free, open source, and always will be.</p>
-  <div class="download-cards">
-    <div class="download-card">
-      <div class="icon">📱</div>
-      <h3>Android APK</h3>
-      <p>Install directly on any Android 6.0+ device</p>
-      <a href="https://github.com/lekhanpro/cyclecare/releases/latest" class="btn-white">Download APK</a>
-    </div>
-    <div class="download-card">
-      <div class="icon">⭐</div>
-      <h3>Source Code</h3>
-      <p>Full Flutter source on GitHub — MIT licensed</p>
-      <a href="https://github.com/lekhanpro/cyclecare" class="btn-white">View on GitHub</a>
-    </div>
+    <p class="cta-note">Requires Android 6.0+ · APK &amp; Play-ready bundle on every release</p>
   </div>
 </section>
 
 <!-- DISCLAIMER -->
 <div class="disclaimer">
-  ⚕️ CycleCare is for educational and personal tracking purposes only. Not a medical device. Does not provide medical advice, diagnosis, or treatment. Do not rely on it as contraception. Always consult a healthcare professional.
+  <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+  CycleCare is for education and personal tracking only. It is not a medical device and does not provide medical advice, diagnosis or treatment. Predictions are estimates and will sometimes be wrong. Do not rely on it as contraception.</p>
 </div>
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-links">
-    <a href="https://github.com/lekhanpro/cyclecare">GitHub</a>
-    <a href="https://github.com/lekhanpro/cyclecare/releases">Releases</a>
-    <a href="https://github.com/lekhanpro/cyclecare/issues">Issues</a>
-    <a href="https://github.com/lekhanpro/cyclecare/blob/main/LICENSE">License</a>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a href="#top" class="brand"><img src="assets/cyclecare-mark.svg" alt=""/><span class="name" style="color:#fff">Cycle<b style="color:var(--rose-light)">Care</b></span></a>
+      <p>Privacy-first menstrual health, fertility &amp; wellness tracking. Built with Flutter, open source under the MIT license.</p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h5>Product</h5>
+        <a href="#features">Features</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#gallery">Screens</a>
+        <a href="https://github.com/lekhanpro/cyclecare/releases/latest" target="_blank" rel="noopener">Download</a>
+      </div>
+      <div class="foot-col">
+        <h5>Project</h5>
+        <a href="https://github.com/lekhanpro/cyclecare" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/lekhanpro/cyclecare/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+        <a href="https://github.com/lekhanpro/cyclecare/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+        <a href="https://github.com/lekhanpro/cyclecare/issues" target="_blank" rel="noopener">Issues</a>
+      </div>
+      <div class="foot-col">
+        <h5>Legal</h5>
+        <a href="https://github.com/lekhanpro/cyclecare/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        <a href="https://github.com/lekhanpro/cyclecare/blob/main/SECURITY.md" target="_blank" rel="noopener">Security</a>
+        <a href="https://github.com/lekhanpro/cyclecare/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener">Code of Conduct</a>
+      </div>
+    </div>
   </div>
-  <p>Made with 🌸 by <a href="https://github.com/lekhanpro">lekhanpro</a> · MIT License</p>
+  <div class="foot-bottom">
+    <span>© 2026 CycleCare · Built by <a href="https://github.com/lekhanpro" target="_blank" rel="noopener">Lekhan H R</a></span>
+    <span>Made with care, not tracking.</span>
+  </div>
 </footer>
 
+<script>
+(function(){
+  // nav shrink on scroll
+  var hdr=document.getElementById('hdr');
+  var onScroll=function(){ hdr.classList.toggle('scrolled', window.scrollY>12); };
+  onScroll(); window.addEventListener('scroll',onScroll,{passive:true});
+
+  // mobile menu
+  var mb=document.getElementById('menuBtn');
+  mb&&mb.addEventListener('click',function(){
+    document.body.classList.toggle('mobile-open');
+    mb.setAttribute('aria-expanded', document.body.classList.contains('mobile-open'));
+  });
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    a.addEventListener('click',function(){document.body.classList.remove('mobile-open');mb&&mb.setAttribute('aria-expanded','false');});
+  });
+
+  // scroll reveal
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.14,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+
+  // gallery marquee (build from screenshots, duplicate for seamless loop)
+  var shots=['home','calendar','insights','log','pet','health','education','pregnancy','birth-control','reminders','settings','home-dark'];
+  var alts={ 'birth-control':'Birth control tracker', 'home-dark':'Home screen in dark theme' };
+  var m=document.getElementById('marquee');
+  if(m){
+    var html=shots.map(function(s){
+      var alt=alts[s]||(s.charAt(0).toUpperCase()+s.slice(1)+' screen');
+      // eager (not lazy): the strip animates continuously, so off-screen tiles
+      // must already be decoded or they flash in as blank frames mid-scroll.
+      return '<div class="shot"><img src="screenshots/'+s+'.png" alt="'+alt+'" decoding="async"/></div>';
+    }).join('');
+    m.innerHTML=html+html; // duplicate set → -50% keyframe loops seamlessly
+  }
+})();
+</script>
 </body>
 </html>
