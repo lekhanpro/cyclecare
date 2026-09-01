@@ -1,19 +1,22 @@
 name: cyclecare
 description: CycleCare – privacy-first menstrual health, fertility, wellness & AI companion app.
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.1.0+2
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
-  flutter: '>=3.24.0'
+  # Floors match the resolved lockfile. Flutter 3.38+ is required for the
+  # CardThemeData/DialogThemeData/TabBarThemeData renames and google_fonts 8.
+  sdk: '>=3.10.0 <4.0.0'
+  flutter: '>=3.38.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
   # ── State management ──────────────────────────────────────────────────────
+  # Providers are hand-written, so riverpod_annotation/riverpod_generator are
+  # deliberately absent — there is no build_runner step in this project.
   flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
 
   # ── Navigation ────────────────────────────────────────────────────────────
   go_router: ^14.2.7
@@ -38,12 +41,10 @@ dependencies:
   connectivity_plus: ^6.1.0
 
   # ── UI ────────────────────────────────────────────────────────────────────
-  google_fonts: ^6.2.1
-  table_calendar: ^3.1.2
+  # The calendar, cycle ring and week strip are first-party widgets in
+  # lib/widgets, so no third-party calendar or animation kit is pulled in.
+  google_fonts: ^8.1.0
   fl_chart: ^0.69.0
-  lottie: ^3.1.2
-  flutter_svg: ^2.0.10+1
-  cached_network_image: ^3.4.1
 
   # ── Notifications ─────────────────────────────────────────────────────────
   flutter_local_notifications: ^18.0.1
@@ -63,17 +64,10 @@ dependencies:
   image_picker: ^1.1.2
   flutter_dotenv: ^5.2.1
 
-  # ── Icons ─────────────────────────────────────────────────────────────────
-  cupertino_icons: ^1.0.8
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.12
-  riverpod_generator: ^2.4.3
-  custom_lint: ^0.6.7
-  riverpod_lint: ^2.3.13
   flutter_launcher_icons: ^0.14.1
 
 flutter:

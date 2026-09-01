@@ -939,6 +939,10 @@ class _ProgressBar extends StatelessWidget {
             curve: AppCurves.out,
             builder: (context, animated, _) => FractionallySizedBox(
               widthFactor: animated.clamp(0.0, 1.0),
+              // heightFactor is required: DecoratedBox has no intrinsic size,
+              // so without it the fill collapses to zero height and the meter
+              // renders empty at every value.
+              heightFactor: 1,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: radius,

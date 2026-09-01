@@ -103,7 +103,7 @@ class AppTheme {
             isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         titleTextStyle: textTheme.titleLarge?.copyWith(color: ink),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: card,
         surfaceTintColor: Colors.transparent,
@@ -314,7 +314,7 @@ class AppTheme {
         dragHandleColor: muted.withOpacity(0.48),
         dragHandleSize: const Size(38, 4),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         elevation: 1,
         backgroundColor: surface,
         surfaceTintColor: Colors.transparent,
@@ -346,7 +346,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadii.control),
         ),
       ),
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         dividerColor: line,
         indicatorColor: scheme.primary,
         labelColor: scheme.primary,

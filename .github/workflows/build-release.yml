@@ -25,10 +25,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter 3.24.5
+      - name: Setup Flutter 3.41.6
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          flutter-version: '3.41.6'
           channel: 'stable'
           cache: true
 
@@ -94,15 +94,39 @@ jobs:
             | `app-release.aab` | Play Store bundle |
 
             ### ✨ What's new
-            - Complete Flutter rebuild from Kotlin
-            - Material 3 design with 8 pastel palettes
-            - Cycle tracking with AI-powered prediction engine
-            - Daily health logging (flow, mood, symptoms, BBT, sleep, water, weight)
-            - Virtual pet companion with XP & achievements
-            - Firebase Auth + FCM push notifications
-            - Offline-first with optional Supabase cloud sync
-            - Birth control tracker, pregnancy mode, partner sharing
-            - AI chat via Groq (server-side only, key never in client)
+
+            **Redesigned interface**
+            - Every screen rebuilt on one shared Material 3 design system with a
+              single spacing, radius, type and motion vocabulary
+            - One dominant cycle status on Home, connected date ranges on the
+              calendar, date-first logging, and summary-then-detail insights
+            - Recorded days are filled and predictions outlined, so an estimate
+              is never mistaken for something you logged
+            - Semantic phase colours stay fixed across all 8 palettes: rose
+              always means period, teal always means fertile
+
+            **Accessibility**
+            - Screen-reader summaries for the cycle ring, calendar days, charts
+              and pill packs
+            - Status is never carried by colour alone
+            - Layouts hold from 320dp to tablet and up to 200% text scale
+            - Reduced-motion preferences respected throughout
+
+            **Honest copy**
+            - Removed cross-device sync claims; sync is not implemented, and
+              accounts are described as optional
+            - The AI assistant presents as unconfigured instead of pointing at a
+              setting that does not exist, and no longer sends cycle history
+              without consent
+
+            **Fixes**
+            - Pet XP and happiness meters rendered empty
+            - Health pain-diary summary crashed inside a scrollable
+            - Idle buttons no longer run a hidden animation ticker
+
+            **Toolchain**
+            - Flutter 3.41.6 / Dart 3.11.4; dropped 10 unused dependencies
+            - 43 tests passing, 0 analyzer errors or warnings
 
             ### 📱 Install APK
             1. Download `app-release.apk` below
@@ -110,6 +134,9 @@ jobs:
             3. Open the downloaded APK to install
 
             > **Minimum Android:** 6.0 (API 23)
+            >
+            > CycleCare is not a medical device and does not provide medical
+            > advice. Do not rely on it as contraception.
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab

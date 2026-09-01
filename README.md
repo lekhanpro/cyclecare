@@ -12,7 +12,7 @@ Offline-first, ad-free, no account required.
 
 [![CI](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml)
 [![Release](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml)
-[![Flutter](https://img.shields.io/badge/Flutter-3.24.5-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.6-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Material 3](https://img.shields.io/badge/Material%203-E86F91?logo=materialdesign&logoColor=white)](https://m3.material.io)
 [![Tests](https://img.shields.io/badge/tests-43%20passing-3DBFA0)](#testing)
 [![License](https://img.shields.io/badge/License-MIT-9B7FE8)](LICENSE)
@@ -178,7 +178,7 @@ means fertile — so changing your accent colour never relabels your data.
 
 | | |
 | --- | --- |
-| Framework | Flutter 3.24.5 · Dart 3.5.4 · Material 3 |
+| Framework | Flutter 3.41.6 · Dart 3.11.4 · Material 3 |
 | State | `flutter_riverpod` |
 | Routing | `go_router` |
 | Storage | `shared_preferences`, `flutter_secure_storage` |
@@ -191,8 +191,8 @@ means fertile — so changing your accent colour never relabels your data.
 
 ## Getting started
 
-**Requirements** — Flutter 3.24.5 (see [compatibility](#compatibility)), Android
-SDK 35, Java 17.
+**Requirements** — Flutter 3.38 or newer (CI pins 3.41.6), Android SDK 35,
+Java 17.
 
 ```bash
 git clone https://github.com/lekhanpro/cyclecare.git
@@ -228,11 +228,14 @@ keytool -genkey -v -keystore android/app/cyclecare-release.jks \
 
 ### Compatibility
 
-CI pins **Flutter 3.24.5**, and that is the version to use. On Flutter 3.27 and
-newer the build fails until three renamed Material classes are updated in
-`lib/core/theme/app_theme.dart` — `CardTheme` → `CardThemeData`, `DialogTheme` →
-`DialogThemeData`, `TabBarTheme` → `TabBarThemeData` — and `google_fonts` is
-raised to `^8.x`, which drops a `const` map that newer Dart rejects.
+CI pins **Flutter 3.41.6**, and `pubspec.yaml` floors the SDK at Flutter 3.38 /
+Dart 3.10 to match the resolved lockfile. Two things set that floor: the Material
+theme classes renamed in 3.27 (`CardThemeData`, `DialogThemeData`,
+`TabBarThemeData`), and `google_fonts ^8`, which drops a `const` map that newer
+Dart rejects. Both are applied, so the tree builds on current stable as-is.
+
+Flutter 3.24 is no longer supported — the renamed theme classes do not exist
+there.
 
 ### Brand assets
 
@@ -295,9 +298,11 @@ lock, export and delete, theming.
 | **Partner dashboard** | Sharing is a local text summary. There are no invite codes and no partner view; an earlier random-code UI was removed because nothing was behind it. |
 | **iOS** | The Xcode project and icon set are in place, but only Android Firebase options are compiled in, so push is Android-only today. |
 
-**Known bug** — the pet screen's XP and happiness meters render empty. Their
-`FractionallySizedBox` sets only `widthFactor` inside an `Align`, so the gradient
-fill collapses to zero height.
+**Recently fixed** — the pet screen's XP and happiness meters rendered empty
+because their `FractionallySizedBox` set only `widthFactor`, collapsing the
+gradient fill to zero height. The Health pain-diary summary also crashed in a
+scrollable: a `Row` with `CrossAxisAlignment.stretch` and no bounded height
+forces infinite constraints, so it is now wrapped in `IntrinsicHeight`.
 
 ---
 
@@ -333,8 +338,8 @@ Issues and pull requests are welcome.
 5. Open a PR describing what changed and how you verified it
 
 Good first contributions: wiring a real AI provider behind the existing chat
-UI, the pet meter fix above, replacing deprecated `withOpacity` calls with
-`withValues`, or adding iOS Firebase configuration.
+UI, replacing the remaining deprecated `withOpacity` calls with `withValues`
+(~170 analyzer infos, all non-fatal), or adding iOS Firebase configuration.
 
 ---
 

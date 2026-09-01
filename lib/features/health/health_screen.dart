@@ -396,16 +396,14 @@ class _Bounded extends StatelessWidget {
 /// Section title, announced as a heading so assistive technology can jump
 /// between the parts of a tab instead of walking every card.
 class _Section extends StatelessWidget {
-  const _Section({required this.title, this.subtitle, this.index = 0});
+  const _Section({required this.title, this.subtitle});
 
   final String title;
   final String? subtitle;
-  final int index;
 
   @override
   Widget build(BuildContext context) {
     return Reveal(
-      index: index,
       child: MergeSemantics(
         child: Semantics(
           header: true,
@@ -781,8 +779,8 @@ class _PinnedDisclaimer extends StatelessWidget {
             child: _Bounded(
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: cap),
-                child: SingleChildScrollView(
-                  child: const InfoBanner(
+                child: const SingleChildScrollView(
+                  child: InfoBanner(
                     icon: Icons.medical_information_rounded,
                     tone: AppColors.info,
                     message:
@@ -1218,13 +1216,18 @@ class _DiarySummary extends StatelessWidget {
                     child: tile,
                   )
               else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: tiles.first),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(child: tiles.last),
-                  ],
+                // IntrinsicHeight is required, not cosmetic: stretch resolves
+                // along the cross axis, and this Row sits inside a scrollable,
+                // so without a bounded height it forces infinite constraints.
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: tiles.first),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(child: tiles.last),
+                    ],
+                  ),
                 ),
               if (topLocation != null) ...[
                 const SizedBox(height: AppSpacing.md),
