@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Pub packages (pubspec.yaml). Grouped and monthly rather than per-package
+  # weekly: this app already tracks its dependency count deliberately (see
+  # the toolchain note in README.md), so a firehose of individual PRs would
+  # work against that, not for it.
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      pub-dependencies:
+        patterns:
+          - "*"
+
+  # GitHub Actions used in .github/workflows/*.yml
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      actions-dependencies:
+        patterns:
+          - "*"

@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest an idea, improvement, or new capability.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        CycleCare is intentionally local-first and minimal — see
+        [CONTRIBUTING.md](../../CONTRIBUTING.md#suggesting-features). Features
+        requiring a backend, third-party SDK, or ongoing infra cost are less
+        likely to land than ones that work fully on-device.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that the app doesn't support today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you thought about, and why you didn't pick them.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This can work fully offline / on-device (no new backend required)
+          required: false
+        - label: I'm willing to help implement this
+          required: false

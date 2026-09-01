@@ -329,17 +329,18 @@ talk to a qualified clinician.
 
 ## Contributing
 
-Issues and pull requests are welcome.
-
-1. Fork and branch: `git checkout -b feature/your-change`
-2. Keep to the existing style — `flutter analyze` should stay clean
-3. Add or update tests for logic changes
-4. Commit conventionally: `feat: …`, `fix: …`, `docs: …`
-5. Open a PR describing what changed and how you verified it
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
+for setup, code style, and how PRs are reviewed. This project follows a
+[Code of Conduct](CODE_OF_CONDUCT.md).
 
 Good first contributions: wiring a real AI provider behind the existing chat
 UI, replacing the remaining deprecated `withOpacity` calls with `withValues`
 (~170 analyzer infos, all non-fatal), or adding iOS Firebase configuration.
+
+Found a security issue? Please report it privately — see [SECURITY.md](SECURITY.md)
+rather than opening a public issue.
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 

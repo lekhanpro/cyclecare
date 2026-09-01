@@ -1,0 +1,95 @@
+name: Bug report
+description: Something in the app is broken or behaving unexpectedly.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please check
+        [existing issues](https://github.com/lekhanpro/cyclecare/issues) first.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: "The calendar screen shows no coloured days after logging a period."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps so the bug can be reproduced.
+      placeholder: |
+        1. Open onboarding, set last period 5 days ago
+        2. Go to Calendar
+        3. ...
+      render: markdown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android
+        - iOS
+        - Web
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "e.g. Android 14, iOS 18.1"
+    validations:
+      required: false
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Found in Settings, or the release tag if you built from source.
+      placeholder: "e.g. v2.1.0, or commit SHA"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      description: Paste any error output, `flutter logs` output, or a crash trace.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop images here if it's a visual bug.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this hasn't been reported
+          required: true
+        - label: This is not a security vulnerability (see SECURITY.md if it is)
+          required: true
