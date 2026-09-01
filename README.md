@@ -1,303 +1,355 @@
+<a id="top"></a>
 <div align="center">
 
-<img src="assets/images/app_icon.svg" width="120" height="120" alt="CycleCare Logo"/>
+<img src="assets/brand/cyclecare-wordmark.png" alt="CycleCare" width="380">
 
-# CycleCare
+### Your cycle, your way.
 
-**The privacy-first menstrual health, fertility & wellness companion**
+Menstrual health, fertility and wellness tracking that stays on your device.<br>
+Offline-first, ad-free, no account required.
+
+<br>
 
 [![CI](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml)
 [![Release](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml)
-[![Flutter](https://img.shields.io/badge/Flutter-3.24.5-02569B?logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.5.4-0175C2?logo=dart)](https://dart.dev)
-[![License](https://img.shields.io/badge/License-MIT-pink)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android)](https://play.google.com)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.6-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Material 3](https://img.shields.io/badge/Material%203-E86F91?logo=materialdesign&logoColor=white)](https://m3.material.io)
+[![Tests](https://img.shields.io/badge/tests-43%20passing-3DBFA0)](#testing)
+[![License](https://img.shields.io/badge/License-MIT-9B7FE8)](LICENSE)
 
-[**Download APK**](https://github.com/lekhanpro/cyclecare/releases/latest) • [**Documentation**](#documentation) • [**Contributing**](#contributing)
+**[Download APK](https://github.com/lekhanpro/cyclecare/releases/latest)** ·
+[Screenshots](#screenshots) ·
+[Features](#features) ·
+[Architecture](#architecture) ·
+[Getting started](#getting-started) ·
+[Status](#project-status)
 
 </div>
 
 ---
 
-## What is CycleCare?
+<a id="screenshots"></a>
+<div align="center">
 
-CycleCare is a production-grade Flutter application for menstrual health tracking, fertility awareness, pregnancy support, and holistic wellness. Built with a privacy-first, offline-first architecture — your data lives on your device and is never sold or shared.
+<img src="docs/screenshots/home.png" width="205" alt="Home">
+<img src="docs/screenshots/calendar.png" width="205" alt="Calendar">
+<img src="docs/screenshots/insights.png" width="205" alt="Insights">
+<img src="docs/screenshots/log.png" width="205" alt="Daily log">
 
-Inspired by the best ideas from Flo, Clue, MyCalendar, and Glow — but open source, ad-free, and fully under your control.
+<sub>Home · Calendar · Insights · Daily log</sub>
+
+</div>
 
 ---
 
-## Screenshots
+## What it is
 
-> Coming soon — run the app locally to see the full UI.
+CycleCare is an open-source Flutter app for tracking periods, fertility signals
+and everyday wellbeing. It is built around one constraint: **your health data
+never leaves your phone unless you decide to move it.**
+
+There is no sign-up wall, no analytics SDK, and no ad network. Every screen works
+with the network switched off. Logging in is optional and gates nothing.
+
+That constraint shapes the whole design. Predictions run on-device from the
+cycles you have logged, and the app tells you how confident it is instead of
+presenting an estimate as a fact.
 
 ---
 
 ## Features
 
-### Core Tracking
-| Feature | Description |
-|---------|-------------|
-| 🌸 **Cycle Prediction** | Weighted moving average engine with confidence scoring |
-| 📅 **Calendar View** | Period days, fertile window, ovulation, PMS phase visualization |
-| 📝 **Daily Log** | Flow, mood, symptoms, BBT, sleep, water, weight, cervical data |
-| 📊 **Insights** | Charts for cycle length, symptoms, mood, pain, BBT trends |
+### Tracking
 
-### Wellness & Companion
-| Feature | Description |
-|---------|-------------|
-| 🤖 **AI Chat** | Groq Llama model via Supabase Edge Function — never exposes API keys |
-| 🐰 **Virtual Pet** | XP system, levels, achievements, happiness tracking |
-| 💊 **Birth Control** | Daily pill check-in with streak tracking |
-| �� **Pregnancy Mode** | Week-by-week tracker, kick counter, due date calculator |
+|  | |
+| --- | --- |
+| **Cycle prediction** | Weighted moving average across your logged cycles, weighting recent ones more heavily. Reports a plain-language confidence level rather than a bare percentage, flags irregularity when the standard deviation crosses 4.5 days, and projects three cycles ahead — deliberately capped, because each projection compounds the error of the last. |
+| **Calendar** | Period, predicted period, fertile window, ovulation and the premenstrual window, with a per-day detail sheet. Fertile and ovulation overlays can each be switched off. |
+| **Daily log** | Flow, mood, 16 symptoms, pain 0–10, BBT, sleep, water, weight, cervical mucus / position / firmness / opening, medication, notes, plus your own custom symptom tags. |
+| **Insights** | Cycle length, period length, regularity, symptom and mood frequency, pain and BBT trends, charted with `fl_chart`. |
+| **Anomaly alerts** | A late period, an unusually long gap, persistent irregularity and possible amenorrhea surface as alerts on Home instead of being buried in a chart. |
 
-### Health & Education
-| Feature | Description |
-|---------|-------------|
-| 💜 **Health Conditions** | PCOS, endometriosis, PMDD, perimenopause, amenorrhea info |
-| 📚 **Education Library** | Evidence-based articles with bookmarks |
-| 💑 **Partner Sharing** | Read-only partner dashboard with invite codes |
-| 🔔 **Smart Reminders** | Period, pill, ovulation, daily log notifications |
+### Health and learning
 
-### Privacy & Security
-| Feature | Description |
-|---------|-------------|
-| 🔒 **App Lock** | PIN + biometric authentication |
-| 🛡️ **Privacy Mode** | Hides content when app is in background |
-| 📱 **Offline-First** | All data stored locally, cloud sync is optional |
-| 🗑️ **Data Control** | Full export and delete at any time |
+|  | |
+| --- | --- |
+| **Health conditions** | Plain-language explainers for PCOS, endometriosis, PMDD, perimenopause and amenorrhea, plus a pain diary and screening prompts. Nothing here diagnoses. |
+| **Learn** | Searchable article library with categories and bookmarks. |
+| **Pregnancy mode** | Due date from either a due date or a last period, week-by-week guidance, a kick counter with a 10-kick target, and an appointment list. |
+| **Birth control** | Method picker, daily pill check-in with undo, current and longest streak, pack layout and start date, adherence stats. |
+
+### Companion and sharing
+
+|  | |
+| --- | --- |
+| **Virtual pet** | XP, levels, nine achievements, happiness and logging streaks. Feed and cuddle actions have cooldowns so it rewards habit, not grinding. |
+| **Partner sharing** | Per-field consent toggles build a plain-text summary you copy or hand to the OS share sheet. Phase, next period and a support tip are on by default; mood, symptoms and fertile window are off. Nothing is uploaded. |
+| **Reminders** | Six local notification types — period, ovulation, fertile window, daily log, pill and custom. |
+
+### Privacy and control
+
+|  | |
+| --- | --- |
+| **Local-first storage** | Every feature reads and writes `SharedPreferences` on the device. No backend is contacted. |
+| **App lock** | Optional 6-digit PIN, hashed into `flutter_secure_storage`, plus biometric unlock. |
+| **Your data, portable** | Export everything as indented JSON, or delete all of it, from Settings. |
+| **Presentation** | Eight palettes, light / dark / follow-system, week-start selection, haptics toggle, and reduced-motion support throughout. |
+
+<details>
+<summary><b>More screenshots</b></summary>
+
+<br>
+<div align="center">
+
+<img src="docs/screenshots/insights-charts.png" width="188" alt="Cycle and period length trends">
+<img src="docs/screenshots/pet.png" width="188" alt="Virtual pet">
+<img src="docs/screenshots/health.png" width="188" alt="Health conditions">
+<img src="docs/screenshots/education.png" width="188" alt="Learn">
+<img src="docs/screenshots/pregnancy.png" width="188" alt="Pregnancy mode">
+<img src="docs/screenshots/birth-control.png" width="188" alt="Birth control">
+<img src="docs/screenshots/reminders.png" width="188" alt="Reminders">
+<img src="docs/screenshots/partner.png" width="188" alt="Partner sharing">
+<img src="docs/screenshots/settings.png" width="188" alt="Settings">
+
+<sub>Trends · Pet · Health · Learn · Pregnancy · Birth control · Reminders · Partner sharing · Settings</sub>
+
+<br><br>
+
+**Dark theme**
+
+<img src="docs/screenshots/home-dark.png" width="188" alt="Home, dark">
+<img src="docs/screenshots/calendar-dark.png" width="188" alt="Calendar, dark">
+<img src="docs/screenshots/insights-dark.png" width="188" alt="Insights, dark">
+<img src="docs/screenshots/pet-dark.png" width="188" alt="Pet, dark">
+
+</div>
+</details>
 
 ---
 
 ## Architecture
 
+Feature-first, with the tracking domain split into layers because it is the only
+part of the app with real logic to isolate. Everything else stays flat rather
+than wearing four folders for one screen.
+
 ```
 lib/
-├── main.dart                    # Firebase + FCM + app bootstrap
+├── main.dart                       # bootstrap: dotenv, timezones, runApp
 ├── core/
-│   ├── providers/               # Auth, app settings (Riverpod)
-│   ├── router/                  # GoRouter with StatefulShellRoute
-│   ├── services/                # Firebase, notifications, security
-│   └── theme/                   # Material 3, 8 palettes, Nunito
+│   ├── constants/                  # symptom, mood and copy constants
+│   ├── providers/                  # app settings, auth (Riverpod)
+│   ├── router/                     # GoRouter + StatefulShellRoute, transitions
+│   ├── services/                   # notifications, security, auth, AI, haptics
+│   ├── theme/                      # 8 palettes, phase colours, Nunito, motion
+│   └── utils/                      # dates, PIN hashing, notification helpers
 ├── features/
-│   ├── tracking/                # Home, Calendar, Log, Insights
-│   │   ├── domain/              # CyclePredictionService, models
-│   │   ├── data/                # CycleRepository (SharedPreferences)
-│   │   ├── application/         # CycleTrackerController (Riverpod)
-│   │   └── presentation/        # Screens
-│   ├── ai/                      # AI chat with Groq proxy
-│   ├── pet/                     # Virtual pet XP system
-│   ├── birth_control/           # BC tracker
-│   ├── pregnancy/               # Pregnancy mode
-│   ├── partner/                 # Partner sharing
-│   ├── health/                  # Health conditions
-│   ├── education/               # Article library
-│   └── settings/                # Full settings screen
-├── widgets/                     # SoftCard, CycleCalendar, etc.
-supabase/
-├── migrations/                  # Full schema, 15 tables, RLS
-└── functions/                   # ai-assistant, send-push, partner-sync
+│   ├── app/                        # MaterialApp, nav shell, app lock
+│   ├── splash/ auth/ onboarding/   # first-run flow
+│   ├── tracking/                   # the core domain
+│   │   ├── domain/                 # prediction engine, analytics, models
+│   │   ├── data/                   # CycleRepository (SharedPreferences)
+│   │   ├── application/            # CycleTrackerController, custom tags
+│   │   └── presentation/           # home, calendar, log, insights
+│   ├── ai/ pet/ pregnancy/         # companion features
+│   ├── birth_control/ health/      # health features
+│   ├── education/ reminders/
+│   ├── partner/ settings/
+└── widgets/                        # design system: cards, chips, ring, calendar
 ```
 
-**Tech stack:**
-- **Flutter 3.24.5** + **Dart 3.5.4**
-- **Riverpod 2.x** — state management
-- **GoRouter 14.x** — navigation
-- **Firebase Auth** — authentication
-- **Firebase Messaging** — push notifications
-- **Supabase** — backend, database, Edge Functions
-- **SharedPreferences** — offline-first local storage
-- **fl_chart** — data visualization
-- **Material 3** — design system
+Five bottom-nav destinations — **Home, Calendar, Log, Insights, Pet** — live in a
+`StatefulShellRoute.indexedStack` so each keeps its own scroll position.
+Everything else pushes over the shell, which is why Settings and Pregnancy have
+no nav bar.
+
+Routing never consults auth state. The only gate is an `onboardingCompleted`
+flag in local preferences, which is what makes the no-account path real rather
+than advertised.
+
+### Design system
+
+Flat by default: cards sit at elevation 0 with a 22px radius on a cream
+`#FFF8F6` canvas, in Nunito at heavy weights. Phase colours are deliberately
+**excluded** from the palette system — rose always means period, teal always
+means fertile — so changing your accent colour never relabels your data.
+
+### Stack
+
+| | |
+| --- | --- |
+| Framework | Flutter 3.41.6 · Dart 3.11.4 · Material 3 |
+| State | `flutter_riverpod` |
+| Routing | `go_router` |
+| Storage | `shared_preferences`, `flutter_secure_storage` |
+| Charts | `fl_chart` |
+| Notifications | `flutter_local_notifications` · `timezone` |
+| Security | `local_auth` · `crypto` |
+| Type | Nunito via `google_fonts` |
 
 ---
 
-## Getting Started
+## Getting started
 
-### Prerequisites
-
-- Flutter 3.24.5+ ([install](https://flutter.dev/docs/get-started/install))
-- Android Studio with Android SDK 35
-- Java 17+
-
-### Run locally
+**Requirements** — Flutter 3.38 or newer (CI pins 3.41.6), Android SDK 35,
+Java 17.
 
 ```bash
-# Clone
 git clone https://github.com/lekhanpro/cyclecare.git
 cd cyclecare
-
-# Copy env (app works without real values)
-cp .env.example .env
-
-# Install dependencies
 flutter pub get
-
-# Run
 flutter run
 ```
 
-The app works **fully offline** without any backend credentials.
+That is the whole setup. No `.env`, no Firebase config, no Supabase project —
+the app is fully functional offline and will take you through onboarding into a
+working install.
 
-### Environment variables
-
-Create `.env` in the project root:
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-```
-
----
-
-## Backend Setup
-
-### Supabase
+### Building
 
 ```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Login and link
-supabase login
-supabase link --project-ref YOUR_PROJECT_REF
-
-# Push database schema (15 tables, full RLS)
-supabase db push
-
-# Deploy Edge Functions
-supabase functions deploy ai-assistant
-supabase functions deploy send-push
-supabase functions deploy partner-sync
-
-# Set secrets
-supabase secrets set GROQ_API_KEY=gsk_your_groq_key
+flutter build apk --release          # APK
+flutter build appbundle --release    # Play Store bundle
 ```
 
-See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for full instructions.
+Release builds need signing config in `android/key.properties`:
 
-### Firebase
-
-```bash
-# Install FlutterFire CLI
-dart pub global activate flutterfire_cli
-
-# Configure (generates lib/firebase_options.dart)
-flutterfire configure --project=your-firebase-project
-```
-
-See [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md) for full instructions.
-
-### Groq AI
-
-1. Get a free API key at [console.groq.com](https://console.groq.com)
-2. `supabase secrets set GROQ_API_KEY=gsk_your_key`
-
-The Groq key is **never** in the Flutter client — only in the Supabase Edge Function.
-
-See [docs/GROQ_SETUP.md](docs/GROQ_SETUP.md) for full instructions.
-
----
-
-## Build
-
-```bash
-# Debug APK
-flutter build apk --debug
-
-# Release APK (requires signing config)
-flutter build apk --release
-
-# Release AAB (Play Store)
-flutter build appbundle --release
-```
-
-### Release signing
-
-```bash
-# Generate keystore (one time)
-keytool -genkey -v -keystore android/app/cyclecare-release.jks \
-  -keyalg RSA -keysize 2048 -validity 10000 -alias cyclecare
-
-# Create android/key.properties
-storePassword=your-password
-keyPassword=your-key-password
+```properties
+storePassword=…
+keyPassword=…
 keyAlias=cyclecare
 storeFile=cyclecare-release.jks
 ```
 
----
+```bash
+keytool -genkey -v -keystore android/app/cyclecare-release.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 -alias cyclecare
+```
 
-## CI/CD
+### Compatibility
 
-| Workflow | Trigger | Output |
-|----------|---------|--------|
-| `ci.yml` | Push to main | Analyze + test + debug APK |
-| `build-release.yml` | Push tag `v*.*.*` | Signed APK + AAB + GitHub Release |
+CI pins **Flutter 3.41.6**, and `pubspec.yaml` floors the SDK at Flutter 3.38 /
+Dart 3.10 to match the resolved lockfile. Two things set that floor: the Material
+theme classes renamed in 3.27 (`CardThemeData`, `DialogThemeData`,
+`TabBarThemeData`), and `google_fonts ^8`, which drops a `const` map that newer
+Dart rejects. Both are applied, so the tree builds on current stable as-is.
 
-### GitHub Secrets required for release
+Flutter 3.24 is no longer supported — the renamed theme classes do not exist
+there.
 
-| Secret | Description |
-|--------|-------------|
-| `KEYSTORE_BASE64` | Base64-encoded release keystore |
-| `KEYSTORE_PASSWORD` | Keystore password |
-| `KEY_PASSWORD` | Key password |
-| `KEY_ALIAS` | Key alias |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Supabase anon key |
+### Brand assets
+
+The logo, launcher icons, favicons and social preview are all generated from one
+set of geometry constants. See [`assets/brand/`](assets/brand/README.md).
+
+```bash
+python tool/brand/generate_svg.py    # vector sources
+python tool/brand/rasterize.py       # every PNG, all platforms
+```
 
 ---
 
 ## Testing
 
-```bash
-# Run all tests
-flutter test
+43 test cases across six suites, all passing.
 
-# Run with coverage
+```bash
+flutter test
 flutter test --coverage
 ```
 
-Current: **12/12 tests passing**
+| Suite | Cases |
+| --- | --- |
+| `test/unit/cycle_analytics_test.dart` | 20 |
+| `test/unit/cycle_prediction_engine_test.dart` | 13 |
+| `test/unit/date_utils_test.dart` | 5 |
+| `test/widget/health_screen_smoke_test.dart` | 3 |
+| `test/widget/app_test.dart` | 1 |
+| `test/presentation/screens/home_screen_test.dart` | 1 |
+
+The prediction engine carries the most coverage because it is the part users
+trust with a number.
+
+### CI
+
+| Workflow | Trigger | Does |
+| --- | --- | --- |
+| `ci.yml` | push to `main` / `develop`, PRs | analyze, test, build debug APK |
+| `build-release.yml` | tag `v*.*.*` | test, analyze, signed APK + AAB, GitHub release |
+| `pages.yml` | push to `main` | publishes `docs/` |
 
 ---
 
-## Database Schema
+## Project status
 
-15 tables with Row Level Security:
+Honest accounting of what is wired and what is scaffolding.
 
-`profiles` · `periods` · `daily_logs` · `settings` · `birth_control` · `pill_checkins` · `pregnancy_data` · `pregnancy_appointments` · `health_conditions` · `pain_entries` · `partner_invites` · `education_bookmarks` · `pet_states` · `achievements` · `reminders`
+**Working end to end** — local-first storage, prediction engine, calendar,
+daily logging, insights, anomaly alerts, virtual pet, reminders, birth control,
+pregnancy mode, health library, education library, partner text sharing, app
+lock, export and delete, theming.
 
-All tables restrict access to `auth.uid()` — users can only access their own data.
+**Not wired yet:**
+
+| Area | Reality |
+| --- | --- |
+| **AI assistant** | The chat screen, safety-framed prompt builder and disclaimer all exist, but the provider is a placeholder that always errors — no model is reachable. A Groq-backed Supabase Edge Function sits in `supabase/functions/ai-assistant/`, and no Dart code calls it. |
+| **Cloud sync** | `supabase_flutter` and Firebase are in `pubspec.yaml`, but `Supabase.initialize` is never called and `firebase_sync_service.dart` is a stub. Signing in works and syncs nothing. |
+| **Partner dashboard** | Sharing is a local text summary. There are no invite codes and no partner view; an earlier random-code UI was removed because nothing was behind it. |
+| **iOS** | The Xcode project and icon set are in place, but only Android Firebase options are compiled in, so push is Android-only today. |
+
+**Recently fixed** — the pet screen's XP and happiness meters rendered empty
+because their `FractionallySizedBox` set only `widthFactor`, collapsing the
+gradient fill to zero height. The Health pain-diary summary also crashed in a
+scrollable: a `Row` with `CrossAxisAlignment.stretch` and no bounded height
+forces infinite constraints, so it is now wrapped in `IntrinsicHeight`.
 
 ---
 
-## Medical Disclaimer
+## Privacy
 
-CycleCare is for **educational and personal tracking purposes only**. It is not a medical device and does not provide medical advice, diagnosis, or treatment. Cycle predictions are estimates based on logged data. **Do not rely on CycleCare as a method of contraception.** Always consult a qualified healthcare professional for medical concerns.
+- All cycle, log, pet and settings data is stored locally via `SharedPreferences`.
+- The app makes no network calls in normal use. Fonts are fetched by
+  `google_fonts` on first launch and cached.
+- No analytics, crash reporting, advertising or tracking SDK is included.
+- Partner sharing produces text you copy or share yourself — there is no server.
+- Export and delete are both one action away in Settings.
+
+---
+
+## Medical disclaimer
+
+CycleCare is for **education and personal tracking only**. It is not a medical
+device and does not provide medical advice, diagnosis or treatment. Predictions
+are estimates derived from the data you enter and will be wrong sometimes.
+**Do not rely on CycleCare as contraception.** For anything that concerns you,
+talk to a qualified clinician.
 
 ---
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+Issues and pull requests are welcome.
+
+1. Fork and branch: `git checkout -b feature/your-change`
+2. Keep to the existing style — `flutter analyze` should stay clean
+3. Add or update tests for logic changes
+4. Commit conventionally: `feat: …`, `fix: …`, `docs: …`
+5. Open a PR describing what changed and how you verified it
+
+Good first contributions: wiring a real AI provider behind the existing chat
+UI, replacing the remaining deprecated `withOpacity` calls with `withValues`
+(~170 analyzer infos, all non-fatal), or adding iOS Firebase configuration.
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE)
-
----
+[MIT](LICENSE)
 
 <div align="center">
-
-Made with 💗 by [lekhanpro](https://github.com/lekhanpro)
-
-**[⬆ Back to top](#cyclecare)**
-
+<br>
+<img src="assets/brand/cyclecare-mark-64.png" width="28" alt="">
+<br><br>
+<sub>Built with Flutter. <a href="#top">Back to top</a></sub>
 </div>

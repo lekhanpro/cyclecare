@@ -1,6 +1,66 @@
-enum FlowIntensity { none, spotting, light, medium, heavy }
+enum FlowIntensity {
+  none,
+  spotting,
+  light,
+  medium,
+  heavy;
 
-enum DayStatus { period, predictedPeriod, fertile, ovulation, normal }
+  String get label => switch (this) {
+        FlowIntensity.none => 'None',
+        FlowIntensity.spotting => 'Spotting',
+        FlowIntensity.light => 'Light',
+        FlowIntensity.medium => 'Medium',
+        FlowIntensity.heavy => 'Heavy',
+      };
+
+  /// 0–4 weight, used for charting flow over a cycle and for averaging.
+  int get intensity => index;
+}
+
+enum DayStatus {
+  period,
+  predictedPeriod,
+  fertile,
+  ovulation,
+  pms,
+  normal,
+}
+
+/// The four phases of a menstrual cycle.
+///
+/// Defined in the domain rather than the theme so the prediction engine can
+/// return a type instead of a bare string, and so presentation code stops
+/// comparing `phase == 'Luteal'` — a comparison that silently breaks the
+/// moment a label is reworded or localised.
+enum CyclePhase {
+  menstrual,
+  follicular,
+  ovulation,
+  luteal;
+
+  String get label => switch (this) {
+        CyclePhase.menstrual => 'Menstrual',
+        CyclePhase.follicular => 'Follicular',
+        CyclePhase.ovulation => 'Ovulation',
+        CyclePhase.luteal => 'Luteal',
+      };
+
+  /// Short, non-clinical summary shown beneath the phase name.
+  String get summary => switch (this) {
+        CyclePhase.menstrual => 'Your period is here. Rest counts as progress.',
+        CyclePhase.follicular => 'Energy and mood usually climb from here.',
+        CyclePhase.ovulation => 'Peak fertility, and often peak energy.',
+        CyclePhase.luteal => 'Winding down — PMS can show up late in this phase.',
+      };
+
+  static CyclePhase fromLabel(String? value) => switch (value?.toLowerCase()) {
+        'menstrual' => CyclePhase.menstrual,
+        'follicular' => CyclePhase.follicular,
+        'ovulation' => CyclePhase.ovulation,
+        'luteal' => CyclePhase.luteal,
+        _ => CyclePhase.follicular,
+      };
+}
 
 enum TrackingGoal {
   trackPeriods,
@@ -319,6 +379,32 @@ class CyclePreferences {
   }
 }
 
+/// One projected future cycle. Used for the multi-month calendar overlay and
+/// the "plan ahead" view, where a single next-period estimate isn't enough.
+class CycleForecast {
+  const CycleForecast({
+    required this.cycleNumber,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.ovulationDate,
+    required this.fertileWindowStart,
+    required this.fertileWindowEnd,
+    required this.pmsWindowStart,
+    required this.pmsWindowEnd,
+  });
+
+  /// 1 = the next period, 2 = the one after, and so on.
+  final int cycleNumber;
+
+  final DateTime periodStart;
+  final DateTime periodEnd;
+  final DateTime ovulationDate;
+  final DateTime fertileWindowStart;
+  final DateTime fertileWindowEnd;
+  final DateTime pmsWindowStart;
+  final DateTime pmsWindowEnd;
+}
+
 class CyclePrediction {
   const CyclePrediction({
     required this.nextPeriodStart,
@@ -335,6 +421,13 @@ class CyclePrediction {
     required this.phase,
     required this.isLate,
     required this.daysLate,
+    this.pmsWindowStart,
+    this.pmsWindowEnd,
+    this.cycleLengthVariation = 0,
+    this.cyclesTracked = 0,
+    this.shortestCycle,
+    this.longestCycle,
+    this.upcomingCycles = const [],
   });
 
   final DateTime nextPeriodStart;
@@ -351,4 +444,53 @@ class CyclePrediction {
   final String phase;
   final bool isLate;
   final int daysLate;
+
+  /// Start of the expected premenstrual window. Null when there is no forecast
+  /// to hang it off.
+  final DateTime? pmsWindowStart;
+
+  /// Last day before the expected period.
+  final DateTime? pmsWindowEnd;
+
+  /// Standard deviation of observed cycle lengths, in days. The number behind
+  /// [isIrregular] — surfaced so the UI can explain *how* variable a cycle is
+  /// rather than just flagging it.
+  final double cycleLengthVariation;
+
+  /// How many complete cycles the prediction is based on.
+  final int cyclesTracked;
+
+  final int? shortestCycle;
+  final int? longestCycle;
+
+  /// Projected future cycles, nearest first.
+  final List<CycleForecast> upcomingCycles;
+
+  /// Typed accessor for [phase].
+  CyclePhase get currentPhase => CyclePhase.fromLabel(phase);
+
+  /// True while today falls inside the premenstrual window.
+  bool isPmsOn(DateTime day) {
+    final start = pmsWindowStart;
+    final end = pmsWindowEnd;
+    if (start == null || end == null) return false;
+    final target = DateTime(day.year, day.month, day.day);
+    return !target.isBefore(start) && !target.isAfter(end);
+  }
+
+  /// Days until the premenstrual window opens; negative once inside it.
+  int? daysUntilPms(DateTime from) {
+    final start = pmsWindowStart;
+    if (start == null) return null;
+    return start.difference(DateTime(from.year, from.month, from.day)).inDays;
+  }
+
+  /// Plain-language confidence bucket, so the UI never shows a bare percentage
+  /// that implies more precision than the model has.
+  String get confidenceLabel {
+    if (cyclesTracked < 2) return 'Learning';
+    if (confidence >= 0.8) return 'High';
+    if (confidence >= 0.6) return 'Moderate';
+    return 'Low';
+  }
 }

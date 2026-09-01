@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/date_helpers.dart';
 import '../data/cycle_repository.dart';
+import '../domain/cycle_analytics.dart';
 import '../domain/cycle_models.dart';
 import '../domain/cycle_prediction_service.dart';
 
@@ -15,6 +16,15 @@ final cycleTrackerControllerProvider =
     AsyncNotifierProvider<CycleTrackerController, CycleTrackerState>(
   CycleTrackerController.new,
 );
+
+/// Derived analytics for the current data set.
+///
+/// Null while the tracker is still loading, so screens can show a skeleton
+/// without special-casing an empty analytics object.
+final cycleAnalyticsProvider = Provider<CycleAnalytics?>((ref) {
+  final state = ref.watch(cycleTrackerControllerProvider).valueOrNull;
+  return state?.analytics;
+});
 
 class CycleTrackerState {
   const CycleTrackerState({
@@ -78,6 +88,9 @@ class CycleTrackerState {
     if (forecast == null) {
       return DayStatus.normal;
     }
+
+    // Ordered by specificity: a single ovulation day beats the fertile window
+    // that contains it, and a confirmed forecast beats the softer PMS wash.
     if (isSameDate(target, forecast.ovulationDate)) {
       return DayStatus.ovulation;
     }
@@ -89,8 +102,44 @@ class CycleTrackerState {
         !target.isAfter(forecast.nextPeriodEnd)) {
       return DayStatus.predictedPeriod;
     }
+
+    // Projected cycles beyond the next one, so scrolling the calendar forward
+    // keeps showing predictions instead of falling off a cliff after one month.
+    for (final cycle in forecast.upcomingCycles) {
+      if (isSameDate(target, cycle.ovulationDate)) {
+        return DayStatus.ovulation;
+      }
+      if (!target.isBefore(cycle.periodStart) &&
+          !target.isAfter(cycle.periodEnd)) {
+        return DayStatus.predictedPeriod;
+      }
+      if (!target.isBefore(cycle.fertileWindowStart) &&
+          !target.isAfter(cycle.fertileWindowEnd)) {
+        return DayStatus.fertile;
+      }
+      if (!target.isBefore(cycle.pmsWindowStart) &&
+          !target.isAfter(cycle.pmsWindowEnd)) {
+        return DayStatus.pms;
+      }
+    }
+
+    if (forecast.isPmsOn(target)) {
+      return DayStatus.pms;
+    }
+
     return DayStatus.normal;
   }
+
+  /// Derived statistics over the same data.
+  ///
+  /// Built on demand rather than stored on the state: it is pure, cheap, and
+  /// keeping it out of the state object means a log edit can't leave a stale
+  /// copy of the analytics behind.
+  CycleAnalytics get analytics => CycleAnalytics(
+        periods: periods,
+        logs: logs,
+        preferences: preferences,
+      );
 
   CycleTrackerState copyWith({
     List<CycleEvent>? periods,

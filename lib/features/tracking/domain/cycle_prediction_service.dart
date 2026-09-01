@@ -77,6 +77,13 @@ class CyclePredictionService {
     final sampleScore = (cycleLengths.length / 6).clamp(0.25, 1).toDouble();
     final daysLate = isLate ? today.difference(expectedPeriodStart).inDays : 0;
 
+    // The premenstrual window: the days immediately before bleeding starts,
+    // when symptoms cluster. Five days is the common clinical framing for
+    // PMS onset and it matches what most trackers surface, so a user coming
+    // from another app sees the number they expect.
+    final pmsStart = nextPeriodStart.subtract(const Duration(days: _pmsWindowDays));
+    final pmsEnd = nextPeriodStart.subtract(const Duration(days: 1));
+
     return CyclePrediction(
       nextPeriodStart: nextPeriodStart,
       nextPeriodEnd: nextPeriodEnd,
@@ -94,7 +101,63 @@ class CyclePredictionService {
       phase: phase,
       isLate: isLate,
       daysLate: daysLate,
+      pmsWindowStart: pmsStart,
+      pmsWindowEnd: pmsEnd,
+      cycleLengthVariation: stdDev,
+      cyclesTracked: cycleLengths.length,
+      shortestCycle: cycleLengths.isEmpty
+          ? null
+          : cycleLengths.reduce((a, b) => a < b ? a : b),
+      longestCycle: cycleLengths.isEmpty
+          ? null
+          : cycleLengths.reduce((a, b) => a > b ? a : b),
+      upcomingCycles: _buildForecast(
+        firstPeriodStart: nextPeriodStart,
+        cycleLength: averageCycleLength,
+        periodLength: averagePeriodLength,
+        lutealLength: preferences.lutealPhaseLength,
+      ),
     );
+  }
+
+  /// Days before the period that count as the premenstrual window.
+  static const _pmsWindowDays = 5;
+
+  /// How many cycles ahead to project.
+  ///
+  /// Three is a deliberate ceiling. Each projection compounds the error of the
+  /// average cycle length, so a twelve-month forecast would look authoritative
+  /// while being close to fiction. Three months covers the planning horizon
+  /// people actually use — travel, events, appointments.
+  static const _forecastCycles = 3;
+
+  List<CycleForecast> _buildForecast({
+    required DateTime firstPeriodStart,
+    required int cycleLength,
+    required int periodLength,
+    required int lutealLength,
+  }) {
+    final forecasts = <CycleForecast>[];
+
+    for (var i = 0; i < _forecastCycles; i++) {
+      final start = firstPeriodStart.add(Duration(days: cycleLength * i));
+      final nextStart = start.add(Duration(days: cycleLength));
+      final ovulation = nextStart.subtract(Duration(days: lutealLength));
+
+      forecasts.add(CycleForecast(
+        cycleNumber: i + 1,
+        periodStart: start,
+        periodEnd: start.add(Duration(days: periodLength - 1)),
+        ovulationDate: ovulation,
+        fertileWindowStart: ovulation.subtract(const Duration(days: 5)),
+        fertileWindowEnd: ovulation.add(const Duration(days: 1)),
+        pmsWindowStart:
+            nextStart.subtract(const Duration(days: _pmsWindowDays)),
+        pmsWindowEnd: nextStart.subtract(const Duration(days: 1)),
+      ));
+    }
+
+    return forecasts;
   }
 
   String _phaseFor({
@@ -110,12 +173,12 @@ class CyclePredictionService {
 
   int _averageCycleLength(List<int> lengths, int fallback) {
     if (lengths.isEmpty) {
-      return fallback.clamp(21, 45) as int;
+      return fallback.clamp(21, 45);
     }
     if (lengths.length < 3) {
       return (lengths.reduce((a, b) => a + b) / lengths.length)
           .round()
-          .clamp(21, 45) as int;
+          .clamp(21, 45);
     }
     var weight = lengths.length.toDouble();
     var total = 0.0;
@@ -125,7 +188,7 @@ class CyclePredictionService {
       totalWeight += weight;
       weight = max(1, weight - 1);
     }
-    return (total / totalWeight).round().clamp(21, 45) as int;
+    return (total / totalWeight).round().clamp(21, 45);
   }
 
   int _averagePeriodLength(List<CycleEvent> periods, int fallback) {
@@ -139,11 +202,11 @@ class CyclePredictionService {
         .where((length) => length >= 1 && length <= 14)
         .toList();
     if (lengths.isEmpty) {
-      return fallback.clamp(2, 10) as int;
+      return fallback.clamp(2, 10);
     }
     return (lengths.reduce((a, b) => a + b) / lengths.length)
         .round()
-        .clamp(2, 10) as int;
+        .clamp(2, 10);
   }
 
   double _standardDeviation(List<int> values) {

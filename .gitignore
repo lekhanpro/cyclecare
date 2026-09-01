@@ -58,6 +58,10 @@ tmp/
 .jdk/
 .gradle-cache/
 
+# Brand tooling scratch output (see tool/README.md)
+__pycache__/
+tool/brand/_*.png
+
 # Local secrets and build config. Never commit real API keys.
 .env
 .env.*

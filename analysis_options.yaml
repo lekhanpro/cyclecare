@@ -9,11 +9,9 @@ linter:
     - unnecessary_new
     - avoid_print
     - prefer_single_quotes
-    - sort_pub_dependencies
     - always_declare_return_types
     - avoid_empty_else
     - avoid_relative_lib_imports
-    - avoid_returning_null_for_future
     - avoid_slow_async_io
     - avoid_types_as_parameter_names
     - cancel_subscriptions
@@ -40,7 +38,6 @@ analyzer:
     - "lib/domain/**"
     - "lib/presentation/**"
     - "lib/core/constants/app_constants.dart"
-    - "lib/core/theme/app_theme.dart"
     - "lib/core/utils/date_utils.dart"
     - "lib/core/utils/encryption_util.dart"
     - "lib/core/utils/notification_helper.dart"

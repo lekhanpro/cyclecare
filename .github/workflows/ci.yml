@@ -16,10 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter 3.24.5
+      - name: Setup Flutter 3.41.6
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          flutter-version: '3.41.6'
           channel: 'stable'
           cache: true
 
@@ -53,10 +53,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter 3.24.5
+      - name: Setup Flutter 3.41.6
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          flutter-version: '3.41.6'
           channel: 'stable'
           cache: true
 

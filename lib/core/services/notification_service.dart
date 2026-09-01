@@ -194,7 +194,7 @@ class NotificationService {
     required String body,
     required DateTime scheduledDate,
   }) async {
-    final androidDetails = const AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'cyclecare_custom',
       'Custom Reminders',
       channelDescription: 'One-time and custom reminders',
@@ -202,7 +202,7 @@ class NotificationService {
       priority: Priority.high,
     );
     const iosDetails = DarwinNotificationDetails();
-    final details = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

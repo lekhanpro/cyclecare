@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
-import '../core/theme/cyclecare_theme.dart';
 
+import 'app_card.dart';
+
+/// The app's original card, now a thin delegate over [AppCard].
+///
+/// Kept as its own name because a dozen screens import it. Routing it through
+/// [AppCard] means those screens pick up the shared shadow, radius, press
+/// response, and dark-mode fill without each one needing to be touched.
+///
+/// New code should prefer [AppCard] directly — it exposes emphasis levels and
+/// border control that this signature cannot express.
 class SoftCard extends StatelessWidget {
   const SoftCard({
     super.key,
@@ -21,26 +30,13 @@ class SoftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultColor = isDark ? AppColors.darkCard : AppColors.white;
-    final radius = borderRadius ?? BorderRadius.circular(22);
-
-    final card = Material(
-      color: color ?? defaultColor,
-      borderRadius: radius,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: radius,
-        child: Padding(
-          padding: padding ?? const EdgeInsets.all(18),
-          child: child,
-        ),
-      ),
+    return AppCard(
+      padding: padding,
+      color: color,
+      onTap: onTap,
+      margin: margin,
+      borderRadius: borderRadius,
+      child: child,
     );
-
-    if (margin != null) {
-      return Padding(padding: margin!, child: card);
-    }
-    return card;
   }
 }
