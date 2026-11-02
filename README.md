@@ -1,356 +1,126 @@
-<a id="top"></a>
 <div align="center">
 
 <img src="assets/brand/cyclecare-wordmark.png" alt="CycleCare" width="380">
 
 ### Your cycle, your way.
 
-Menstrual health, fertility and wellness tracking that stays on your device.<br>
-Offline-first, ad-free, no account required.
-
-<br>
+Period, symptom and wellbeing tracking on your device. Offline tracking needs no account.
 
 [![CI](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml)
 [![Release](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml/badge.svg)](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml)
-[![Flutter](https://img.shields.io/badge/Flutter-3.41.6-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
-[![Material 3](https://img.shields.io/badge/Material%203-E86F91?logo=materialdesign&logoColor=white)](https://m3.material.io)
-[![Tests](https://img.shields.io/badge/tests-43%20passing-3DBFA0)](#testing)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.6-02569B?logo=flutter)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-9B7FE8)](LICENSE)
 
-**[Download APK](https://github.com/lekhanpro/cyclecare/releases/latest)** ·
-[Screenshots](#screenshots) ·
-[Features](#features) ·
-[Architecture](#architecture) ·
-[Getting started](#getting-started) ·
-[Status](#project-status)
+**[Download Android APK](https://github.com/lekhanpro/cyclecare/releases/latest)** ·
+[Release notes](docs/releases/2.2.0.md) ·
+[All changes since v2.1.0](https://github.com/lekhanpro/cyclecare/compare/v2.1.0...v2.2.0) ·
+[Commit history](https://github.com/lekhanpro/cyclecare/commits/main)
 
 </div>
 
----
+## Current Flutter interface
 
-<a id="screenshots"></a>
 <div align="center">
-
-<img src="docs/screenshots/home.png" width="205" alt="Home">
-<img src="docs/screenshots/calendar.png" width="205" alt="Calendar">
-<img src="docs/screenshots/insights.png" width="205" alt="Insights">
-<img src="docs/screenshots/log.png" width="205" alt="Daily log">
-
-<sub>Home · Calendar · Insights · Daily log</sub>
-
+<img src="docs/screenshots/home.png" width="205" alt="Flutter Home with cycle dial and estimated dates">
+<img src="docs/screenshots/calendar.png" width="205" alt="Flutter calendar">
+<img src="docs/screenshots/log.png" width="205" alt="Flutter daily logging">
+<img src="docs/screenshots/insights.png" width="205" alt="Flutter insights">
 </div>
 
----
+These are actual Flutter renders with fictional records. The separate
+[browser design prototype](redesign/README.md) documents the approved direction;
+its screenshots and controls do not prove Android behavior. See
+[implementation and verification details](docs/release-verification.md).
 
-## What it is
+## What ships in v2.2.0
 
-CycleCare is an open-source Flutter app for tracking periods, fertility signals
-and everyday wellbeing. It is built around one constraint: **your health data
-never leaves your phone unless you decide to move it.**
-
-There is no sign-up wall, no analytics SDK, and no ad network. Every screen works
-with the network switched off. Logging in is optional and gates nothing.
-
-That constraint shapes the whole design. Predictions run on-device from the
-cycles you have logged, and the app tells you how confident it is instead of
-presenting an estimate as a fact.
-
----
-
-## Features
-
-### Tracking
-
-|  | |
+| Area | Behavior |
 | --- | --- |
-| **Cycle prediction** | Weighted moving average across your logged cycles, weighting recent ones more heavily. Reports a plain-language confidence level rather than a bare percentage, flags irregularity when the standard deviation crosses 4.5 days, and projects three cycles ahead — deliberately capped, because each projection compounds the error of the last. |
-| **Calendar** | Period, predicted period, fertile window, ovulation and the premenstrual window, with a per-day detail sheet. Fertile and ovulation overlays can each be switched off. |
-| **Daily log** | Flow, mood, 16 symptoms, pain 0–10, BBT, sleep, water, weight, cervical mucus / position / firmness / opening, medication, notes, plus your own custom symptom tags. |
-| **Insights** | Cycle length, period length, regularity, symptom and mood frequency, pain and BBT trends, charted with `fl_chart`. |
-| **Anomaly alerts** | A late period, an unusually long gap, persistent irregularity and possible amenorrhea surface as alerts on Home instead of being buried in a chart. |
+| Prediction transparency | Next-period estimates explain whether settings or completed history informed them, the completed-cycle count and observed variation. Late estimates remain anchored to actual recorded starts. The internal confidence heuristic is not a validated probability. |
+| Cycle exclusions | Calendar period editing can exclude an unusual cycle from forecast learning, with an optional reason. Reversing the choice restores eligibility; the original health record and cycle boundaries remain. Home, Calendar and Insights share the calculation rules. |
+| Historical evaluation | Insights replays the live predictor using records available before each target period. Date errors describe the available history only. [Evaluation criteria](docs/prediction-evaluation.md) gate future estimator replacements. |
+| Local reminders | Period, ovulation and fertile-window reminders use the relevant estimate minus advance notice. Daily log, pill and custom reminders repeat daily. Permission requests are contextual, denial has recovery, exact-alarm restrictions use an explained approximate fallback, and failures offer retry. A test reports system acceptance; delivery remains controlled by Android. |
+| Cycle-health report | Settings → Data → Cycle-health report. Choose dates and symptoms, preview, then copy or share a plain-text file. Recorded periods, intervals, variation, bleeding, pain, activity impact and existing pain-diary entries are included. Medication and reproductive observations require explicit selection; estimates have a separate optional section. |
+| Bleeding and pain | Quick access from Log; nullable flow/pain distinguish unlogged from explicit none/zero. Locations and optional impact on everyday activities persist in daily logs and the existing pain diary. Care prompts link to NHS sources. |
+| Symptom observations | Counts by cycle day, days before the next recorded period, and across recorded cycles expose observation counts. Blank symptom fields and unobserved cycles do not establish symptom absence. These are descriptions, not causal findings. |
+| Fertility observations | Actual LH/pregnancy test results, cervical observations, BBT and optional measurement context stay local. Disturbed or unassessed measurements remain readable; descriptive temperature-rise detection uses consecutive readings explicitly marked as usual conditions. No result confirms ovulation or contraceptive safe days. |
+| Offline education | All 26 existing articles and sources are preserved. The reader renders headings, lists, emphasis and callouts, with local bookmarks and reading progress. Sources show supported publisher/year metadata without inventing clinical review credentials. |
+| Responsive UI | Fraunces/DM Sans, bundled semantic icons, light/dark palettes and reduced-motion controls. Regression coverage includes the Home actions/chart labels, calendar layouts and compact screens with 200% text. |
 
-### Health and learning
+Existing features remain: the Home phase bar and all phase/window sections;
+calendar month/year views; expanded grouped daily logging and custom tags;
+health information and pain diary; pregnancy setup, kicks and appointments;
+birth-control tracking; pet care and achievements; explicit partner snapshots;
+optional PIN/biometric lock; tracking backup/restore and appearance settings.
 
-|  | |
-| --- | --- |
-| **Health conditions** | Plain-language explainers for PCOS, endometriosis, PMDD, perimenopause and amenorrhea, plus a pain diary and screening prompts. Nothing here diagnoses. |
-| **Learn** | Searchable article library with categories and bookmarks. |
-| **Pregnancy mode** | Due date from either a due date or a last period, week-by-week guidance, a kick counter with a 10-kick target, and an appointment list. |
-| **Birth control** | Method picker, daily pill check-in with undo, current and longest streak, pack layout and start date, adherence stats. |
+Tracking backups contain periods, daily logs and cycle preferences. They are
+separate from the scoped report and do not currently back up every auxiliary
+feature store. Keep that limit in mind before replacing a device.
 
-### Companion and sharing
+## Build and test
 
-|  | |
-| --- | --- |
-| **Virtual pet** | XP, levels, nine achievements, happiness and logging streaks. Feed and cuddle actions have cooldowns so it rewards habit, not grinding. |
-| **Partner sharing** | Per-field consent toggles build a plain-text summary you copy or hand to the OS share sheet. Phase, next period and a support tip are on by default; mood, symptoms and fertile window are off. Nothing is uploaded. |
-| **Reminders** | Six local notification types — period, ovulation, fertile window, daily log, pill and custom. |
+Requires Flutter **3.41.6 / Dart 3.11.4**, Java 17 and an Android SDK.
+Android minimum is API 24 (Android 7.0). Compilation follows the Flutter SDK's
+recommended Android SDK and NDK. Configure your machine's SDK through Flutter;
+`android/local.properties` and generated plugin registration are not versioned.
 
-### Privacy and control
-
-|  | |
-| --- | --- |
-| **Local-first storage** | Every feature reads and writes `SharedPreferences` on the device. No backend is contacted. |
-| **App lock** | Optional 6-digit PIN, hashed into `flutter_secure_storage`, plus biometric unlock. |
-| **Your data, portable** | Export everything as indented JSON, or delete all of it, from Settings. |
-| **Presentation** | Eight palettes, light / dark / follow-system, week-start selection, haptics toggle, and reduced-motion support throughout. |
-
-<details>
-<summary><b>More screenshots</b></summary>
-
-<br>
-<div align="center">
-
-<img src="docs/screenshots/insights-charts.png" width="188" alt="Cycle and period length trends">
-<img src="docs/screenshots/pet.png" width="188" alt="Virtual pet">
-<img src="docs/screenshots/health.png" width="188" alt="Health conditions">
-<img src="docs/screenshots/education.png" width="188" alt="Learn">
-<img src="docs/screenshots/pregnancy.png" width="188" alt="Pregnancy mode">
-<img src="docs/screenshots/birth-control.png" width="188" alt="Birth control">
-<img src="docs/screenshots/reminders.png" width="188" alt="Reminders">
-<img src="docs/screenshots/partner.png" width="188" alt="Partner sharing">
-<img src="docs/screenshots/settings.png" width="188" alt="Settings">
-
-<sub>Trends · Pet · Health · Learn · Pregnancy · Birth control · Reminders · Partner sharing · Settings</sub>
-
-<br><br>
-
-**Dark theme**
-
-<img src="docs/screenshots/home-dark.png" width="188" alt="Home, dark">
-<img src="docs/screenshots/calendar-dark.png" width="188" alt="Calendar, dark">
-<img src="docs/screenshots/insights-dark.png" width="188" alt="Insights, dark">
-<img src="docs/screenshots/pet-dark.png" width="188" alt="Pet, dark">
-
-</div>
-</details>
-
----
-
-## Architecture
-
-Feature-first, with the tracking domain split into layers because it is the only
-part of the app with real logic to isolate. Everything else stays flat rather
-than wearing four folders for one screen.
-
-```
-lib/
-├── main.dart                       # bootstrap: dotenv, timezones, runApp
-├── core/
-│   ├── constants/                  # symptom, mood and copy constants
-│   ├── providers/                  # app settings, auth (Riverpod)
-│   ├── router/                     # GoRouter + StatefulShellRoute, transitions
-│   ├── services/                   # notifications, security, auth, AI, haptics
-│   ├── theme/                      # 8 palettes, phase colours, Nunito, motion
-│   └── utils/                      # dates, PIN hashing, notification helpers
-├── features/
-│   ├── app/                        # MaterialApp, nav shell, app lock
-│   ├── splash/ auth/ onboarding/   # first-run flow
-│   ├── tracking/                   # the core domain
-│   │   ├── domain/                 # prediction engine, analytics, models
-│   │   ├── data/                   # CycleRepository (SharedPreferences)
-│   │   ├── application/            # CycleTrackerController, custom tags
-│   │   └── presentation/           # home, calendar, log, insights
-│   ├── ai/ pet/ pregnancy/         # companion features
-│   ├── birth_control/ health/      # health features
-│   ├── education/ reminders/
-│   ├── partner/ settings/
-└── widgets/                        # design system: cards, chips, ring, calendar
+```sh
+flutter pub get --enforce-lockfile
+flutter analyze lib test --no-pub --no-fatal-infos --no-fatal-warnings
+flutter test --no-pub
+flutter test --no-pub --dart-define=SHOTS=true test/shots/release_screens_shots_test.dart
+flutter build apk --release --no-pub
 ```
 
-Five bottom-nav destinations — **Home, Calendar, Log, Insights, Pet** — live in a
-`StatefulShellRoute.indexedStack` so each keeps its own scroll position.
-Everything else pushes over the shell, which is why Settings and Pregnancy have
-no nav bar.
+Screenshot output goes to `build/shots/`. The opt-in screenshot suite is skipped
+in ordinary tests and runs explicitly in CI. Behavior tests cover persistence,
+exclusions, retrospective evaluation, report consent, reminders and article
+preservation. UI renders test layout; device notification delivery and assistive
+technology behavior require device testing too. Existing analyzer warnings and
+deprecation notices are reported; analyzer errors fail CI.
 
-Routing never consults auth state. The only gate is an `onboardingCompleted`
-flag in local preferences, which is what makes the no-account path real rather
-than advertised.
+No `.env` or backend account is required for local tracking. Remote AI remains
+unconfigured. Optional service credentials and signing keys must never be committed.
 
-### Design system
+## Releases and CI
 
-Flat by default: cards sit at elevation 0 with a 22px radius on a cream
-`#FFF8F6` canvas, in Nunito at heavy weights. Phase colours are deliberately
-**excluded** from the palette system — rose always means period, teal always
-means fertile — so changing your accent colour never relabels your data.
+[CI](https://github.com/lekhanpro/cyclecare/actions/workflows/ci.yml) analyzes and
+tests production code, renders the final Flutter screens and builds a debug APK.
+It runs for main/develop changes, Codex branches and pull requests into main.
 
-### Stack
+Pushing a version tag such as `v2.2.0` runs
+[Build & Release](https://github.com/lekhanpro/cyclecare/actions/workflows/build-release.yml).
+It checks that the tag matches `pubspec.yaml`, runs analysis/tests/layout checks,
+builds with the repository's existing signing secrets, verifies APK/AAB signatures,
+and publishes APK, AAB and `SHA256SUMS.txt` together. Manual dispatch accepts an
+existing version tag. Signing files are removed after the job.
 
-| | |
-| --- | --- |
-| Framework | Flutter 3.41.6 · Dart 3.11.4 · Material 3 |
-| State | `flutter_riverpod` |
-| Routing | `go_router` |
-| Storage | `shared_preferences`, `flutter_secure_storage` |
-| Charts | `fl_chart` |
-| Notifications | `flutter_local_notifications` · `timezone` |
-| Security | `local_auth` · `crypto` |
-| Type | Nunito via `google_fonts` |
+Release secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`.
+Local builds without a keystore use Android's development signing configuration;
+GitHub release assets use the repository's release key. Preserve that release key
+so upgrades continue to read the same installed app's records.
 
----
+## Architecture and design
 
-## Getting started
+Flutter + Riverpod + GoRouter; local persistence through SharedPreferences and
+secure storage for app-lock material. The tracking domain is separated into
+models, validation, prediction, analytics and report generation. Feature screens
+reuse the theme, motion, icons and controls under `lib/core/theme` and `lib/widgets`.
+Fonts and production artwork are bundled for offline use.
 
-**Requirements** — Flutter 3.38 or newer (CI pins 3.41.6), Android SDK 35,
-Java 17.
+Read [DESIGN.md](DESIGN.md), [the implementation plan](redesign/IMPLEMENTATION_PLAN.md)
+and [screen inventory](redesign/SCREEN_INVENTORY.md) before UI changes. Current
+production status is tracked in [release verification](docs/release-verification.md).
+The prototype's natural-mesh/film companion animation remains a design reference;
+it is not the Flutter pet renderer. There is no wearable integration, regulated
+contraceptive function, automatic partner sharing or working remote AI assistant.
 
-```bash
-git clone https://github.com/lekhanpro/cyclecare.git
-cd cyclecare
-flutter pub get
-flutter run
-```
-
-That is the whole setup. No `.env`, no Firebase config, no Supabase project —
-the app is fully functional offline and will take you through onboarding into a
-working install.
-
-### Building
-
-```bash
-flutter build apk --release          # APK
-flutter build appbundle --release    # Play Store bundle
-```
-
-Release builds need signing config in `android/key.properties`:
-
-```properties
-storePassword=…
-keyPassword=…
-keyAlias=cyclecare
-storeFile=cyclecare-release.jks
-```
-
-```bash
-keytool -genkey -v -keystore android/app/cyclecare-release.jks \
-  -keyalg RSA -keysize 2048 -validity 10000 -alias cyclecare
-```
-
-### Compatibility
-
-CI pins **Flutter 3.41.6**, and `pubspec.yaml` floors the SDK at Flutter 3.38 /
-Dart 3.10 to match the resolved lockfile. Two things set that floor: the Material
-theme classes renamed in 3.27 (`CardThemeData`, `DialogThemeData`,
-`TabBarThemeData`), and `google_fonts ^8`, which drops a `const` map that newer
-Dart rejects. Both are applied, so the tree builds on current stable as-is.
-
-Flutter 3.24 is no longer supported — the renamed theme classes do not exist
-there.
-
-### Brand assets
-
-The logo, launcher icons, favicons and social preview are all generated from one
-set of geometry constants. See [`assets/brand/`](assets/brand/README.md).
-
-```bash
-python tool/brand/generate_svg.py    # vector sources
-python tool/brand/rasterize.py       # every PNG, all platforms
-```
-
----
-
-## Testing
-
-43 test cases across six suites, all passing.
-
-```bash
-flutter test
-flutter test --coverage
-```
-
-| Suite | Cases |
-| --- | --- |
-| `test/unit/cycle_analytics_test.dart` | 20 |
-| `test/unit/cycle_prediction_engine_test.dart` | 13 |
-| `test/unit/date_utils_test.dart` | 5 |
-| `test/widget/health_screen_smoke_test.dart` | 3 |
-| `test/widget/app_test.dart` | 1 |
-| `test/presentation/screens/home_screen_test.dart` | 1 |
-
-The prediction engine carries the most coverage because it is the part users
-trust with a number.
-
-### CI
-
-| Workflow | Trigger | Does |
-| --- | --- | --- |
-| `ci.yml` | push to `main` / `develop`, PRs | analyze, test, build debug APK |
-| `build-release.yml` | tag `v*.*.*` | test, analyze, signed APK + AAB, GitHub release |
-| `pages.yml` | push to `main` | publishes `docs/` |
-
----
-
-## Project status
-
-Honest accounting of what is wired and what is scaffolding.
-
-**Working end to end** — local-first storage, prediction engine, calendar,
-daily logging, insights, anomaly alerts, virtual pet, reminders, birth control,
-pregnancy mode, health library, education library, partner text sharing, app
-lock, export and delete, theming.
-
-**Not wired yet:**
-
-| Area | Reality |
-| --- | --- |
-| **AI assistant** | The chat screen, safety-framed prompt builder and disclaimer all exist, but the provider is a placeholder that always errors — no model is reachable. A Groq-backed Supabase Edge Function sits in `supabase/functions/ai-assistant/`, and no Dart code calls it. |
-| **Cloud sync** | `supabase_flutter` and Firebase are in `pubspec.yaml`, but `Supabase.initialize` is never called and `firebase_sync_service.dart` is a stub. Signing in works and syncs nothing. |
-| **Partner dashboard** | Sharing is a local text summary. There are no invite codes and no partner view; an earlier random-code UI was removed because nothing was behind it. |
-| **iOS** | The Xcode project and icon set are in place, but only Android Firebase options are compiled in, so push is Android-only today. |
-
-**Recently fixed** — the pet screen's XP and happiness meters rendered empty
-because their `FractionallySizedBox` set only `widthFactor`, collapsing the
-gradient fill to zero height. The Health pain-diary summary also crashed in a
-scrollable: a `Row` with `CrossAxisAlignment.stretch` and no bounded height
-forces infinite constraints, so it is now wrapped in `IntrinsicHeight`.
-
----
-
-## Privacy
-
-- All cycle, log, pet and settings data is stored locally via `SharedPreferences`.
-- The app makes no network calls in normal use. Fonts are fetched by
-  `google_fonts` on first launch and cached.
-- No analytics, crash reporting, advertising or tracking SDK is included.
-- Partner sharing produces text you copy or share yourself — there is no server.
-- Export and delete are both one action away in Settings.
-
----
-
-## Medical disclaimer
-
-CycleCare is for **education and personal tracking only**. It is not a medical
-device and does not provide medical advice, diagnosis or treatment. Predictions
-are estimates derived from the data you enter and will be wrong sometimes.
-**Do not rely on CycleCare as contraception.** For anything that concerns you,
-talk to a qualified clinician.
-
----
-
-## Contributing
-
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
-for setup, code style, and how PRs are reviewed. This project follows a
-[Code of Conduct](CODE_OF_CONDUCT.md).
-
-Good first contributions: wiring a real AI provider behind the existing chat
-UI, replacing the remaining deprecated `withOpacity` calls with `withValues`
-(~170 analyzer infos, all non-fatal), or adding iOS Firebase configuration.
-
-Found a security issue? Please report it privately — see [SECURITY.md](SECURITY.md)
-rather than opening a public issue.
-
-See [CHANGELOG.md](CHANGELOG.md) for release history.
-
----
+CycleCare provides tracking and educational information, not diagnosis or medical
+advice. Calendar dates and illustrative hormone curves are estimates/education,
+not measured personal hormone levels or confirmation of ovulation.
 
 ## License
 
-[MIT](LICENSE)
-
-<div align="center">
-<br>
-<img src="assets/brand/cyclecare-mark-64.png" width="28" alt="">
-<br><br>
-<sub>Built with Flutter. <a href="#top">Back to top</a></sub>
-</div>
+[MIT](LICENSE). Bundled fonts retain their OFL licenses. Research references and
+competitor screenshots under `redesign/references` retain their original ownership
+and are not production app assets.
