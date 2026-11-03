@@ -56,7 +56,7 @@ import 'application/backup_service.dart';
 // they end up disagreeing.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const String _appVersion = '2.2.0';
+const String _appVersion = '2.2.1';
 
 /// Nominal body size, used only as a probe for the platform's text scaling.
 const double _scaleProbe = 14;
@@ -458,9 +458,7 @@ class _AppearanceSection extends ConsumerWidget {
         // honours it even where the platform setting says otherwise.
         _ChoiceRow<AppMotionPreference>(
           label: 'Motion',
-          description: 'System follows your phone\u2019s reduce-motion '
-              'setting. Play allows CycleCare\u2019s gentle movement. Pause '
-              'removes it.',
+          description: 'Follow your phone, play, or pause animations.',
           segments: const {
             AppMotionPreference.system: 'System',
             AppMotionPreference.play: 'Play',
@@ -613,7 +611,7 @@ class _CalendarSection extends ConsumerWidget {
 
     return _SettingsGroup(
       title: 'Calendar & predictions',
-      subtitle: 'What the calendar draws, and the numbers behind it',
+      subtitle: 'Display & cycle settings',
       children: [
         _ChoiceRow<WeekStart>(
           label: 'Week starts on',
@@ -627,7 +625,7 @@ class _CalendarSection extends ConsumerWidget {
           icon: Icons.spa_rounded,
           accent: AppColors.fertile,
           title: 'Fertile window',
-          subtitle: 'Shade the days around predicted ovulation',
+          subtitle: 'Show estimated fertile days',
           value: settings.showFertileWindow,
           onChanged: notifier.setShowFertileWindow,
         ),
@@ -635,7 +633,7 @@ class _CalendarSection extends ConsumerWidget {
           icon: Icons.egg_alt_rounded,
           accent: AppColors.ovulation,
           title: 'Ovulation day',
-          subtitle: 'Mark the single most likely day',
+          subtitle: 'Show the estimated day',
           value: settings.showOvulation,
           onChanged: notifier.setShowOvulation,
         ),
@@ -703,9 +701,7 @@ class _NotificationsSection extends StatelessWidget {
         _NavRow(
           icon: Icons.notifications_active_rounded,
           title: 'Reminders',
-          subtitle:
-              'Period and ovulation nudges, pill time, daily check-ins, and '
-              'anything else you add',
+          subtitle: 'Cycle, pill & daily reminders',
           hint: 'Opens your reminders',
           onTap: () => context.push(AppRoutes.reminders),
         ),
@@ -750,7 +746,7 @@ class _SecuritySection extends ConsumerWidget {
         _SwitchRow(
           icon: Icons.vibration_rounded,
           title: 'Haptics',
-          subtitle: 'A small tap when something actually changes',
+          subtitle: 'Touch feedback',
           value: settings.hapticsEnabled,
           onChanged: notifier.setHaptics,
         ),
@@ -1102,13 +1098,13 @@ class _DataSectionState extends ConsumerState<_DataSection> {
         _NavRow(
           icon: AppIcons.chart,
           title: 'Cycle-health report',
-          subtitle: 'Choose records, preview, then share with your care team',
+          subtitle: 'Choose, preview & share records',
           onTap: () => context.push(AppRoutes.healthReport),
         ),
         _NavRow(
           icon: Icons.ios_share_rounded,
           title: 'Export my data',
-          subtitle: 'Share a full JSON copy — periods, logs and settings',
+          subtitle: 'Back up periods, daily logs & cycle settings',
           hint: 'Opens the share sheet',
           onTap: _exporting ? null : _export,
           accessory: _exporting

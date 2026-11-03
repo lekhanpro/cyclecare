@@ -432,11 +432,11 @@ class _DeliveryNote extends ConsumerWidget {
               ? 'Notifications are blocked'
               : '${report.accepted} of ${report.requested} accepted by the system',
           message: env.canRequest
-              ? 'Choose whether CycleCare may show notifications. Tracking works either way.'
+              ? 'Allow notifications to receive reminders. Tracking works either way.'
               : env.blocked
               ? 'Your reminder choices are saved. Allow notifications in system settings, then return here.'
-              : 'System acceptance does not confirm delivery. Battery restrictions and notification settings may delay or hide reminders.'
-                    '${report.approximate ? ' Exact alarms are unavailable; reminders may arrive later than the selected time.' : ''}',
+              : 'Acceptance does not confirm delivery. Android may delay or hide reminders.'
+                    '${report.approximate ? ' Timing is approximate: exact alarms are unavailable.' : ''}',
           actionLabel: env.canRequest
               ? 'Allow notifications'
               : env.blocked && env.canOpenSystemSettings
@@ -465,13 +465,21 @@ class _DeliveryNote extends ConsumerWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
-        for (final skip in report.skipped) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '${skip.reminderTitle}: ${skip.reason}',
-            style: Theme.of(context).textTheme.bodySmall,
+        if (report.skipped.isNotEmpty)
+          ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            title: Text('${report.skipped.length} not scheduled · details'),
+            children: [
+              for (final skip in report.skipped)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Text(
+                    '${skip.reminderTitle}: ${skip.reason}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+            ],
           ),
-        ],
         if (report.hasFailures)
           TextButton(
             onPressed: () => _perform(context, controller.refreshSchedule),
@@ -512,9 +520,7 @@ class _StatusCard extends StatelessWidget {
         : active == 1
         ? '1 reminder is on'
         : '$active reminders are on';
-    final detail = none
-        ? 'Nothing will be sent until you switch one on below.'
-        : 'Out of $total. Check system acceptance below.';
+    final detail = none ? 'Switch one on below.' : '$active of $total enabled';
 
     // The count carries its own tone, but the icon and the sentence both say
     // the same thing, so nothing here depends on reading the colour.

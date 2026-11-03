@@ -172,13 +172,12 @@ class _HealthReportScreenState extends ConsumerState<HealthReportScreen> {
                 children: [
                   if (_preview == null) ...[
                     Text(
-                      'Choose what your report includes.',
+                      'Build your report',
                       style: AppTextStyles.heading(fontSize: 24),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     const Text(
-                      'An offline summary for a conversation with your care team. '
-                      'Medication and reproductive observations are off by default. Preview before sharing.',
+                      'Offline, with a preview before sharing. Sensitive details start off.',
                     ),
                     const SizedBox(height: AppSpacing.md),
                     OutlinedButton.icon(

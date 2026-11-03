@@ -242,9 +242,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           icon: Icons.water_drop_outlined,
                           title: 'No periods recorded yet',
                           message:
-                              'Mark the period you are on, or your most recent '
-                              'one, and the calendar starts filling in '
-                              'predictions from there.',
+                              'Mark your current or most recent period to see estimates.',
                           actionLabel: 'Mark a period',
                           onAction: () =>
                               _openPeriodEditor(context, ref, data, null),
@@ -577,7 +575,7 @@ class _DayMarker {
       switch (status) {
         DayStatus.period => _DayMarker(
           title: 'Period day',
-          note: 'Recorded by you, and shown filled on the calendar.',
+          note: 'Recorded period · filled marker',
           icon: AppIcons.period,
           outlined: false,
           swatch: phases.period,
@@ -587,35 +585,35 @@ class _DayMarker {
         // this badge both use. A second glyph would imply a second thing.
         DayStatus.predictedPeriod => _DayMarker(
           title: 'Period expected',
-          note: 'Predicted, not recorded — outlined on the calendar.',
+          note: 'Estimated period · outlined marker',
           icon: AppIcons.period,
           outlined: true,
           swatch: phases.predicted,
         ),
         DayStatus.fertile => _DayMarker(
           title: 'Fertile window',
-          note: 'Estimated from your average cycle length.',
+          note: 'Estimated fertile window',
           icon: AppIcons.fertile,
           outlined: false,
           swatch: phases.fertile,
         ),
         DayStatus.ovulation => _DayMarker(
           title: 'Ovulation estimate',
-          note: 'A single estimated day, marked on its own in the grid.',
+          note: 'Estimated ovulation · not confirmed',
           icon: AppIcons.ovulation,
           outlined: false,
           swatch: phases.ovulation,
         ),
         DayStatus.pms => _DayMarker(
           title: 'PMS window',
-          note: 'Predicted premenstrual days before your next period.',
+          note: 'Estimated PMS window',
           icon: AppIcons.pms,
           outlined: true,
           swatch: phases.luteal(),
         ),
         DayStatus.normal => const _DayMarker(
           title: 'No markers',
-          note: 'Nothing recorded or predicted for this day.',
+          note: 'No recorded or estimated event',
           icon: AppIcons.methodNone,
           outlined: true,
         ),
@@ -664,10 +662,25 @@ class _DayDetail extends ConsumerWidget {
         ),
         if (period == null && data.prediction != null) ...[
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            '${data.prediction!.estimateBasis} '
-            '${data.prediction!.variationSummary}',
-            style: textTheme.bodySmall?.copyWith(color: context.mutedColor),
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              key: const PageStorageKey('calendar-estimate-details'),
+              tilePadding: EdgeInsets.zero,
+              title: Text('About this estimate', style: textTheme.labelMedium),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Text(
+                    '${data.prediction!.estimateBasis} '
+                    '${data.prediction!.variationSummary}',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: context.mutedColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
         if (period?.excludeFromPredictions == true) ...[
@@ -691,7 +704,7 @@ class _DayDetail extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  'Nothing logged for this day yet.',
+                  'No log yet',
                   style: textTheme.bodyMedium?.copyWith(
                     color: context.mutedColor,
                   ),

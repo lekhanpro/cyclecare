@@ -1,7 +1,7 @@
 name: cyclecare
 description: CycleCare – privacy-first menstrual health, fertility, wellness & AI companion app.
 publish_to: 'none'
-version: 2.2.0+3
+version: 2.2.1+4
 
 environment:
   # Floors match the resolved lockfile. Flutter 3.38+ is required for the
@@ -64,12 +64,14 @@ dependencies:
   permission_handler: ^11.3.1
   image_picker: ^1.1.2
   flutter_dotenv: ^5.2.1
+  video_player: 2.10.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.14.1
+  video_player_platform_interface: 6.9.0
 
 flutter:
   uses-material-design: true
@@ -80,6 +82,11 @@ flutter:
     - assets/lottie/
     - assets/education/
     - assets/pets/
+    - assets/pets/films/
+    - assets/pets/films/luna/
+    - assets/pets/films/miso/
+    - assets/pets/films/maple/
+    - assets/pets/films/pip/
 
   # Bundled rather than fetched at runtime. The approved design is built on
   # Fraunces and DM Sans, and google_fonts downloads a family on first use —

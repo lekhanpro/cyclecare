@@ -248,10 +248,11 @@ class _PartnerBody extends StatelessWidget {
           // the first switch is touched rather than after the text has already
           // been sent.
           const SizedBox(height: AppSpacing.md),
-          const Reveal(
-            index: 1,
-            offsetY: AppSpacing.md,
-            child: _PrivacyTerms(),
+          const ExpansionTile(
+            tilePadding: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            title: Text('How sharing works'),
+            subtitle: Text('Manual snapshot · no live access'),
+            children: [_PrivacyTerms()],
           ),
 
           const SizedBox(height: AppSpacing.xl),
@@ -510,8 +511,7 @@ class _Intro extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'CycleCare builds a short summary here on your phone, from '
-                    'only the things you switch on. Nothing leaves the device '
+                    'Choose what to include, then preview. Nothing is sent '
                     'until you tap Share or Copy.',
                     style: text.bodyMedium?.copyWith(
                       // 0.88 rather than full strength: the headline above has

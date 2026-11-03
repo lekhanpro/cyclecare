@@ -1,0 +1,334 @@
+{
+  "engine": "Three.js r183 continuous original-image mesh",
+  "fps": 24,
+  "size": [
+    480,
+    510
+  ],
+  "clips": [
+    {
+      "pet": "luna",
+      "action": "water",
+      "file": "assets/pets/films/luna/water.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 99369,
+      "sha256": "29ddbc3d940de6963f515f92b9aea66cac1c527e6f29dba2eaa1b2248aa2e247"
+    },
+    {
+      "pet": "luna",
+      "action": "checkin",
+      "file": "assets/pets/films/luna/checkin.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 110566,
+      "sha256": "462faec39785e9085007e1c55d0082b290959798c429cbe4233c3947863c9d07"
+    },
+    {
+      "pet": "luna",
+      "action": "comfort",
+      "file": "assets/pets/films/luna/comfort.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 67088,
+      "sha256": "9a4e4883953d56501c1f6edbe326a83217e413afd95ff61cb182d842f0780047"
+    },
+    {
+      "pet": "luna",
+      "action": "stretch",
+      "file": "assets/pets/films/luna/stretch.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 73221,
+      "sha256": "925fad30bf042c42da900ab1afed628004db2f98f7bb34a3077a968bf6936177"
+    },
+    {
+      "pet": "luna",
+      "action": "rest",
+      "file": "assets/pets/films/luna/rest.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 66089,
+      "sha256": "d52f8f9168a83095942e491ec1840002fb6aab1884573278dae8c14b119ad8dd"
+    },
+    {
+      "pet": "luna",
+      "action": "feed",
+      "file": "assets/pets/films/luna/feed.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 86602,
+      "sha256": "b09e5733eaad8acc594bde73bbe81c0ca762c06dcd3dc6d2cb5f5f76b1d1038c"
+    },
+    {
+      "pet": "luna",
+      "action": "cuddle",
+      "file": "assets/pets/films/luna/cuddle.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 67047,
+      "sha256": "c55a29d4f11f69b4521f5dfea6145f8bcde51668671bb53b1d083f7601ee44a5"
+    },
+    {
+      "pet": "luna",
+      "action": "celebrate",
+      "file": "assets/pets/films/luna/celebrate.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 52561,
+      "sha256": "ec2f9a3344e681536d168d63c84be497166d44fe293ee738503345d6859f1c51"
+    },
+    {
+      "pet": "luna",
+      "action": "breathe",
+      "file": "assets/pets/films/luna/breathe.mp4",
+      "frames": 240,
+      "seconds": 10.0,
+      "bytes": 143854,
+      "sha256": "f5f0c6c963b8372e757754074c3ed0011efe6ad07638ff1686a0b1d129632dba"
+    },
+    {
+      "pet": "miso",
+      "action": "water",
+      "file": "assets/pets/films/miso/water.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 145473,
+      "sha256": "3903c839bb09d569ca818d3e73d59fe45cf103778e53ed137f8f2183535bd811"
+    },
+    {
+      "pet": "miso",
+      "action": "checkin",
+      "file": "assets/pets/films/miso/checkin.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 164788,
+      "sha256": "da29c375eac868d2e3a532a83037a616637015b5500b54da8437a1a9cbd32918"
+    },
+    {
+      "pet": "miso",
+      "action": "comfort",
+      "file": "assets/pets/films/miso/comfort.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 88024,
+      "sha256": "2e97e5f3c5223f11f17a8341266ea4b5a2c42802c33296286e2153c8a23b4793"
+    },
+    {
+      "pet": "miso",
+      "action": "stretch",
+      "file": "assets/pets/films/miso/stretch.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 98656,
+      "sha256": "4205f78fcc2244e5ae5d41b51d166564e578f84bc27bf778c76f8e992907ecd1"
+    },
+    {
+      "pet": "miso",
+      "action": "rest",
+      "file": "assets/pets/films/miso/rest.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 85185,
+      "sha256": "dc82a763ba49a5ede2c9fd2b99c0472dda9ebdeae09c8923052806feece021b6"
+    },
+    {
+      "pet": "miso",
+      "action": "feed",
+      "file": "assets/pets/films/miso/feed.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 121942,
+      "sha256": "449a597626acd142b3cc60a7a8d813cb945d288bafa23431cd656c8101639409"
+    },
+    {
+      "pet": "miso",
+      "action": "cuddle",
+      "file": "assets/pets/films/miso/cuddle.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 93076,
+      "sha256": "4e60fa565b98ea441b101a782001bf7a85ae2feb2c41eff6e50cd6da8bbe3a68"
+    },
+    {
+      "pet": "miso",
+      "action": "celebrate",
+      "file": "assets/pets/films/miso/celebrate.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 61138,
+      "sha256": "3b3d9e4e45f7be630f2d6fea7d8717d14c509b308a60f4ccb64fbc67cd470723"
+    },
+    {
+      "pet": "miso",
+      "action": "breathe",
+      "file": "assets/pets/films/miso/breathe.mp4",
+      "frames": 240,
+      "seconds": 10.0,
+      "bytes": 202011,
+      "sha256": "966446141ca4f3c1f47a9e54cb033f5de46c41e1006be643f3b66f7a7bee53ba"
+    },
+    {
+      "pet": "maple",
+      "action": "water",
+      "file": "assets/pets/films/maple/water.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 186561,
+      "sha256": "6defe68c587c772a02c311ccc1cbb32ccd1a27b880a4e262c4fe7cb41688d0cb"
+    },
+    {
+      "pet": "maple",
+      "action": "checkin",
+      "file": "assets/pets/films/maple/checkin.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 220073,
+      "sha256": "70ceaa09651ad56060d4ca86f1f59373fb7af205a11906f1fb2f9e17db138bdc"
+    },
+    {
+      "pet": "maple",
+      "action": "comfort",
+      "file": "assets/pets/films/maple/comfort.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 109019,
+      "sha256": "dd3d98c66ffe0ae1881d88e3f79f6b502b64dbca5d12eadec05bc9b0852e69bf"
+    },
+    {
+      "pet": "maple",
+      "action": "stretch",
+      "file": "assets/pets/films/maple/stretch.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 134097,
+      "sha256": "d3bed78c031c5a696b4636f4d872f78103d027ac7723d032a7cfc5c542eef219"
+    },
+    {
+      "pet": "maple",
+      "action": "rest",
+      "file": "assets/pets/films/maple/rest.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 104158,
+      "sha256": "1ee4c2b566c63ece10be449a8369a8adbfa80ac70b0b745bc18315be48c77609"
+    },
+    {
+      "pet": "maple",
+      "action": "feed",
+      "file": "assets/pets/films/maple/feed.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 144775,
+      "sha256": "b5a18aae3e763e69a6fce2b27f33b4fc1edcb2bbe814a2354ab9c520e34f6c6a"
+    },
+    {
+      "pet": "maple",
+      "action": "cuddle",
+      "file": "assets/pets/films/maple/cuddle.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 120306,
+      "sha256": "1f3897a6dbf4cb296aeb925002d1921e9c863814215c3aef6d453f44f59be744"
+    },
+    {
+      "pet": "maple",
+      "action": "celebrate",
+      "file": "assets/pets/films/maple/celebrate.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 70588,
+      "sha256": "d5c953afbf04cfa2253ec76e03224e30bfe52945c6bde99b1714f1f3dcfa86e0"
+    },
+    {
+      "pet": "maple",
+      "action": "breathe",
+      "file": "assets/pets/films/maple/breathe.mp4",
+      "frames": 240,
+      "seconds": 10.0,
+      "bytes": 251265,
+      "sha256": "04208a8ab7bd3ac03b3ac9931971d11e2b6ac648d1ea32953507656c988188d5"
+    },
+    {
+      "pet": "pip",
+      "action": "water",
+      "file": "assets/pets/films/pip/water.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 142035,
+      "sha256": "4681389e64b4a030cc9a5ac0a31ac86ba78c0082db9ef4de931f7c7ec18f2994"
+    },
+    {
+      "pet": "pip",
+      "action": "checkin",
+      "file": "assets/pets/films/pip/checkin.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 153584,
+      "sha256": "833318babb99bd9c32eebadbb1f0a252800e97ae4bc22e166715f341a80d86b6"
+    },
+    {
+      "pet": "pip",
+      "action": "comfort",
+      "file": "assets/pets/films/pip/comfort.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 90933,
+      "sha256": "cc202e3d2e1588338099f4aa55033303a971c0b4210b04c432a67a8f1b4e8e6e"
+    },
+    {
+      "pet": "pip",
+      "action": "stretch",
+      "file": "assets/pets/films/pip/stretch.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 101629,
+      "sha256": "dcbcc2027c43f649f84d93b103ef6ba5625d62f6672c165c6a845505db5c0a69"
+    },
+    {
+      "pet": "pip",
+      "action": "rest",
+      "file": "assets/pets/films/pip/rest.mp4",
+      "frames": 144,
+      "seconds": 6.0,
+      "bytes": 88889,
+      "sha256": "220c269709be280045bc793923dc578c9a8bb5a80c328bc29f089d4393eae67b"
+    },
+    {
+      "pet": "pip",
+      "action": "feed",
+      "file": "assets/pets/films/pip/feed.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 119992,
+      "sha256": "400c517e1cb79db43fe4e4c172bcc46bafec7ec55ccae7247c7fb129d7712a3d"
+    },
+    {
+      "pet": "pip",
+      "action": "cuddle",
+      "file": "assets/pets/films/pip/cuddle.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 96289,
+      "sha256": "df4eebf2d69beb19a8848feaf589f32873a0592bcec28d0849b75b375be5bb3a"
+    },
+    {
+      "pet": "pip",
+      "action": "celebrate",
+      "file": "assets/pets/films/pip/celebrate.mp4",
+      "frames": 115,
+      "seconds": 4.791666666666667,
+      "bytes": 71172,
+      "sha256": "21974df1d4f3e9c784ca2e3e540cc2e8f5001c56c2c70592a7a9e9efe6648631"
+    },
+    {
+      "pet": "pip",
+      "action": "breathe",
+      "file": "assets/pets/films/pip/breathe.mp4",
+      "frames": 240,
+      "seconds": 10.0,
+      "bytes": 210592,
+      "sha256": "38043f0e0ddc3c38df90d337297c6ad675ff964685e9904d270e8b93269cfdf4"
+    }
+  ]
+}

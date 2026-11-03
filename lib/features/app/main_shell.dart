@@ -181,7 +181,12 @@ class _NavBar extends StatelessWidget {
                   child: Row(
                     children: [
                       for (var index = 0; index < _destinations.length; index++)
-                        Expanded(child: item(index)),
+                        // Give longer labels room without shrinking type or
+                        // losing the 48dp target on compact phones.
+                        Expanded(
+                          flex: const [5, 6, 5, 6, 7][index],
+                          child: item(index),
+                        ),
                     ],
                   ),
                 );
@@ -266,7 +271,7 @@ class _NavItem extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(6, 1, 6, 0),
+            padding: const EdgeInsets.fromLTRB(2, 1, 2, 0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.start,

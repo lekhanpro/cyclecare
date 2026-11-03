@@ -138,122 +138,101 @@ class _InsightsBody extends StatelessWidget {
                         history: history,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    const _Section(
-                      index: 1,
+
+                    const SizedBox(height: AppSpacing.lg),
+                    _InsightGroup(
                       title: 'Your cycle, measured',
-                      subtitle:
-                          'How steady it is and how well it can be '
-                          'estimated',
+                      summary: 'Regularity · prediction error · comparisons',
+                      icon: AppIcons.cycle,
+                      children: [
+                        RegularityCard(analytics: analytics),
+                        PredictionAccuracyCard(analytics: analytics),
+                        CycleComparisonCard(analytics: analytics),
+                      ],
                     ),
-                    Reveal(
-                      index: 1,
-                      child: RegularityCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 1,
-                      child: PredictionAccuracyCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 1,
-                      child: CycleComparisonCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    _Section(
-                      index: 1,
+                    _InsightGroup(
                       title: 'Cycle trends',
-                      subtitle: history.isEmpty
+                      summary: history.isEmpty
                           ? 'Needs two logged periods'
-                          : 'Based on ${history.length} '
-                                '${_plural(history.length, 'cycle')}',
+                          : 'Cycle and period lengths · ${history.length} cycles',
+                      icon: AppIcons.chart,
+                      children: [
+                        _CycleLengthCard(analytics: analytics),
+                        _PeriodLengthCard(analytics: analytics),
+                      ],
                     ),
-                    Reveal(
-                      index: 2,
-                      child: _CycleLengthCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 3,
-                      child: _PeriodLengthCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    const _Section(
-                      index: 4,
+                    _InsightGroup(
                       title: 'Patterns',
-                      subtitle: 'Where your symptoms tend to land',
+                      summary: 'Bleeding · symptoms · mood',
+                      icon: AppIcons.notes,
+                      children: [
+                        RecordSummaryCard(
+                          periods: data.periods,
+                          logs: data.logs,
+                        ),
+                        _SymptomPatternCard(analytics: analytics),
+                        _SymptomFrequencyCard(analytics: analytics),
+                        _MoodCard(analytics: analytics),
+                        SymptomHeatmapCard(analytics: analytics),
+                      ],
                     ),
-                    RecordSummaryCard(periods: data.periods, logs: data.logs),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 5,
-                      child: _SymptomPatternCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 6,
-                      child: _SymptomFrequencyCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(index: 7, child: _MoodCard(analytics: analytics)),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 7,
-                      child: SymptomHeatmapCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    const _Section(
-                      index: 7,
+                    _InsightGroup(
                       title: 'Through your cycle',
-                      subtitle: 'How mood, sleep and water shift by phase',
+                      summary:
+                          'Mood, sleep and water by phase · logging coverage',
+                      icon: AppIcons.calendar,
+                      children: [
+                        ByPhaseCard(analytics: analytics),
+                        LoggingPerCycleCard(analytics: analytics),
+                      ],
                     ),
-                    Reveal(index: 7, child: ByPhaseCard(analytics: analytics)),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(
-                      index: 7,
-                      child: LoggingPerCycleCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    const _Section(
-                      index: 8,
+                    _InsightGroup(
                       title: 'Body signals',
-                      subtitle: 'Temperature, pain and weight over time',
+                      summary: 'Temperature · pain · weight',
+                      icon: AppIcons.temperature,
+                      children: [
+                        _TemperatureCard(analytics: analytics),
+                        _PainCard(analytics: analytics),
+                        _WeightCard(analytics: analytics),
+                      ],
                     ),
-                    Reveal(
-                      index: 8,
-                      child: _TemperatureCard(analytics: analytics),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(index: 8, child: _PainCard(analytics: analytics)),
-                    const SizedBox(height: AppSpacing.md),
-                    Reveal(index: 8, child: _WeightCard(analytics: analytics)),
                     if (analytics
                         .cycleHistory(includeExcluded: true)
-                        .isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.xxl),
-                      const _Section(
-                        index: 8,
+                        .isNotEmpty)
+                      _InsightGroup(
                         title: 'Cycle history',
-                        subtitle: 'Recorded cycles, including exclusions',
+                        summary: 'All recorded cycles, including exclusions',
+                        icon: AppIcons.calendarRange,
+                        children: [
+                          _CycleHistoryList(
+                            history: analytics.cycleHistory(
+                              includeExcluded: true,
+                            ),
+                            average:
+                                data.prediction?.averageCycleLength ??
+                                data.preferences.averageCycleLength,
+                          ),
+                        ],
                       ),
-                      _CycleHistoryList(
-                        history: analytics.cycleHistory(includeExcluded: true),
-                        average:
-                            data.prediction?.averageCycleLength ??
-                            data.preferences.averageCycleLength,
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Patterns in your logs, not medical findings.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.mutedColor,
                       ),
-                    ],
-                    const SizedBox(height: AppSpacing.xl),
-                    const InfoBanner(
-                      icon: Icons.insights_rounded,
-                      tone: AppColors.info,
+                    ),
+                    const _InsightGroup(
                       title: 'How to read this',
-                      message:
+                      summary: 'Observations, sample sizes and limits',
+                      icon: AppIcons.help,
+                      children: [
+                        Text(
                           'These are patterns in what you logged, not medical '
                           'findings. Small data sets show coincidences easily, '
                           'so treat anything here as a question worth asking '
                           'rather than an answer.',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -373,18 +352,11 @@ class _SummaryPanel extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.md),
-        AppCard(
-          emphasis: CardEmphasis.outlined,
-          padding: AppInsets.compactCard,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < notes.length; i++) ...[
-                if (i > 0) const SizedBox(height: AppSpacing.sm),
-                notes[i],
-              ],
-            ],
-          ),
+        _InsightGroup(
+          title: 'About your numbers',
+          summary: 'Estimate basis · variation · logging coverage',
+          icon: AppIcons.help,
+          children: notes,
         ),
       ],
     );
@@ -1568,33 +1540,46 @@ class _DeviationPill extends StatelessWidget {
 
 // ─── Shared chrome ───────────────────────────────────────────────────────────
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title, this.subtitle, this.index = 0});
+/// A compact index keeps every analysis available without a wall of charts.
+class _InsightGroup extends StatelessWidget {
+  const _InsightGroup({
+    required this.title,
+    required this.summary,
+    required this.icon,
+    required this.children,
+  });
 
   final String title;
-  final String? subtitle;
-  final int index;
+  final String summary;
+  final IconData icon;
+  final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) {
-    return Reveal(
-      index: index,
-      child: MergeSemantics(
-        child: Semantics(
-          header: true,
-          child: SectionHeader(
-            title: title,
-            subtitle: subtitle,
-            padding: const EdgeInsets.only(
-              left: AppSpacing.xs,
-              right: AppSpacing.xs,
-              bottom: AppSpacing.md,
-            ),
-          ),
-        ),
+  Widget build(BuildContext context) => Theme(
+    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+    child: ExpansionTile(
+      key: PageStorageKey('insight-group-$title'),
+      tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      childrenPadding: const EdgeInsets.only(bottom: AppSpacing.md),
+      leading: Icon(icon, color: context.accent.text, size: 20),
+      title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+      subtitle: Text(
+        summary,
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
       ),
-    );
-  }
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.md),
+              KeyedSubtree(
+                key: PageStorageKey('insight-content-$title-$i'),
+                child: children[i],
+              ),
+        ],
+      ],
+    ),
+  );
 }
 
 /// Centres a full-screen state and holds it to the same measure as the scroll

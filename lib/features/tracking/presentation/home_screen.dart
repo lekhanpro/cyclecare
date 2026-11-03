@@ -10,6 +10,7 @@ import '../../../core/utils/date_helpers.dart';
 import '../../../widgets/phase_bar.dart';
 import '../../../widgets/widgets.dart';
 import '../../pet/pet_models.dart';
+import '../../pet/pet_companion.dart';
 import '../../pet/pet_provider.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/amenorrhea_result.dart';
@@ -557,10 +558,14 @@ class _ExplorerBlockState extends State<_ExplorerBlock> {
         const SizedBox(height: AppSpacing.md),
         _ReferenceStrip(prediction: widget.prediction, model: model),
         const SizedBox(height: AppSpacing.lg),
-        HormoneChart(
-          model: model,
-          selectedDay: day,
-          onDayChanged: _select,
+        _HomeDetails(
+          title: 'Explore hormone patterns',
+          subtitle: 'Illustrative · not your hormone levels',
+          child: HormoneChart(
+            model: model,
+            selectedDay: day,
+            onDayChanged: _select,
+          ),
         ),
       ],
     );
@@ -695,10 +700,12 @@ class _ReferenceStripState extends State<_ReferenceStrip> {
       children: [
         Flex(
           direction: MediaQuery.textScalerOf(context).scale(14) > 18
-              ? Axis.vertical : Axis.horizontal,
+              ? Axis.vertical
+              : Axis.horizontal,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: MediaQuery.textScalerOf(context).scale(14) > 18
-              ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
+              ? CrossAxisAlignment.stretch
+              : CrossAxisAlignment.start,
           children: [
             Flexible(
               child: _RefStat(
@@ -718,7 +725,8 @@ class _ReferenceStripState extends State<_ReferenceStrip> {
               flex: 1,
               child: Pressable(
                 onTap: () => setState(() => _open = !_open),
-                semanticLabel: '$cycles ${cycles == 1 ? 'cycle' : 'cycles'} '
+                semanticLabel:
+                    '$cycles ${cycles == 1 ? 'cycle' : 'cycles'} '
                     'behind this estimate',
                 semanticHint: _open
                     ? 'Hide the explanation'
@@ -727,9 +735,7 @@ class _ReferenceStripState extends State<_ReferenceStrip> {
                 borderRadius: BorderRadius.circular(AppRadii.compact),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(color: context.lineColor),
-                    ),
+                    border: Border(left: BorderSide(color: context.lineColor)),
                   ),
                   child: _RefStat(
                     value: '$cycles',
@@ -743,13 +749,24 @@ class _ReferenceStripState extends State<_ReferenceStrip> {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(p.variationSummary, style: Theme.of(context).textTheme.bodySmall
-            ?.copyWith(color: context.mutedColor)),
+        Text(
+          p.variationSummary,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
+        ),
+        if (learning) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Still learning · tap the cycle count for details',
+            style: _caption(context),
+          ),
+        ],
         AnimatedSize(
           duration: motion(AppDurations.normal),
           curve: AppCurves.out,
           alignment: Alignment.topCenter,
-          child: _open || learning
+          child: _open
               ? Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.sm),
                   child: _ConfidenceNote(
@@ -762,6 +779,30 @@ class _ReferenceStripState extends State<_ReferenceStrip> {
       ],
     );
   }
+}
+
+/// Secondary context stays one tap away without competing with today's actions.
+class _HomeDetails extends StatelessWidget {
+  const _HomeDetails({required this.title, required this.child, this.subtitle});
+
+  final String title;
+  final String? subtitle;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Theme(
+    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+    child: ExpansionTile(
+      key: PageStorageKey(title),
+      tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      childrenPadding: const EdgeInsets.only(top: AppSpacing.sm),
+      title: Text(title, style: _strong(context)),
+      subtitle: subtitle == null
+          ? null
+          : Text(subtitle!, style: _caption(context)),
+      children: [child],
+    ),
+  );
 }
 
 class _RefStat extends StatelessWidget {

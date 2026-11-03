@@ -199,8 +199,7 @@ class _SetupView extends StatelessWidget {
         EmptyState(
           icon: AppIcons.pregnancy,
           title: 'Pregnancy mode',
-          message: 'Follow the weeks as they come — what is developing, what '
-              'your body is doing, and every appointment kept in one place.',
+          message: 'Weekly updates, movement counts and appointments in one place.',
           actionLabel: 'Set your due date',
           onAction: () => _openDueDateSheet(context),
         ),
@@ -217,7 +216,7 @@ class _SetupView extends StatelessWidget {
           child: ActionTile(
             icon: Icons.auto_stories_rounded,
             title: 'Week-by-week updates',
-            subtitle: 'Weeks 4 to 40, with a size you can actually picture',
+            subtitle: 'Development and changes, weeks 4–40',
             trailing: SizedBox.shrink(),
           ),
         ),
@@ -227,7 +226,7 @@ class _SetupView extends StatelessWidget {
           child: ActionTile(
             icon: Icons.child_care_rounded,
             title: 'Kick counter',
-            subtitle: 'Track a counting session with one thumb',
+            subtitle: 'Record movement sessions',
             trailing: SizedBox.shrink(),
           ),
         ),
@@ -237,7 +236,7 @@ class _SetupView extends StatelessWidget {
           child: ActionTile(
             icon: Icons.event_note_rounded,
             title: 'Appointment tracking',
-            subtitle: 'Scans, checks and the notes you took last visit',
+            subtitle: 'Dates, scans and visit notes',
             trailing: SizedBox.shrink(),
           ),
         ),
@@ -431,10 +430,6 @@ class _ActivePregnancyViewState extends ConsumerState<_ActivePregnancyView> {
   /// so the screen does not silently jump back under them.
   int? _selectedWeek;
 
-  /// Pill width plus its trailing gap. Fixed so the strip can be scrolled to a
-  /// specific week without measuring anything.
-  static const double _pillExtent = 62;
-
   int get _currentWeek => widget.preg.weeksPregnant
       .clamp(PregnancyContent.minWeek, PregnancyContent.maxWeek);
 
@@ -458,8 +453,10 @@ class _ActivePregnancyViewState extends ConsumerState<_ActivePregnancyView> {
     if (!_weekScroll.hasClients) return;
     final position = _weekScroll.position;
     final index = week - PregnancyContent.minWeek;
-    final target = (index * _pillExtent +
-            _pillExtent / 2 -
+    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final extent = 54 * scale + 8;
+    final target = (index * extent +
+            extent / 2 -
             position.viewportDimension / 2)
         .clamp(0.0, position.maxScrollExtent);
 
@@ -561,7 +558,13 @@ class _ActivePregnancyViewState extends ConsumerState<_ActivePregnancyView> {
           onSelect: _selectWeek,
         ),
         const SizedBox(height: 12),
-        _WeekContentCard(entry: entry),
+        ExpansionTile(
+          key: ValueKey('pregnancy-week-$week'),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+          title: Text('Week $week guide'),
+          subtitle: const Text('Your baby, your body and care notes'),
+          children: [_WeekContentCard(entry: entry)],
+        ),
         const SizedBox(height: 24),
         _KickCounterCard(preg: preg),
         const SizedBox(height: 24),
@@ -624,9 +627,9 @@ class _HeroCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 3),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 7,
                             children: [
                               AnimatedCount(
                                 value: preg.weeksPregnant,
@@ -638,7 +641,6 @@ class _HeroCard extends StatelessWidget {
                                   color: context.inkColor,
                                 ),
                               ),
-                              const SizedBox(width: 7),
                               Text(
                                 '+${preg.dayOfWeek}d',
                                 style: TextStyle(
@@ -745,8 +747,6 @@ class _HeroStat extends StatelessWidget {
       children: [
         Text(
           value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 16,
             height: 1.1,
@@ -757,8 +757,6 @@ class _HeroStat extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
@@ -799,8 +797,8 @@ class _ProgressRing extends StatelessWidget {
     final motion = Motion.of(context);
 
     return SizedBox(
-      width: _diameter,
-      height: _diameter,
+      width: _diameter * math.sqrt(MediaQuery.textScalerOf(context).scale(14) / 14),
+      height: _diameter * math.sqrt(MediaQuery.textScalerOf(context).scale(14) / 14),
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(end: progress),
         duration: motion(AppDurations.reveal),
@@ -918,7 +916,7 @@ class _WeekStrip extends StatelessWidget {
     const count = PregnancyContent.maxWeek - PregnancyContent.minWeek + 1;
 
     return SizedBox(
-      height: 60,
+      height: 60 * MediaQuery.textScalerOf(context).scale(14) / 14,
       child: ListView.builder(
         controller: controller,
         scrollDirection: Axis.horizontal,
@@ -932,7 +930,7 @@ class _WeekStrip extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: SizedBox(
-              width: 54,
+              width: 54 * MediaQuery.textScalerOf(context).scale(14) / 14,
               child: Pressable(
                 haptic: false,
                 scale: 0.93,
@@ -1022,7 +1020,9 @@ class _WeekContentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -1043,7 +1043,6 @@ class _WeekContentCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(),
               Text(
                 '${PregnancyContent.trimesterLabel(entry.trimester)} trimester',
                 style: TextStyle(
@@ -1154,13 +1153,15 @@ class _ContentBlock extends StatelessWidget {
           children: [
             Icon(icon, size: 15, color: accent),
             const SizedBox(width: 7),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.2,
-                color: context.inkColor,
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.2,
+                  color: context.inkColor,
+                ),
               ),
             ),
           ],
@@ -1208,8 +1209,10 @@ class _KickCounterCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 7,
+                runSpacing: 8,
                 children: [
                   AnimatedCount(
                     value: count,
@@ -1221,7 +1224,6 @@ class _KickCounterCard extends ConsumerWidget {
                       color: context.inkColor,
                     ),
                   ),
-                  const SizedBox(width: 7),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
@@ -1233,7 +1235,6 @@ class _KickCounterCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const Spacer(),
                   if (count >= _kickTarget)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
@@ -1296,7 +1297,8 @@ class _KickCounterCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                       onTap: () => _logKick(context, ref),
                       child: Container(
-                        height: 54,
+                        constraints: const BoxConstraints(minHeight: 54),
+                        padding: const EdgeInsets.all(12),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: accent,
@@ -1311,15 +1313,16 @@ class _KickCounterCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
                           children: [
                             Icon(
                               Icons.add_rounded,
                               size: 20,
                               color: onAccent,
                             ),
-                            const SizedBox(width: 8),
                             Text(
                               'Log a movement',
                               style: TextStyle(
@@ -2051,10 +2054,8 @@ class _MedicalDisclaimer extends StatelessWidget {
   Widget build(BuildContext context) {
     return const InfoBanner(
       title: 'Not medical advice',
-      message: 'CycleCare is not a medical device and this content is general '
-          'information, not guidance for your pregnancy. Your midwife or '
-          'doctor knows your history — follow them, and get in touch with '
-          'them about anything that worries you.',
+      message: 'General information only. Follow your midwife or doctor’s '
+          'guidance and contact them about concerns.',
       icon: Icons.health_and_safety_rounded,
       tone: AppColors.info,
     );

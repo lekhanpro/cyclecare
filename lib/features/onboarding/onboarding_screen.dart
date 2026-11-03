@@ -607,8 +607,7 @@ class _WelcomePage extends StatelessWidget {
       gutter: gutter,
       icon: AppIcons.basics,
       title: 'Hey, welcome in',
-      subtitle: 'A few quick questions and CycleCare will be set up around '
-          'you. It takes about a minute.',
+      subtitle: 'A few choices to make CycleCare yours.',
       children: [
         TextField(
           controller: nameCtrl,
@@ -635,8 +634,7 @@ class _WelcomePage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Everything you enter is saved on this device only. No '
-                'account, no upload, nothing leaving your phone.',
+                'Your records stay on this device. No account needed.',
                 style: text.bodySmall?.copyWith(color: context.mutedColor),
               ),
             ],
@@ -668,8 +666,7 @@ class _GoalPage extends StatelessWidget {
       gutter: gutter,
       icon: AppIcons.compass,
       title: 'What brings you here?',
-      subtitle: 'This shapes what CycleCare puts front and centre. Pick the '
-          'one that fits best today.',
+      subtitle: 'Choose what matters most today.',
       children: [
         Wrap(
           spacing: AppSpacing.sm,
@@ -687,8 +684,7 @@ class _GoalPage extends StatelessWidget {
           ],
         ),
         const _Reassurance(
-          'Switch this whenever you like in Settings — nothing you log '
-          'gets lost when you do.',
+          'Change this in Settings anytime. Your records stay.',
         ),
       ],
     );
@@ -726,8 +722,7 @@ class _CyclePage extends StatelessWidget {
       gutter: gutter,
       icon: AppIcons.calendarRange,
       title: 'Your cycle so far',
-      subtitle: 'Rough numbers are perfect. CycleCare learns your real '
-          'pattern from the days you log.',
+      subtitle: 'Estimates are fine. Recorded cycles refine your forecasts.',
       children: [
         _LastPeriodCard(
           lastPeriod: lastPeriod,

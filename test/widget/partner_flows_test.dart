@@ -88,6 +88,23 @@ void main() {
     expect(find.text('Calm'), findsOneWidget);
   });
 
+  testWidgets('sharing explanations open without hiding selection or preview',
+      (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_app(const PartnerScreen()));
+    await _settle(tester);
+
+    expect(find.text('How sharing works'), findsOneWidget);
+    expect(find.text('A snapshot, not a live link'), findsNothing);
+    expect(find.text("Today's mood"), findsOneWidget);
+    expect(find.text('Preview as your partner'), findsOneWidget);
+
+    await tester.tap(find.text('How sharing works'));
+    await tester.pumpAndSettle();
+    expect(find.text('A snapshot, not a live link'), findsOneWidget);
+    expect(find.text('Only what you switch on'), findsOneWidget);
+  });
+
   testWidgets('a code from encode() opens the dashboard', (tester) async {
     tall(tester);
     final now = DateTime.now();

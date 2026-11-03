@@ -138,11 +138,12 @@ class _PhaseDetail extends StatelessWidget {
     final swatch = PhaseColors.of(context).phase(segment.phase);
     final tip = PhaseGuidance.tipFor(segment.phase, day: model.cycleDay);
     final pms = model.pms;
-    final pmsNote = segment.phase == CyclePhase.luteal &&
+    final pmsNote =
+        segment.phase == CyclePhase.luteal &&
             pms != null &&
             pms.start.isAfter(model.today)
         ? ' Your estimated PMS window starts '
-            '${DateFormat('MMMM d').format(pms.start)}.'
+              '${DateFormat('MMMM d').format(pms.start)}.'
         : '';
     final ovulationLabel = segment.phase == CyclePhase.ovulation
         ? 'Estimated ovulation'
@@ -161,8 +162,11 @@ class _PhaseDetail extends StatelessWidget {
           Row(
             children: [
               ExcludeSemantics(
-                child: Icon(_phaseIcon(segment.phase),
-                    size: 14, color: swatch.text),
+                child: Icon(
+                  _phaseIcon(segment.phase),
+                  size: 14,
+                  color: swatch.text,
+                ),
               ),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
@@ -181,11 +185,19 @@ class _PhaseDetail extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             tip.title,
-            style: AppTextStyles.heading(fontSize: 18, letterSpacing: -0.3)
-                .copyWith(color: context.inkColor),
+            style: AppTextStyles.heading(
+              fontSize: 18,
+              letterSpacing: -0.3,
+            ).copyWith(color: context.inkColor),
           ),
           const SizedBox(height: AppSpacing.xs + 2),
-          Text('${tip.body}$pmsNote', style: _small(context)),
+          _HomeDetails(
+            title: 'Phase guidance',
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text('${tip.body}$pmsNote', style: _small(context)),
+            ),
+          ),
         ],
       ),
     );
@@ -424,8 +436,11 @@ class _AllWindowsCard extends StatelessWidget {
           _SectionTitle(
             title: 'Every phase. Every window.',
             trailing: ExcludeSemantics(
-              child: Icon(AppIcons.calendarRange,
-                  size: 17, color: context.mutedColor),
+              child: Icon(
+                AppIcons.calendarRange,
+                size: 17,
+                color: context.mutedColor,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.xs + 2),
@@ -439,8 +454,7 @@ class _AllWindowsCard extends StatelessWidget {
             _WindowRow(key: ValueKey('home-window-${row.name}'), row: row),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Fertile and PMS windows overlap the phases above. All future '
-            'dates and ovulation dates are estimates.',
+            'Windows overlap phases. Future dates and ovulation are estimates.',
             style: _caption(context),
           ),
         ],
@@ -557,17 +571,23 @@ class _CareNote extends StatelessWidget {
               children: [
                 Text(
                   'A LITTLE EXTRA CARE',
-                  style:
-                      AppTextStyles.overline.copyWith(color: context.mutedColor),
+                  style: AppTextStyles.overline.copyWith(
+                    color: context.mutedColor,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs + 2),
                 Text(
                   tip.title,
-                  style: AppTextStyles.heading(fontSize: 23, letterSpacing: -0.5)
-                      .copyWith(color: context.inkColor),
+                  style: AppTextStyles.heading(
+                    fontSize: 23,
+                    letterSpacing: -0.5,
+                  ).copyWith(color: context.inkColor),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Text(tip.body, style: _small(context)),
+                _HomeDetails(
+                  title: 'Care tip',
+                  child: Text(tip.body, style: _small(context)),
+                ),
                 Pressable(
                   onTap: () => context.push(AppRoutes.education),
                   semanticLabel:
@@ -882,15 +902,7 @@ class _FeatureGrid extends StatelessWidget {
 
 // ─── Companion ───────────────────────────────────────────────────────────────
 
-String _petAsset(PetType type) => switch (type) {
-      PetType.bunny => 'assets/pets/luna-bunny.png',
-      PetType.cat => 'assets/pets/miso-cat.png',
-      PetType.bear => 'assets/pets/maple-bear.png',
-      PetType.fox => 'assets/pets/pip-fox.png',
-    };
-
-/// The companion, apart from the cycle content. Still by default and under
-/// reduced motion; Play is an explicit opt-in to a slow breathing scale.
+/// The same original-art companion used on the full care screen.
 class _CompanionSection extends ConsumerStatefulWidget {
   const _CompanionSection();
 
@@ -898,125 +910,64 @@ class _CompanionSection extends ConsumerStatefulWidget {
   ConsumerState<_CompanionSection> createState() => _CompanionSectionState();
 }
 
-class _CompanionSectionState extends ConsumerState<_CompanionSection>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _breath = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2600),
-  );
-  bool _playing = false;
+class _CompanionSectionState extends ConsumerState<_CompanionSection> {
+  final _animation = PetAnimationController();
 
   @override
   void dispose() {
-    _breath.dispose();
+    _animation.dispose();
     super.dispose();
-  }
-
-  void _toggle() {
-    setState(() => _playing = !_playing);
-    if (_playing) {
-      _breath.repeat(reverse: true);
-    } else {
-      _breath.animateTo(0, duration: Motion.of(context)(AppDurations.fast));
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final pet = ref.watch(petProvider).valueOrNull ?? const PetState();
     final sage = PhaseColors.of(context).follicular;
-    final accent = context.accent;
-
-    return Semantics(
-      container: true,
-      label: 'Your companion',
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: sage.surface,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            ExcludeSemantics(
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 1, end: 1.04).animate(
-                  CurvedAnimation(parent: _breath, curve: Curves.easeInOut),
-                ),
-                child: Image.asset(
-                  _petAsset(pet.type),
-                  width: 58,
-                  height: 68,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => SizedBox(
-                    width: 58,
-                    height: 68,
-                    child: Icon(pet.type.icon, size: 40, color: sage.text),
-                  ),
-                ),
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, _) {
+        final playing = _animation.isPlaying;
+        return Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: sage.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              PetCompanion(
+                type: pet.type,
+                name: pet.name,
+                width: 80,
+                controller: _animation,
+                showControls: false,
+                showHint: false,
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('A little company.', style: _strong(context)),
-                  Pressable(
-                    onTap: () => context.go(AppRoutes.pet),
-                    semanticLabel: 'Visit ${pet.name}',
-                    excludeChildSemantics: true,
-                    minimumSize: const Size(0, AppLayout.minTouchTarget),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Visit ${pet.name}',
-                            style: AppTextStyles.body(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ).copyWith(color: sage.text),
-                          ),
-                        ),
-                        Icon(AppIcons.forward, size: 12, color: sage.text),
-                      ],
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('A little company.', style: _strong(context)),
+                    TextButton.icon(
+                      onPressed: () => context.go(AppRoutes.pet),
+                      icon: const Icon(AppIcons.forward, size: 15),
+                      label: Text('Visit ${pet.name}'),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Pressable(
-              onTap: _toggle,
-              selected: _playing,
-              semanticLabel: _playing
-                  ? 'Pause companion animation'
-                  : 'Play companion animation',
-              excludeChildSemantics: true,
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              child: Container(
-                key: const ValueKey('home-companion-motion'),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: context.cardColor.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-                child: Text(
-                  _playing ? 'Pause motion' : 'Play motion',
-                  style: AppTextStyles.body(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ).copyWith(color: accent.text),
+                    TextButton.icon(
+                      key: const ValueKey('home-companion-motion'),
+                      onPressed: () => _animation.setPlaying(!playing),
+                      icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                      label: Text(playing ? 'Pause motion' : 'Play motion'),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

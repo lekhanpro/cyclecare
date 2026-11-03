@@ -50,9 +50,11 @@ void main() {
     }
     expect(find.text('Keep a pain diary'), findsOneWidget);
 
-    // Expanding reveals the signs list and the escalation note.
+    // The index stays concise; opening a condition retains its full reading.
+    expect(find.textContaining('irregular or infrequent'), findsNothing);
     await tester.tap(find.text('PCOS'));
     await tester.pumpAndSettle();
+    expect(find.textContaining('irregular or infrequent'), findsOneWidget);
     expect(find.text('COMMON SIGNS'), findsOneWidget);
     expect(find.text('WHEN TO SEE SOMEONE'), findsOneWidget);
 

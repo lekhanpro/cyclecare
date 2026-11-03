@@ -5,7 +5,9 @@ Current Flutter implementation status and test boundaries are documented in
 handoff below remains the visual contract; its original implementation-status
 notes are historical snapshots. In particular, expanded logging and interactive
 Home controls now have Flutter implementations, while natural-mesh/film companion
-integration remains pending.
+integration was absent from v2.2.0. Native companion work is now in the
+[unreleased review build](docs/preview-review.md); its approval and verification
+status are recorded separately.
 
 The approved redesign lives in [`redesign/`](redesign/). Migrate the Flutter application to this UI/UX with **all existing elements and the complete redesigned screen inventory**. This includes the Home phase bar and phase/window details, grouped logging, all secondary pages, reminders, and fluid motion.
 
@@ -15,7 +17,7 @@ Home now also requires the interactive cycle circle and linked educational hormo
 The current companion motion reference is [`redesign/NATURAL_PET_MOTION.md`](redesign/NATURAL_PET_MOTION.md): restrained continuous-image mesh motion, local MP4 action clips and distinct live finger responses. This supersedes the cutout puppet movement in `PET_ANIMATION.md`. Preserve the separate companion section, visible motion controls, reduced-motion defaults and honest links to logging/reminders. The supplementary Rive files are earlier verified studies with a smaller state catalogue, not the current browser renderer.
 
 
-**Pet appearance:** preserve the approved original soft 3D clay PNG look. Flat SVG redraws and visibly rotating image cutouts are superseded. The current browser uses `redesign/pet-natural.js` and the local films in `redesign/assets/pets/films/`, retaining original character faces/material through a continuous mesh. Head strokes, holds, ear touches and paw taps must respond differently and interrupt playback. Do not reintroduce the rejected vector appearance or large cutout rotations in new features. Flutter integration remains pending.
+**Pet appearance:** preserve the approved original soft 3D clay PNG look. Flat SVG redraws and visibly rotating image cutouts are superseded. The browser reference uses `redesign/pet-natural.js` and the local films in `redesign/assets/pets/films/`, retaining original character faces/material through a continuous mesh. Head strokes, holds, ear touches and paw taps must respond differently and interrupt playback. Do not reintroduce the rejected vector appearance or large cutout rotations in new features. Native review work uses `lib/features/pet/pet_companion.dart` and `assets/pets/films/`; see the review document before claiming production verification.
 
 Every future feature, screen, dialog, dropdown, state and project addition must retain the same typography, colours, spacing, components, icon family and motion language. Extend this design system instead of creating a new visual style for each addition.
 
