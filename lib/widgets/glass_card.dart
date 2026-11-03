@@ -45,12 +45,12 @@ class GlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final radius = borderRadius ?? BorderRadius.circular(24);
+    final radius = borderRadius ?? BorderRadius.circular(AppRadii.card);
 
     // Dark glass needs a lighter veil to separate from the background;
     // light glass needs a heavier one to stay legible over saturated colour.
     final fillOpacity = opacity ?? (isDark ? 0.22 : 0.58);
-    final base = tint ?? (isDark ? AppColors.darkCard : AppColors.white);
+    final base = tint ?? context.cardColor;
 
     // Note: the base fill and the sheen must live on separate layers.
     // BoxDecoration's gradient shader replaces its color, so setting both on
@@ -65,8 +65,10 @@ class GlassCard extends StatelessWidget {
             color: base.withOpacity(fillOpacity),
             border: showBorder
                 ? Border.all(
-                    color: Colors.white.withOpacity(isDark ? 0.14 : 0.55),
-                    width: 0.8,
+                    color: isDark
+                        ? context.lineColor
+                        : context.lineColor.withOpacity(0.72),
+                    width: AppStrokes.hairline,
                   )
                 : null,
           ),
@@ -97,7 +99,7 @@ class GlassCard extends StatelessWidget {
                   onTap: onTap,
                   borderRadius: radius,
                   child: Padding(
-                    padding: padding ?? const EdgeInsets.all(18),
+                    padding: padding ?? AppInsets.card,
                     child: child,
                   ),
                 ),
@@ -112,13 +114,7 @@ class GlassCard extends StatelessWidget {
     final shadowed = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.34 : 0.07),
-            blurRadius: 22,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow: AppElevation.low(isDark),
       ),
       child: surface,
     );

@@ -13,6 +13,10 @@
 // declaration order below is also the order the picker renders.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'package:flutter/material.dart';
+
+import '../../../core/theme/app_icons.dart';
+
 /// How the picker groups methods. Grouping matters more than it sounds: a flat
 /// list of eleven options reads as a wall, whereas four short groups let
 /// someone find their own method by category in one pass.
@@ -76,19 +80,30 @@ enum BirthControlMethod {
         _ => label,
       };
 
-  String get emoji => switch (this) {
-        BirthControlMethod.pill => '💊',
-        BirthControlMethod.progestinPill => '🌙',
-        BirthControlMethod.patch => '🩹',
-        BirthControlMethod.ring => '💍',
-        BirthControlMethod.iud => '🩺',
-        BirthControlMethod.copperIud => '🧲',
-        BirthControlMethod.implant => '💠',
-        BirthControlMethod.injection => '💉',
-        BirthControlMethod.condom => '🛡️',
-        BirthControlMethod.naturalFam => '🌡️',
-        BirthControlMethod.other => '🧩',
-        BirthControlMethod.none => '➖',
+  /// The method's glyph.
+  ///
+  /// Replaces the emoji this getter used to return. Two of the twelve emoji
+  /// were actively misleading — a moon for the progestin-only pill and a
+  /// magnet for the copper IUD depict nothing about either method — and the
+  /// rest changed picture per platform. The registry note in `app_icons.dart`
+  /// covers the general case.
+  ///
+  /// [AppIcons.iud] and [AppIcons.injection] resolve to the same glyph, so the
+  /// picker never leans on the icon alone to tell two methods apart: each row
+  /// carries its label, its hormone tag and its cadence.
+  IconData get icon => switch (this) {
+        BirthControlMethod.pill => AppIcons.pill,
+        BirthControlMethod.progestinPill => AppIcons.progestinPill,
+        BirthControlMethod.patch => AppIcons.patch,
+        BirthControlMethod.ring => AppIcons.ring,
+        BirthControlMethod.iud => AppIcons.iud,
+        BirthControlMethod.copperIud => AppIcons.copperIud,
+        BirthControlMethod.implant => AppIcons.implant,
+        BirthControlMethod.injection => AppIcons.injection,
+        BirthControlMethod.condom => AppIcons.condom,
+        BirthControlMethod.naturalFam => AppIcons.naturalFamily,
+        BirthControlMethod.other => AppIcons.methodOther,
+        BirthControlMethod.none => AppIcons.methodNone,
       };
 
   MethodGroup get group => switch (this) {

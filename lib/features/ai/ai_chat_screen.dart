@@ -97,13 +97,27 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   /// month later is not consent.
   bool _shareCycleData = false;
 
+  /// Measured height of the floating input bar, used as the conversation's
+  /// bottom padding.
+  ///
+  /// Measured rather than assumed because the bar grows: the field runs to five
+  /// lines, and the safe-area inset differs per device. A hardcoded guess here
+  /// is how the last bubble ends up permanently hidden behind the glass. Seeded
+  /// with the resting height so the first frame is already close.
+  double _barHeight = AppLayout.minTouchTarget + AppSpacing.lg;
+
   /// Four, not eight. A wall of suggestions is another thing to read; four fit
   /// on screen above the keyboard and still cover the common ground.
-  static const _suggestions = <(String, String)>[
-    ('🌙', 'What phase am I in right now?'),
-    ('😴', 'Why am I so tired before my period?'),
-    ('🌿', 'How does the fertile window work?'),
-    ('💭', 'Can stress change my cycle?'),
+  ///
+  /// Each icon names the subject of its question rather than decorating it:
+  /// a generic phase question takes [AppIcons.cycle] rather than the luteal
+  /// moon, because pinning one phase's icon to a question about all of them
+  /// would answer it wrongly before it is asked.
+  static const _suggestions = <(IconData, String)>[
+    (AppIcons.cycle, 'What phase am I in right now?'),
+    (AppIcons.sleep, 'Why am I so tired before my period?'),
+    (AppIcons.fertile, 'How does the fertile window work?'),
+    (AppIcons.moodAnxious, 'Can stress change my cycle?'),
   ];
 
   @override
@@ -243,12 +257,21 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
           ],
         ),
       ),
-      body: Column(
+      // The bar overlays the conversation rather than sitting in a column
+      // beside it, and that is what makes it glass rather than a grey strip.
+      // Stacked in a Column the bar had nothing behind it to refract — a
+      // backdrop blur over a flat page samples flat page. Overlaid, the
+      // messages travel under it, so the blur has the bubbles and the accent
+      // to work with and the bar reads as a pane the conversation passes
+      // beneath. The list's bottom padding is the bar's measured height, so
+      // nothing is ever stranded underneath it.
+      body: Stack(
         children: [
-          Expanded(
+          Positioned.fill(
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
+                final bottom = _barHeight + AppSpacing.sm;
 
                 return Center(
                   child: ConstrainedBox(
@@ -261,6 +284,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                             suggestions: _suggestions,
                             available: available,
                             gutter: gutter,
+                            bottomInset: bottom,
                             onPick: _send,
                           )
                         : ListView.builder(
@@ -269,10 +293,10 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                               gutter,
                               AppSpacing.md,
                               gutter,
-                              AppSpacing.sm,
+                              bottom,
                             ),
                             itemCount:
-                                _messages.length + 2 + (_loading ? 1 : 0),
+                                _messages.length + 1 + (_loading ? 1 : 0),
                             itemBuilder: (context, i) {
                               if (i == 0) return header;
                               final index = i - 1;
@@ -281,12 +305,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                                   message: _messages[index],
                                 );
                               }
-                              if (index == _messages.length && _loading) {
-                                return const _TypingIndicator();
-                              }
-                              // Breathing room so the last bubble never sits
-                              // flush against the input bar.
-                              return const SizedBox(height: AppSpacing.sm);
+                              return const _TypingIndicator();
                             },
                           ),
                   ),
@@ -294,11 +313,20 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               },
             ),
           ),
-          _InputBar(
-            controller: _ctrl,
-            loading: _loading,
-            available: available,
-            onSend: _send,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _InputBar(
+              controller: _ctrl,
+              loading: _loading,
+              available: available,
+              onSend: _send,
+              onHeightChanged: (height) {
+                if (height == _barHeight) return;
+                setState(() => _barHeight = height);
+              },
+            ),
           ),
         ],
       ),
@@ -333,18 +361,33 @@ class _ChatHeader extends StatelessWidget {
   }
 }
 
+/// The safety note.
+///
+/// Was amber. Amber is `AppColors.warning`, which is a fixed semantic hue and
+/// therefore the one colour on the screen that belongs to none of the eight
+/// palettes — against a berry or forest-green accent it read as a browser
+/// warning pasted into the app, and it was the loudest thing on a screen whose
+/// loudest thing should be the conversation.
+///
+/// Two separate mistakes were stacked there. Amber also says "something has
+/// gone wrong", and nothing has: this is a standing condition of using the
+/// assistant at all, true on every visit. A permanent alert is the fastest way
+/// to teach someone to stop seeing it. So the tone is the palette accent, which
+/// reads as the app talking about itself, and the prominence comes from the
+/// banner's position and its title rather than from colour it has to borrow.
 class _Disclaimer extends StatelessWidget {
   const _Disclaimer();
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.md),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InfoBanner(
-        icon: Icons.health_and_safety_outlined,
-        tone: AppColors.warning,
-        message: 'Educational only — not medical advice. Please talk to a '
-            'healthcare professional about anything that worries you.',
+        icon: AppIcons.shield,
+        tone: context.accentColor,
+        title: 'Educational only — not medical advice',
+        message: 'Please talk to a healthcare professional about anything '
+            'that worries you.',
       ),
     );
   }
@@ -356,7 +399,28 @@ class _Disclaimer extends StatelessWidget {
 /// because "share my data" is not something anyone can agree to meaningfully.
 /// The state is said in words and an icon as well as the switch position, so it
 /// is never carried by the track colour alone.
-class _DataSharingCard extends StatelessWidget {
+///
+/// Two things were wrong with how the field list was presented, and they pulled
+/// in opposite directions:
+///
+///  • It was set in [ThemeSurfaces.subtleColor] — the tertiary tier, which the
+///    design system reserves for disabled states and captions. A 45-word
+///    disclosure of exactly which health records leave the device is the most
+///    important paragraph on the screen, and it was rendered in the tier used
+///    for text nobody needs to read. It is now secondary ink at body size with
+///    the line height opened up.
+///  • At that length it also dominated a screen whose subject is the
+///    conversation, which is the usual reason such copy gets dimmed in the
+///    first place. Dimming is the wrong fix for too-long: the answer is to
+///    stop showing all of it at once.
+///
+/// So the list is disclosed rather than dimmed, and the disclosure is driven by
+/// the switch. While sharing is off the fields are a reference — collapsed, one
+/// tap away, with the count visible so it is never a surprise. Turning the
+/// switch on opens it, so the one moment the user actually consents is the one
+/// moment they are shown, in full, what they just consented to. Consent that
+/// has to be hunted for is not consent.
+class _DataSharingCard extends StatefulWidget {
   const _DataSharingCard({required this.sharing, required this.onChanged});
 
   final bool sharing;
@@ -366,10 +430,28 @@ class _DataSharingCard extends StatelessWidget {
   final ValueChanged<bool>? onChanged;
 
   @override
+  State<_DataSharingCard> createState() => _DataSharingCardState();
+}
+
+class _DataSharingCardState extends State<_DataSharingCard> {
+  /// Starts closed, and the user can close it again after turning sharing on —
+  /// forcing it open would make the card impossible to get past.
+  bool _expanded = false;
+
+  @override
+  void didUpdateWidget(_DataSharingCard old) {
+    super.didUpdateWidget(old);
+    // Opens on the transition into sharing, not on every rebuild while it is
+    // on. This is the consent moment; the fields are shown unasked.
+    if (widget.sharing && !old.sharing) _expanded = true;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final motion = Motion.of(context);
     final text = Theme.of(context).textTheme;
-    final enabled = onChanged != null;
-    final on = sharing && enabled;
+    final enabled = widget.onChanged != null;
+    final on = widget.sharing && enabled;
 
     return AppCard(
       emphasis: CardEmphasis.outlined,
@@ -381,7 +463,7 @@ class _DataSharingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  on ? Icons.lock_open_rounded : Icons.lock_outline_rounded,
+                  on ? Icons.lock_open_rounded : AppIcons.privacy,
                   size: AppSpacing.xl,
                   color: on ? context.accentColor : context.mutedColor,
                 ),
@@ -401,7 +483,7 @@ class _DataSharingCard extends StatelessWidget {
                       Text(
                         on
                             ? 'On — the details below go with each question.'
-                            : 'Off — your questions are sent on their own.',
+                            : 'Off — only the words you type are sent.',
                         style: text.bodySmall?.copyWith(
                           color: context.mutedColor,
                         ),
@@ -410,17 +492,94 @@ class _DataSharingCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Switch(value: on, onChanged: onChanged),
+                Switch(value: on, onChanged: widget.onChanged),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Turning this on sends $_sharedDataDetail. Leave it off and only '
-            'the words you type are sent.',
-            style: text.bodySmall?.copyWith(color: context.subtleColor),
+
+          const SizedBox(height: AppSpacing.md),
+          _DisclosureToggle(
+            expanded: _expanded,
+            onTap: () => setState(() => _expanded = !_expanded),
+          ),
+
+          AnimatedSize(
+            duration: motion(AppDurations.normal),
+            curve: AppCurves.inOut,
+            alignment: Alignment.topCenter,
+            child: _expanded
+                ? Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Text(
+                      'Turning this on sends $_sharedDataDetail. Leave it off '
+                      'and only the words you type are sent.',
+                      style: text.bodyMedium?.copyWith(
+                        // Secondary ink, not tertiary: this is the paragraph
+                        // the decision rests on. 1.55 line height because a
+                        // 45-word block at the default 1.45 is a grey slab.
+                        height: 1.55,
+                        color: context.mutedColor,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The affordance that opens the field list.
+///
+/// Reads as a labelled control rather than a bare chevron: a chevron alone does
+/// not say what unfolds, and on a consent card the user has to know that the
+/// thing being hidden is the list of their own health records.
+class _DisclosureToggle extends StatelessWidget {
+  const _DisclosureToggle({required this.expanded, required this.onTap});
+
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = Motion.of(context);
+    final text = Theme.of(context).textTheme;
+    final radius = BorderRadius.circular(AppRadii.compact);
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Pressable(
+        onTap: onTap,
+        scale: 0.96,
+        semanticLabel: 'What exactly gets sent',
+        semanticHint: expanded ? 'Collapses the list' : 'Expands the list',
+        excludeChildSemantics: true,
+        borderRadius: radius,
+        minimumSize: const Size(0, AppLayout.minTouchTarget),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'What exactly gets sent',
+                style: text.labelLarge?.copyWith(color: context.accentColor),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              AnimatedRotation(
+                turns: expanded ? 0.5 : 0,
+                duration: motion(AppDurations.fast),
+                curve: AppCurves.out,
+                child: Icon(
+                  Icons.expand_more_rounded,
+                  size: AppSpacing.xl,
+                  color: context.accentColor,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -434,13 +593,18 @@ class _ChatIntro extends StatelessWidget {
     required this.suggestions,
     required this.available,
     required this.gutter,
+    required this.bottomInset,
     required this.onPick,
   });
 
   final Widget header;
-  final List<(String, String)> suggestions;
+  final List<(IconData, String)> suggestions;
   final bool available;
   final double gutter;
+
+  /// Clearance for the floating input bar, which overlays this list.
+  final double bottomInset;
+
   final ValueChanged<String> onPick;
 
   @override
@@ -450,32 +614,25 @@ class _ChatIntro extends StatelessWidget {
         gutter,
         AppSpacing.md,
         gutter,
-        AppSpacing.sm,
+        bottomInset,
       ),
       children: [
         header,
         if (available)
           const EmptyState(
-            icon: Icons.auto_awesome_rounded,
+            icon: AppIcons.ai,
             title: 'Ask me anything about your cycle',
             message: 'Periods, hormones, fertility, symptoms, sleep — plain '
                 'answers, no jargon. I explain things; I do not diagnose them.',
           )
         else
-          // The honest version. No setting is named, because there is no
-          // setting: the assistant simply has nothing behind it in this build.
-          const EmptyState(
-            icon: Icons.cloud_off_rounded,
-            title: 'The assistant is not set up',
-            message: 'CycleCare AI has no language model connected in this '
-                'build, so it cannot answer questions. Nothing you type here '
-                'is sent anywhere. Everything else in CycleCare works as '
-                'usual.',
-          ),
-        const SizedBox(height: AppSpacing.xs),
+          const _NotSetUpCard(),
+        const SizedBox(height: AppSpacing.lg),
         SectionHeader(
           title: available ? 'Try starting with' : 'What it would help with',
-          subtitle: available ? null : 'Unavailable until it is connected',
+          subtitle: available
+              ? null
+              : 'Examples only — these do nothing until a model is connected',
           padding: const EdgeInsets.only(
             left: AppSpacing.xs,
             right: AppSpacing.xs,
@@ -489,7 +646,7 @@ class _ChatIntro extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _Suggestion(
-                emoji: suggestions[i].$1,
+                icon: suggestions[i].$1,
                 question: suggestions[i].$2,
                 available: available,
                 onTap: () => onPick(suggestions[i].$2),
@@ -501,18 +658,150 @@ class _ChatIntro extends StatelessWidget {
   }
 }
 
+/// The "no model connected" state, designed rather than defaulted.
+///
+/// This must stay honest, and honest is the hard part: the obvious ways to make
+/// an empty state look designed all make this one lie. So the constraints are
+/// deliberate and none of them may be traded for polish —
+///
+///  • No action. [EmptyState] offers one, and anything offerable here would be
+///    a button that cannot work. A dead primary button is the single most
+///    dishonest thing a screen can show.
+///  • No setting named, because there is no setting. "Add your API key in
+///    Settings" would send the user looking for a control this build does not
+///    have, and a wrong instruction is worse than none.
+///  • Not a warning tone. Nothing has failed and nothing is broken — the
+///    feature was shipped unwired, which is a fact about the build rather than
+///    an error the user caused or can clear.
+///
+/// What is left to design with is composition, so that is what it uses: a quiet
+/// outlined surface with the icon struck through, the state said plainly in the
+/// title, and the reassurance that matters most — nothing is being sent — given
+/// its own line at full ink instead of buried mid-paragraph. The result reads as
+/// a deliberate "not in this build" rather than a screen that failed to load.
+class _NotSetUpCard extends StatelessWidget {
+  const _NotSetUpCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Semantics(
+      container: true,
+      label: 'The assistant is not set up',
+      value: 'CycleCare AI has no language model connected in this build, so '
+          'it cannot answer questions. Nothing you type here is sent anywhere.',
+      child: ExcludeSemantics(
+        child: AppCard(
+          emphasis: CardEmphasis.outlined,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: AppSpacing.xxl,
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: AppSpacing.huge + AppSpacing.xxl,
+                height: AppSpacing.huge + AppSpacing.xxl,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: context.lineColor.withOpacity(
+                    context.isDark ? 0.40 : 0.55,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                // The assistant's own icon with a slash through it, rather than
+                // a generic cloud-off. It names *this* feature as switched off
+                // instead of suggesting the network or the device is at fault.
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      AppIcons.ai,
+                      size: AppSpacing.xxl + AppSpacing.xs,
+                      color: context.mutedColor,
+                    ),
+                    Transform.rotate(
+                      angle: -0.78,
+                      child: Container(
+                        width: AppSpacing.huge,
+                        height: AppStrokes.selected,
+                        decoration: BoxDecoration(
+                          color: context.mutedColor,
+                          borderRadius: BorderRadius.circular(AppRadii.pill),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'The assistant is not set up',
+                textAlign: TextAlign.center,
+                style: text.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: context.inkColor,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'CycleCare AI has no language model connected in this build, '
+                'so it cannot answer questions.',
+                textAlign: TextAlign.center,
+                style: text.bodyMedium?.copyWith(color: context.mutedColor),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Lifted out of the paragraph and onto its own line. On a screen
+              // that takes typed health questions, "nothing is sent" is the
+              // fact the user most needs, and it was the third sentence of a
+              // grey block.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    AppIcons.privacy,
+                    size: AppSpacing.lg,
+                    color: context.accentColor,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: Text(
+                      'Nothing you type here is sent anywhere',
+                      style: text.labelLarge?.copyWith(
+                        color: context.inkColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Everything else in CycleCare works as usual.',
+                textAlign: TextAlign.center,
+                style: text.bodySmall?.copyWith(color: context.mutedColor),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A starter question. Tappable when there is something to answer it, and a
 /// plainly inert example when there is not — an arrow that leads nowhere is
 /// worse than no arrow.
 class _Suggestion extends StatelessWidget {
   const _Suggestion({
-    required this.emoji,
+    required this.icon,
     required this.question,
     required this.available,
     required this.onTap,
   });
 
-  final String emoji;
+  final IconData icon;
   final String question;
   final bool available;
   final VoidCallback onTap;
@@ -520,9 +809,13 @@ class _Suggestion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tile = ActionTile(
-      icon: Icons.chat_bubble_outline_rounded,
-      emoji: emoji,
+      icon: icon,
       title: question,
+      // The question's own icon leads the row, so the trailing glyph is free to
+      // carry the one thing the row's text cannot: whether tapping it does
+      // anything. A struck-through arrow rather than a generic block sign keeps
+      // it reading as "this arrow is off" instead of "this is forbidden".
+      accent: available ? null : context.mutedColor,
       trailing: Icon(
         available ? Icons.north_east_rounded : Icons.block_rounded,
         size: AppSpacing.lg,
@@ -553,8 +846,9 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     final isUser = message.isUser;
-    final accent = context.accentColor;
+    final dark = context.isDark;
 
     // The user's own words sit on the accent; the assistant sits on a card.
     // Ownership is carried by colour *and* side *and* the tail, so the
@@ -562,15 +856,26 @@ class _MessageBubble extends StatelessWidget {
     final Color fill;
     final Color textColor;
     if (isUser) {
-      fill = accent;
-      textColor = Theme.of(context).colorScheme.onPrimary;
+      fill = scheme.primary;
+      textColor = scheme.onPrimary;
     } else if (message.isError) {
-      fill = AppColors.warning.withOpacity(context.isDark ? 0.18 : 0.11);
+      fill = AppColors.warning.withOpacity(dark ? 0.18 : 0.11);
       textColor = context.inkColor;
     } else {
       fill = context.cardColor;
       textColor = context.inkColor;
     }
+
+    // Two rungs, by who is speaking. The assistant's bubbles are resting
+    // cards, so they take the workhorse shadow. The user's bubble is a
+    // saturated block, and a black shadow under one turns its bottom edge
+    // muddy exactly where it meets the page — so it takes the tinted glow
+    // instead, for the same reason the hero does.
+    final shadows = isUser
+        ? AppElevation.glow(scheme.primary, dark)
+        : message.isError
+            ? AppElevation.none
+            : AppElevation.low(dark);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -620,10 +925,17 @@ class _MessageBubble extends StatelessWidget {
                                 : context.lineColor,
                             width: AppStrokes.hairline,
                           ),
+                    boxShadow: shadows,
                   ),
                   child: Text(
                     message.text,
-                    style: text.bodyMedium?.copyWith(color: textColor),
+                    style: text.bodyMedium?.copyWith(
+                      // Opened from the theme's 1.45. A chat bubble is read as
+                      // a paragraph rather than scanned as a label, and the
+                      // assistant's answers are the longest prose in the app.
+                      height: 1.5,
+                      color: textColor,
+                    ),
                   ),
                 ),
               ),
@@ -822,12 +1134,21 @@ class _Dot extends StatelessWidget {
 /// When the assistant has nothing behind it the field is switched off rather
 /// than left inviting: a box that accepts a question it cannot answer is the
 /// least honest thing on the screen.
+///
+/// This is the app's one piece of floating chrome and therefore its one
+/// legitimate [GlassTone.chrome] surface: the conversation scrolls underneath
+/// it, so the blur has real content to sample and the bar reads as a pane the
+/// messages pass beneath. [GlassTone.chrome] is the heavy-veil tone for exactly
+/// this reason — what travels behind it is arbitrary, including the user's
+/// saturated accent bubbles, and the hint text has to stay legible over all of
+/// it.
 class _InputBar extends StatefulWidget {
   const _InputBar({
     required this.controller,
     required this.loading,
     required this.available,
     required this.onSend,
+    required this.onHeightChanged,
   });
 
   final TextEditingController controller;
@@ -835,17 +1156,39 @@ class _InputBar extends StatefulWidget {
   final bool available;
   final ValueChanged<String> onSend;
 
+  /// Reports the bar's rendered height so the conversation can reserve exactly
+  /// that much bottom padding.
+  final ValueChanged<double> onHeightChanged;
+
   @override
   State<_InputBar> createState() => _InputBarState();
 }
 
 class _InputBarState extends State<_InputBar> {
+  final _barKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     // Drives the send button between its idle and active states as the user
     // types, without rebuilding the message list.
     widget.controller.addListener(_onTextChanged);
+    _reportHeight();
+  }
+
+  /// Measures after layout and hands the height up.
+  ///
+  /// Post-frame rather than during build: the bar's height depends on how many
+  /// lines the field has grown to, which is not known until it has been laid
+  /// out. Reporting it from here means the parent reserves the real height
+  /// instead of a guess that goes stale the moment the question runs long.
+  void _reportHeight() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = _barKey.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return;
+      widget.onHeightChanged(box.size.height);
+    });
   }
 
   @override
@@ -854,32 +1197,39 @@ class _InputBarState extends State<_InputBar> {
     super.dispose();
   }
 
-  void _onTextChanged() => setState(() {});
+  void _onTextChanged() {
+    setState(() {});
+    // The field grows as the question runs past one line, which changes the
+    // bar's height and therefore the clearance the conversation needs.
+    _reportHeight();
+  }
 
   @override
   Widget build(BuildContext context) {
     final motion = Motion.of(context);
     final text = Theme.of(context).textTheme;
     final accent = context.accentColor;
+    final dark = context.isDark;
     final canSend = widget.available &&
         widget.controller.text.trim().isNotEmpty &&
         !widget.loading;
 
-    return Container(
+    return GlassSurface(
+      key: _barKey,
+      tone: GlassTone.chrome,
+      // Only the top corners round. The bar is attached to the bottom of the
+      // window rather than floating in it, so rounding the bottom would leave
+      // two slivers of page colour in the corners — the inverse of the reason
+      // the hero rounds only its bottom edge.
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(AppRadii.sheet),
+        topRight: Radius.circular(AppRadii.sheet),
+      ),
       padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
-        AppSpacing.sm,
         AppSpacing.md,
-        AppSpacing.sm + MediaQuery.paddingOf(context).bottom,
-      ),
-      decoration: BoxDecoration(
-        color: context.canvasColor,
-        border: Border(
-          top: BorderSide(
-            color: context.lineColor,
-            width: AppStrokes.hairline,
-          ),
-        ),
+        AppSpacing.md,
+        AppSpacing.md + MediaQuery.paddingOf(context).bottom,
       ),
       // The bar spans the window; what sits inside it is bound to the same
       // reading width as the conversation above.
@@ -897,11 +1247,14 @@ class _InputBarState extends State<_InputBar> {
                     minHeight: AppLayout.minTouchTarget,
                   ),
                   decoration: BoxDecoration(
+                    // Opaque, not another translucent layer. The field sits on
+                    // glass, and glass on glass doubles the veil and turns the
+                    // one surface the user types into the muddiest thing on the
+                    // screen. A solid well inside a translucent bar is also how
+                    // iOS builds this.
                     color: widget.available
                         ? context.cardColor
-                        : context.lineColor.withOpacity(
-                            context.isDark ? 0.34 : 0.42,
-                          ),
+                        : context.lineColor.withOpacity(dark ? 0.34 : 0.42),
                     borderRadius: BorderRadius.circular(AppRadii.card),
                     border: Border.all(
                       color: context.lineColor,
@@ -933,8 +1286,11 @@ class _InputBarState extends State<_InputBar> {
                       hintText: widget.available
                           ? 'Ask about your cycle…'
                           : 'The assistant is not set up',
+                      // Secondary rather than tertiary ink. The hint is the
+                      // only label this control has, and subtleColor is the
+                      // disabled tier — too faint to read as an invitation.
                       hintStyle: text.bodyMedium?.copyWith(
-                        color: context.subtleColor,
+                        color: context.mutedColor,
                       ),
                     ),
                   ),
@@ -964,13 +1320,27 @@ class _InputBarState extends State<_InputBar> {
                   height: AppLayout.minTouchTarget,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: canSend ? accent : accent.withOpacity(0.24),
+                    color: canSend
+                        ? accent
+                        : context.lineColor.withOpacity(dark ? 0.46 : 0.60),
                     shape: BoxShape.circle,
+                    // Lit only when it will do something, so the live state is
+                    // the one that stands off the glass.
+                    boxShadow:
+                        canSend ? AppElevation.glow(accent, dark) : null,
                   ),
                   child: Icon(
                     Icons.arrow_upward_rounded,
                     size: AppSpacing.xl,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    // The disabled fill used to be the accent at 24% with
+                    // onPrimary ink on top — a near-white arrow on a pale
+                    // tint, which fails contrast at exactly the moment the
+                    // control most needs to be readable as "off". Disabled now
+                    // drops to a neutral well with muted ink, which carries
+                    // both the state and the arrow.
+                    color: canSend
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : context.mutedColor,
                   ),
                 ),
               ),

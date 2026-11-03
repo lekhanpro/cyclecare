@@ -13,25 +13,34 @@ import '../../../core/utils/date_helpers.dart';
 import '../../../widgets/widgets.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/cycle_models.dart';
+import '../domain/month_summary.dart';
+import 'calendar_year_view.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Calendar
 //
-// Three stacked blocks, in the order they are read: the month grid, a key that
-// says in words what every marker means, then the detail for whichever day is
-// selected. The detail lives *below* the grid rather than floating over it —
-// the whole point of tapping a date is to compare it with its neighbours, and
-// an overlay covers exactly the days you are comparing against.
+// Three stacked blocks, in the order they are read: the month grid, the detail
+// for whichever day is selected, then a key that says in words what every
+// marker means. The detail lives *below* the grid rather than floating over it
+// — the whole point of tapping a date is to compare it with its neighbours,
+// and an overlay covers exactly the days you are comparing against. It sits
+// directly under the grid because it is the thing that answers the tap; the
+// key is reference material and goes last, where it is available without being
+// in the way of the two surfaces that change.
 //
 // The screen sits on the plain theme canvas. It used to sit on a phase-tinted
 // gradient with frosted-glass panels, which looked lovely and worked against
 // the one job this screen has: the grid encodes meaning in hue — rose for
 // period, mint for fertile, violet for ovulation — and washing the entire
 // background in whichever hue the selected day happens to be lowers the
-// contrast of the very cells the user is trying to tell apart. The phase tint
-// now appears only where it cannot compete: as a local wash on the day-detail
-// card. Glass went with it; without a saturated backdrop to sample, glass has
-// nothing to blur and only added a second surface on top of the grid's own.
+// contrast of the very cells the user is trying to tell apart.
+//
+// So depth runs in one direction only. The grid floats, because it is the
+// content; the key sits flat on the page, because it is reference; the detail
+// card rests between them. Colour follows the same rule — the one saturated
+// surface on the screen is the band at the top of the detail card, which is
+// also the only place with enough colour behind it for glass to have anything
+// to sample.
 //
 // Months page horizontally. A tracker is scrubbed through far more often than
 // it is tapped, and arrows alone make that a chore.
@@ -49,20 +58,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   /// without ever needing to rebuild the controller.
   static const _originPage = 1200;
 
-  /// Mirrors [CycleCalendar]'s grid delegate: seven columns of fixed aspect
-  /// ratio, and always six week rows so content below the grid never shifts.
-  static const _dayAspectRatio = 0.88;
-  static const _weekRows = 6;
-
-  /// Mirrors [CycleCalendar]'s month-label and weekday type sizes. A
-  /// horizontally-paging child has to be handed a height before it can be laid
-  /// out, so this is the one place the screen depends on the grid's internals.
-  static const _monthLabelSize = 16.5;
-  static const _weekdayLabelSize = 11.5;
-
   late final PageController _pageController;
   late final DateTime _originMonth;
   late DateTime _month;
+
+  /// Month grid or twelve-month overview.
+  bool _yearMode = false;
+  late int _year = DateTime.now().year;
 
   @override
   void initState() {
@@ -84,7 +86,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   void _goToMonth(DateTime month) {
     final motion = Motion.of(context);
-    final delta = (month.year - _originMonth.year) * 12 +
+    final delta =
+        (month.year - _originMonth.year) * 12 +
         (month.month - _originMonth.month);
     final page = _originPage + delta;
 
@@ -99,6 +102,37 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       duration: motion(AppDurations.fast),
       curve: AppCurves.inOut,
     );
+  }
+
+  int _pageFor(DateTime month) =>
+      _originPage +
+      (month.year - _originMonth.year) * 12 +
+      (month.month - _originMonth.month);
+
+  /// From the year view into one month. The month pager is not in the tree
+  /// while the year view shows, so it is moved once it has been rebuilt;
+  /// jumping before that would be ignored and land on today instead.
+  void _openMonth(DateTime month) {
+    Haptics.selection();
+    setState(() {
+      _yearMode = false;
+      _month = DateTime(month.year, month.month);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(_pageFor(month));
+      }
+    });
+  }
+
+  void _setYearMode(bool year) {
+    if (year == _yearMode) return;
+    Haptics.selection();
+    setState(() {
+      _yearMode = year;
+      if (year) _year = _month.year;
+    });
+    if (!year) _openMonth(_month);
   }
 
   void _jumpToToday() {
@@ -116,7 +150,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     // "Today" is only an action when it would actually move something.
     final today = DateTime.now();
-    final alreadyOnToday = data != null &&
+    final alreadyOnToday =
+        data != null &&
         isSameDate(data.selectedDate, today) &&
         _month.year == today.year &&
         _month.month == today.month;
@@ -172,15 +207,37 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Reveal(child: _monthPager(data, weekStart, contentWidth)),
-                    const SizedBox(height: AppSpacing.lg),
-                    const Reveal(index: 1, child: _CalendarKey()),
-                    const SizedBox(height: AppSpacing.xl),
-                    Reveal(index: 2, child: _DayDetail(data: data)),
+                    _ViewToggle(year: _yearMode, onChanged: _setYearMode),
+                    const SizedBox(height: AppSpacing.md),
+                    if (_yearMode)
+                      Reveal(
+                        child: CalendarYearView(
+                          year: _year,
+                          statusFor: data.statusFor,
+                          weekStart: weekStart,
+                          onOpenMonth: _openMonth,
+                          onYearChanged: (y) => setState(() => _year = y),
+                        ),
+                      )
+                    else ...[
+                      Reveal(
+                        child: _MonthSummaryStrip(
+                          summary: MonthSummary.of(
+                            _month,
+                            statusFor: data.statusFor,
+                            hasLogFor: data.hasLogFor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Reveal(child: _monthPager(data, weekStart, contentWidth)),
+                      const SizedBox(height: AppSpacing.lg),
+                      Reveal(index: 1, child: _DayDetail(data: data)),
+                    ],
                     if (data.periods.isEmpty) ...[
                       const SizedBox(height: AppSpacing.md),
                       Reveal(
-                        index: 3,
+                        index: 2,
                         child: InfoBanner(
                           icon: Icons.water_drop_outlined,
                           title: 'No periods recorded yet',
@@ -194,6 +251,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         ),
                       ),
                     ],
+                    const SizedBox(height: AppSpacing.xl),
+                    const Reveal(index: 3, child: _CalendarKey()),
                   ],
                 ),
               ),
@@ -212,7 +271,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     double width,
   ) {
     return SizedBox(
-      height: _monthPageHeight(context, width),
+      height: CycleCalendar.pageHeight(context, width),
       child: PageView.builder(
         controller: _pageController,
         onPageChanged: (page) => setState(() => _month = _monthForPage(page)),
@@ -226,44 +285,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             // The key lives below the grid instead, where it can explain each
             // state in words without crowding the dates.
             showLegend: false,
-            onSelected:
-                ref.read(cycleTrackerControllerProvider.notifier).selectDate,
+            onSelected: ref
+                .read(cycleTrackerControllerProvider.notifier)
+                .selectDate,
             onMonthChanged: _goToMonth,
           );
         },
       ),
     );
-  }
-
-  /// Exact height of one month page: card padding, month header, weekday row,
-  /// and six week rows whose height follows from the width they are given.
-  ///
-  /// Text-scale aware, because the two label rows grow with the user's font
-  /// size even though the grid cells do not.
-  double _monthPageHeight(BuildContext context, double width) {
-    final scaler = MediaQuery.textScalerOf(context);
-
-    // AppCard's padding inside CycleCalendar when it is not compact.
-    const surface = AppSpacing.md * 2;
-
-    final cell = (width - surface) / DateTime.daysPerWeek;
-    final grid = (cell / _dayAspectRatio) * _weekRows;
-
-    // The month name wraps to a second line at large text sizes; below that the
-    // 48dp nav buttons set the floor.
-    final monthLine = scaler.scale(_monthLabelSize) * 1.45;
-    final header = math.max(AppLayout.minTouchTarget, monthLine * 2);
-    final weekdays = scaler.scale(_weekdayLabelSize) * 1.5;
-
-    return surface +
-        header +
-        AppSpacing.sm +
-        weekdays +
-        AppSpacing.xs +
-        grid +
-        // Small cushion so a type tweak inside the grid widget shows up as a
-        // few spare pixels rather than a clipped last row.
-        AppSpacing.xs;
   }
 }
 
@@ -287,10 +316,9 @@ class _CalendarLoading extends StatelessWidget {
             liveRegion: true,
             child: Text(
               'Opening your calendar',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: context.mutedColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
             ),
           ),
         ],
@@ -315,7 +343,8 @@ class _CalendarError extends StatelessWidget {
           child: EmptyState(
             icon: Icons.event_busy_rounded,
             title: 'Could not open your calendar',
-            message: 'Your saved cycles could not be read just now. Nothing '
+            message:
+                'Your saved cycles could not be read just now. Nothing '
                 'has been lost — try loading them again.',
             actionLabel: 'Try again',
             onAction: onRetry,
@@ -330,7 +359,7 @@ class _CalendarError extends StatelessWidget {
 
 /// The shape a marker takes in the grid. Shape carries the same information as
 /// colour, so the key stays readable without it: a capsule spans consecutive
-/// days, a tile marks a single one.
+/// days, a tile marks a single one, a ring marks a day that has a log.
 enum _KeyShape { range, day, dot }
 
 class _KeyEntry {
@@ -341,6 +370,9 @@ class _KeyEntry {
     this.swatch,
   });
 
+  /// One or two words. The grid's states are explained in full sentences on the
+  /// detail card; repeating those sentences here is what made the key the
+  /// tallest block on the screen.
   final String label;
   final _KeyShape shape;
 
@@ -350,11 +382,16 @@ class _KeyEntry {
   final PhaseSwatch? swatch;
 }
 
+/// The grid's marker vocabulary, compressed to one flowing row.
+///
+/// This was six swatch-and-sentence pairs in a two-column grid, which gave a
+/// reference table more vertical space than the calendar's own detail card. A
+/// key is consulted once and then never again, so it gets the quietest
+/// treatment on the page: no card, no shadow, short labels, and a single
+/// wrapping line of chips that collapses from one row to two or three as the
+/// width or the text size demands.
 class _CalendarKey extends StatelessWidget {
   const _CalendarKey();
-
-  /// Comfortable width for one entry before the key drops to fewer columns.
-  static const _columnWidth = 132.0;
 
   @override
   Widget build(BuildContext context) {
@@ -363,40 +400,36 @@ class _CalendarKey extends StatelessWidget {
 
     final entries = <_KeyEntry>[
       _KeyEntry(
-        label: 'Period logged',
+        label: 'Period',
         shape: _KeyShape.range,
         outlined: false,
         swatch: phases.period,
       ),
       _KeyEntry(
-        label: 'Period predicted',
+        label: 'Expected',
         shape: _KeyShape.range,
         outlined: true,
         swatch: phases.predicted,
       ),
       _KeyEntry(
-        label: 'Fertile window',
+        label: 'Fertile',
         shape: _KeyShape.range,
         outlined: false,
         swatch: phases.fertile,
       ),
       _KeyEntry(
-        label: 'Ovulation day',
+        label: 'Ovulation',
         shape: _KeyShape.day,
         outlined: false,
         swatch: phases.ovulation,
       ),
       _KeyEntry(
-        label: 'PMS predicted',
+        label: 'PMS',
         shape: _KeyShape.range,
         outlined: true,
         swatch: phases.luteal(),
       ),
-      const _KeyEntry(
-        label: 'Day has a log',
-        shape: _KeyShape.dot,
-        outlined: true,
-      ),
+      const _KeyEntry(label: 'Logged', shape: _KeyShape.dot, outlined: true),
     ];
 
     return Padding(
@@ -406,57 +439,49 @@ class _CalendarKey extends StatelessWidget {
         children: [
           Semantics(
             header: true,
-            child: Text(
-              'Calendar key',
-              style: textTheme.labelSmall?.copyWith(color: context.mutedColor),
+            child: Row(
+              children: [
+                Icon(
+                  AppIcons.help,
+                  size: AppSpacing.lg,
+                  color: context.subtleColor,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                // Wraps rather than running past the page on a narrow phone
+                // at large text.
+                Expanded(
+                  child: Text(
+                    'What the markers mean',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: context.mutedColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // Measured rather than derived from the page width: the entries
-              // have to fit inside this padding, and an eight-pixel overshoot
-              // is enough to drop the key to a single column.
-              //
-              // Fixed column widths mean a long label wraps inside its own
-              // column instead of stretching the row, and the count falls to
-              // one when text is large.
-              final scale = MediaQuery.textScalerOf(context).scale(12.5) / 12.5;
-              final available = constraints.maxWidth;
-              final columns =
-                  (available / (_columnWidth * scale)).floor().clamp(1, 3);
-              final itemWidth =
-                  (available - AppSpacing.md * (columns - 1)) / columns;
-
-              return Wrap(
-                spacing: AppSpacing.md,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  for (final entry in entries)
-                    SizedBox(
-                      width: itemWidth,
-                      child: MergeSemantics(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _KeySwatch(entry: entry),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Text(
-                                entry.label,
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: context.inkColor,
-                                ),
-                              ),
-                            ),
-                          ],
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.lg,
+            runSpacing: AppSpacing.md,
+            children: [
+              for (final entry in entries)
+                MergeSemantics(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _KeySwatch(entry: entry),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        entry.label,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: context.mutedColor,
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
+                    ],
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -469,7 +494,9 @@ class _KeySwatch extends StatelessWidget {
 
   final _KeyEntry entry;
 
-  static const _height = AppSpacing.lg;
+  /// Shorter than the old swatch. At label size a 16dp block is the loudest
+  /// thing in the row it is annotating.
+  static const _height = AppSpacing.md;
 
   @override
   Widget build(BuildContext context) {
@@ -477,51 +504,41 @@ class _KeySwatch extends StatelessWidget {
     final tone = swatch?.fill ?? context.accentColor;
     final border = swatch?.border ?? context.lineColor;
 
-    // The day tile's radius, scaled down to the key's smaller swatch.
-    final radius = entry.shape == _KeyShape.range
-        ? BorderRadius.circular(AppRadii.pill)
-        : BorderRadius.circular(AppRadii.compact / 2);
-
     return ExcludeSemantics(
-      child: Padding(
-        // Nudged down so a swatch lines up with the first line of its label
-        // rather than the top of the text box.
-        padding: const EdgeInsets.only(top: AppSpacing.xxs),
-        child: Container(
-          // A capsule reads as "these days run together"; a tile reads as one
-          // day on its own. That difference survives without colour.
-          width: entry.shape == _KeyShape.range
-              ? _height + AppSpacing.md
-              : _height,
-          height: _height,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: entry.shape == _KeyShape.dot
-                ? Colors.transparent
-                : entry.outlined
-                    ? swatch?.surface
-                    : tone,
-            borderRadius: radius,
-            border: entry.outlined
-                ? Border.all(color: border, width: AppStrokes.hairline)
-                : null,
+      child: Container(
+        // A capsule reads as "these days run together"; a tile reads as one
+        // day on its own. That difference survives without colour.
+        width: entry.shape == _KeyShape.range
+            ? _height + AppSpacing.sm
+            : _height,
+        height: _height,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: entry.shape == _KeyShape.dot
+              ? Colors.transparent
+              : entry.outlined
+              ? swatch?.surface
+              : tone,
+          borderRadius: BorderRadius.circular(
+            entry.shape == _KeyShape.range ? AppRadii.pill : AppRadii.connected,
           ),
-          child: entry.shape == _KeyShape.dot
-              ? Container(
-                  width: AppSpacing.xs,
-                  height: AppSpacing.xs,
-                  decoration: BoxDecoration(
-                    color: tone,
-                    shape: BoxShape.circle,
-                  ),
-                )
+          border: entry.outlined && entry.shape != _KeyShape.dot
+              ? Border.all(color: border, width: AppStrokes.hairline)
               : null,
         ),
+        // The log marker is the dot the grid paints under a day number, at the
+        // same size, so the key and the grid are recognisably the same mark.
+        child: entry.shape == _KeyShape.dot
+            ? Container(
+                width: AppSpacing.xs,
+                height: AppSpacing.xs,
+                decoration: BoxDecoration(color: tone, shape: BoxShape.circle),
+              )
+            : null,
       ),
     );
   }
 }
-
 // ─── Shared layout rule ──────────────────────────────────────────────────────
 
 /// Narrowest a labelled action stays readable, and the same for a date field.
@@ -559,49 +576,65 @@ class _DayMarker {
   static _DayMarker of(DayStatus status, PhaseColors phases) =>
       switch (status) {
         DayStatus.period => _DayMarker(
-            title: 'Period day',
-            note: 'Recorded by you, and shown filled on the calendar.',
-            icon: Icons.water_drop_rounded,
-            outlined: false,
-            swatch: phases.period,
-          ),
+          title: 'Period day',
+          note: 'Recorded by you, and shown filled on the calendar.',
+          icon: AppIcons.period,
+          outlined: false,
+          swatch: phases.period,
+        ),
+        // Same glyph as a recorded period on purpose: the forecast is the same
+        // event, and what separates it is the outlined treatment the grid and
+        // this badge both use. A second glyph would imply a second thing.
         DayStatus.predictedPeriod => _DayMarker(
-            title: 'Period expected',
-            note: 'Predicted, not recorded — outlined on the calendar.',
-            icon: Icons.water_drop_outlined,
-            outlined: true,
-            swatch: phases.predicted,
-          ),
+          title: 'Period expected',
+          note: 'Predicted, not recorded — outlined on the calendar.',
+          icon: AppIcons.period,
+          outlined: true,
+          swatch: phases.predicted,
+        ),
         DayStatus.fertile => _DayMarker(
-            title: 'Fertile window',
-            note: 'Estimated from your average cycle length.',
-            icon: Icons.eco_rounded,
-            outlined: false,
-            swatch: phases.fertile,
-          ),
+          title: 'Fertile window',
+          note: 'Estimated from your average cycle length.',
+          icon: AppIcons.fertile,
+          outlined: false,
+          swatch: phases.fertile,
+        ),
         DayStatus.ovulation => _DayMarker(
-            title: 'Ovulation estimate',
-            note: 'A single estimated day, marked on its own in the grid.',
-            icon: Icons.adjust_rounded,
-            outlined: false,
-            swatch: phases.ovulation,
-          ),
+          title: 'Ovulation estimate',
+          note: 'A single estimated day, marked on its own in the grid.',
+          icon: AppIcons.ovulation,
+          outlined: false,
+          swatch: phases.ovulation,
+        ),
         DayStatus.pms => _DayMarker(
-            title: 'PMS window',
-            note: 'Predicted premenstrual days before your next period.',
-            icon: Icons.cloud_outlined,
-            outlined: true,
-            swatch: phases.luteal(),
-          ),
+          title: 'PMS window',
+          note: 'Predicted premenstrual days before your next period.',
+          icon: AppIcons.pms,
+          outlined: true,
+          swatch: phases.luteal(),
+        ),
         DayStatus.normal => const _DayMarker(
-            title: 'No markers',
-            note: 'Nothing recorded or predicted for this day.',
-            icon: Icons.remove_circle_outline_rounded,
-            outlined: true,
-          ),
+          title: 'No markers',
+          note: 'Nothing recorded or predicted for this day.',
+          icon: AppIcons.methodNone,
+          outlined: true,
+        ),
       };
 }
 
+/// The selected day, answered in full.
+///
+/// Built as a banded card: a saturated phase strip carrying the date, the state
+/// and the cycle day, then a quiet half holding the note, the log and the
+/// actions. The previous version washed the whole card in the phase's pale
+/// surface tint, which put card and page within a few percent of the same
+/// lightness and so read as one soft field — the same mistake the home
+/// screen's first hero made. Concentrating the colour into a band and leaving
+/// the rest near-white is what gives the card an edge and a reading order.
+///
+/// That band is also the only place on this screen with enough colour behind
+/// it for a blur to sample, which is why the marker badge is the screen's one
+/// glass surface.
 class _DayDetail extends ConsumerWidget {
   const _DayDetail({required this.data});
 
@@ -625,60 +658,33 @@ class _DayDetail extends ConsumerWidget {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Announced as one unit so a screen reader hears the whole answer —
-        // date, state, cycle day — the moment a new date is chosen.
-        Semantics(
-          container: true,
-          liveRegion: true,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _MarkerBadge(marker: marker),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      dateLine,
-                      style: textTheme.labelLarge
-                          ?.copyWith(color: context.mutedColor),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      marker.title,
-                      style: textTheme.titleLarge
-                          ?.copyWith(color: context.inkColor),
-                    ),
-                  ],
-                ),
-              ),
-              if (cycleDay != null) ...[
-                const SizedBox(width: AppSpacing.sm),
-                _CycleDayPill(day: cycleDay, swatch: marker.swatch),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
         Text(
           marker.note,
-          style: textTheme.bodySmall?.copyWith(
-            color: context.isDark
-                ? context.inkColor.withOpacity(0.82)
-                : context.mutedColor,
+          style: textTheme.bodySmall?.copyWith(color: context.mutedColor),
+        ),
+        if (period == null && data.prediction != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '${data.prediction!.estimateBasis} '
+            '${data.prediction!.variationSummary}',
+            style: textTheme.bodySmall?.copyWith(color: context.mutedColor),
           ),
-        ),
-        Divider(
-          height: AppSpacing.xxl,
-          color: marker.swatch?.border ?? context.lineColor,
-        ),
+        ],
+        if (period?.excludeFromPredictions == true) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Cycle excluded from estimates. Record retained.'
+            '${period!.predictionExclusionReason == null ? '' : ' ${period.predictionExclusionReason}'}',
+            style: textTheme.bodySmall,
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
         if (log == null)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                Icons.note_add_outlined,
+                AppIcons.notes,
                 size: AppSpacing.lg,
                 color: context.subtleColor,
               ),
@@ -686,8 +692,9 @@ class _DayDetail extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Nothing logged for this day yet.',
-                  style:
-                      textTheme.bodyMedium?.copyWith(color: context.mutedColor),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: context.mutedColor,
+                  ),
                 ),
               ),
             ],
@@ -699,7 +706,7 @@ class _DayDetail extends ConsumerWidget {
           builder: (context, constraints) {
             final logButton = PrimaryButton(
               label: log == null ? 'Add log' : 'Edit log',
-              icon: Icons.edit_note_rounded,
+              icon: AppIcons.notes,
               // Declarative navigation, so the Log tab, the back gesture and
               // the shell's transitions all behave the way they do everywhere
               // else. The log reads the same selected date this card shows.
@@ -707,7 +714,7 @@ class _DayDetail extends ConsumerWidget {
             );
             final periodButton = PrimaryButton(
               label: period == null ? 'Mark period' : 'Edit dates',
-              icon: Icons.water_drop_rounded,
+              icon: AppIcons.period,
               outlined: true,
               onPressed: () => _openPeriodEditor(context, ref, data, period),
             );
@@ -745,13 +752,25 @@ class _DayDetail extends ConsumerWidget {
       ],
     );
 
-    final swatch = marker.swatch;
+    final radius = BorderRadius.circular(AppRadii.card);
 
-    // The phase wash is scoped to this card, where it labels the day without
-    // tinting the grid it is describing.
-    return swatch == null
-        ? AppCard(child: body)
-        : PhaseCard(swatch: swatch, child: body);
+    return AppCard(
+      // Raised, not floating: the grid above is the screen's lead surface, and
+      // two lifted cards on one page is the same as neither being lifted.
+      emphasis: CardEmphasis.raised,
+      padding: EdgeInsets.zero,
+      borderRadius: radius,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _DayBand(marker: marker, dateLine: dateLine, cycleDay: cycleDay),
+            Padding(padding: AppInsets.card, child: body),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Cycle day for an arbitrary date, counted from the period that opened it.
@@ -761,8 +780,7 @@ class _DayDetail extends ConsumerWidget {
     final target = dateOnly(date);
     final starts = <DateTime>{
       for (final period in data.periods) dateOnly(period.startDate),
-    }.toList()
-      ..sort((a, b) => b.compareTo(a));
+    }.toList()..sort((a, b) => b.compareTo(a));
 
     for (final start in starts) {
       if (!start.isAfter(target)) {
@@ -781,7 +799,8 @@ class _DayDetail extends ConsumerWidget {
     final confirmed = await confirmAction(
       context,
       title: 'Remove this period?',
-      message: 'The recorded dates will be deleted and your predictions '
+      message:
+          'The recorded dates will be deleted and your predictions '
           'will be recalculated without them.',
       confirmLabel: 'Remove',
     );
@@ -789,84 +808,226 @@ class _DayDetail extends ConsumerWidget {
 
     await controller.deletePeriod(period.id);
     if (!context.mounted) return;
-    showAppToast(
-      context,
-      message: 'Period removed',
-      kind: ToastKind.info,
-    );
+    showAppToast(context, message: 'Period removed', kind: ToastKind.info);
   }
 }
 
-class _MarkerBadge extends StatelessWidget {
-  const _MarkerBadge({required this.marker});
+/// The detail card's coloured strip: date, state, cycle day.
+///
+/// A marked day takes the phase's *hero* stops rather than its pale gradient.
+/// Those are the two-stop sets picked so white ink clears 4.5:1 — the contrast
+/// table on `AppColors.menstrualHero` lists the figures — and they are the only
+/// phase colours in the system allowed under white text.
+///
+/// An unmarked day has no phase, so it gets no colour either: a quiet neutral
+/// strip in page ink. Inventing a hue for "nothing here" would make the one
+/// state meaning *absence* the loudest in the set, and the palette accent is
+/// not safe under white text across all eight themes.
+class _DayBand extends StatelessWidget {
+  const _DayBand({
+    required this.marker,
+    required this.dateLine,
+    required this.cycleDay,
+  });
 
   final _DayMarker marker;
+  final String dateLine;
+  final int? cycleDay;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final dark = context.isDark;
     final swatch = marker.swatch;
+    final ink = HeroInk.of(context);
 
-    return ExcludeSemantics(
-      child: Container(
-        width: AppSpacing.huge,
-        height: AppSpacing.huge,
-        alignment: Alignment.center,
+    final onColor = swatch != null;
+    final primary = onColor ? ink.primary : context.inkColor;
+    final secondary = onColor ? ink.secondary : context.mutedColor;
+
+    // Announced as one unit so a screen reader hears the whole answer — date,
+    // state, cycle day — the moment a new date is chosen.
+    final content = Semantics(
+      container: true,
+      liveRegion: true,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _MarkerBadge(marker: marker, onColor: onColor),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateLine,
+                  style: text.labelMedium?.copyWith(color: secondary),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  marker.title,
+                  style: text.titleLarge?.copyWith(
+                    color: primary,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (cycleDay != null) ...[
+            const SizedBox(width: AppSpacing.md),
+            // Plain type rather than a chip. A translucent plate here would
+            // lighten the gradient under its own label, and the hero stops'
+            // contrast margin has nothing spare to pay for that.
+            Semantics(
+              label: 'Cycle day $cycleDay',
+              excludeSemantics: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Cycle day',
+                    style: text.labelSmall?.copyWith(color: secondary),
+                  ),
+                  Text(
+                    '$cycleDay',
+                    style: text.headlineSmall?.copyWith(
+                      color: primary,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (!onColor) {
+      return DecoratedBox(
         decoration: BoxDecoration(
-          color: marker.outlined
-              ? swatch?.surface ?? Colors.transparent
-              : swatch?.fill ?? context.accentColor,
-          borderRadius: BorderRadius.circular(AppRadii.compact),
-          border: marker.outlined
-              ? Border.all(
-                  color: swatch?.border ?? context.lineColor,
-                  width: AppStrokes.selected,
-                )
-              : null,
+          color: dark
+              ? context.elevatedCardColor
+              : context.lineColor.withOpacity(0.38),
+          border: Border(
+            bottom: BorderSide(
+              color: context.lineColor,
+              width: AppStrokes.hairline,
+            ),
+          ),
         ),
-        child: Icon(
-          marker.icon,
-          size: AppSpacing.xl,
-          color: marker.outlined
-              ? swatch?.text ?? context.mutedColor
-              : swatch?.onFill ?? Theme.of(context).colorScheme.onPrimary,
+        child: Padding(padding: AppInsets.card, child: content),
+      );
+    }
+
+    // Deepened toward the page in dark mode, for the reason [PhaseHero] gives:
+    // the hero stops are tuned to lead a cream page, and a block that bright
+    // over a near-black canvas glares rather than leads.
+    final stops = dark
+        ? <Color>[
+            Color.lerp(swatch.hero.first, AppColors.darkBg, 0.34)!,
+            Color.lerp(swatch.hero.last, AppColors.darkBg, 0.52)!,
+          ]
+        : swatch.hero;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: stops,
         ),
+      ),
+      child: Stack(
+        children: [
+          // Off-centre highlight, held at the hero's own 0.10 ceiling. The
+          // contrast figures those stops were chosen for assume this wash, so
+          // a brighter one silently breaks them.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.5, -0.9),
+                    radius: 1.3,
+                    colors: [
+                      Colors.white.withOpacity(dark ? 0.07 : 0.10),
+                      Colors.white.withOpacity(0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(padding: AppInsets.card, child: content),
+        ],
       ),
     );
   }
 }
 
-class _CycleDayPill extends StatelessWidget {
-  const _CycleDayPill({required this.day, required this.swatch});
+/// The state's glyph, as a 48dp plate.
+///
+/// On the coloured band this is the screen's one glass surface: there is a
+/// saturated gradient behind it to blur and resaturate, which is the condition
+/// [GlassSurface] exists for. It carries an icon and never text — the glass
+/// fill lightens the gradient under it, which still clears the 3:1 floor a
+/// graphical object needs but not the 4.5:1 a label needs, so the words stay
+/// on the bare gradient beside it.
+///
+/// Off the band there is nothing to sample, so it falls back to a flat
+/// hairline-bordered plate rather than rendering as the grey box glass becomes
+/// on a near-white surface.
+class _MarkerBadge extends StatelessWidget {
+  const _MarkerBadge({required this.marker, required this.onColor});
 
-  final int day;
-  final PhaseSwatch? swatch;
+  final _DayMarker marker;
+
+  /// True when this badge sits on the band's phase gradient.
+  final bool onColor;
 
   @override
   Widget build(BuildContext context) {
-    final tone = swatch?.fill ?? context.accentColor;
+    final radius = BorderRadius.circular(AppRadii.control);
+    final swatch = marker.swatch;
 
-    return Semantics(
-      label: 'Cycle day $day',
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
+    if (onColor) {
+      return ExcludeSemantics(
+        child: GlassSurface(
+          borderRadius: radius,
+          padding: EdgeInsets.zero,
+          child: SizedBox.square(
+            dimension: AppLayout.minTouchTarget,
+            child: Center(
+              child: Icon(
+                marker.icon,
+                size: AppSpacing.xl,
+                color: HeroInk.of(context).primary,
+              ),
+            ),
+          ),
         ),
+      );
+    }
+
+    return ExcludeSemantics(
+      child: Container(
+        width: AppLayout.minTouchTarget,
+        height: AppLayout.minTouchTarget,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: context.cardColor,
-          borderRadius: BorderRadius.circular(AppRadii.compact),
+          borderRadius: radius,
           border: Border.all(
             color: swatch?.border ?? context.lineColor,
             width: AppStrokes.hairline,
           ),
         ),
-        child: Text(
-          'Day $day',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: swatch?.text ?? tone,
-              ),
+        child: Icon(
+          marker.icon,
+          size: AppSpacing.xl,
+          color: swatch?.text ?? context.mutedColor,
         ),
       ),
     );
@@ -884,29 +1045,25 @@ class _LogSummary extends StatelessWidget {
 
     final entries = <({IconData icon, String text})>[
       if (log.flow != null && log.flow != FlowIntensity.none)
-        (icon: Icons.water_drop_rounded, text: 'Flow: ${log.flow!.label}'),
+        (icon: AppIcons.flow, text: 'Flow: ${log.flow!.label}'),
       if (log.mood != null && log.mood!.isNotEmpty)
-        (icon: Icons.mood_rounded, text: 'Mood: ${log.mood}'),
+        (icon: AppIcons.moodEnergetic, text: 'Mood: ${log.mood}'),
       if (log.symptoms.isNotEmpty)
-        (icon: Icons.healing_rounded, text: log.symptoms.join(', ')),
-      if (log.painLevel > 0)
-        (icon: Icons.monitor_heart_rounded, text: 'Pain ${log.painLevel}/10'),
+        (icon: AppIcons.pain, text: log.symptoms.join(', ')),
+      if ((log.painLevel ?? 0) > 0)
+        (icon: AppIcons.symptoms, text: 'Pain ${log.painLevel}/10'),
       if (log.temperatureCelsius != null)
         (
-          icon: Icons.thermostat_rounded,
+          icon: AppIcons.temperature,
           text: '${log.temperatureCelsius!.toStringAsFixed(2)} °C',
         ),
       if (log.weightKg != null)
-        (
-          icon: Icons.monitor_weight_rounded,
-          text: '${log.weightKg!.toStringAsFixed(1)} kg',
-        ),
+        (icon: AppIcons.weight, text: '${log.weightKg!.toStringAsFixed(1)} kg'),
       if (log.sleepHours != null)
-        (icon: Icons.bedtime_rounded, text: '${log.sleepHours}h sleep'),
-      if (log.waterMl > 0)
-        (icon: Icons.local_drink_rounded, text: '${log.waterMl} ml water'),
-      if (log.notes.isNotEmpty)
-        (icon: Icons.sticky_note_2_rounded, text: log.notes),
+        (icon: AppIcons.sleep, text: '${log.sleepHours}h sleep'),
+      if ((log.waterMl ?? 0) > 0)
+        (icon: AppIcons.water, text: '${log.waterMl} ml water'),
+      if (log.notes.isNotEmpty) (icon: AppIcons.notes, text: log.notes),
     ];
 
     if (entries.isEmpty) {
@@ -967,15 +1124,16 @@ Future<void> _openPeriodEditor(
 ) async {
   final controller = ref.read(cycleTrackerControllerProvider.notifier);
   final defaultStart = existing?.startDate ?? data.selectedDate;
-  final defaultEnd = existing?.endDate ??
-      data.selectedDate.add(
-        Duration(days: data.preferences.averagePeriodLength - 1),
-      );
+  final defaultEnd = existing?.endDate;
 
   final result = await showAppSheet<_PeriodRange>(
     context: context,
     title: existing == null ? 'Mark period' : 'Edit period dates',
-    child: _PeriodEditor(start: defaultStart, end: defaultEnd),
+    child: _PeriodEditor(
+      start: defaultStart,
+      end: defaultEnd,
+      existing: existing,
+    ),
   );
   if (result == null) return;
 
@@ -984,6 +1142,10 @@ Future<void> _openPeriodEditor(
     startDate: result.start,
     endDate: result.end,
     flow: result.flow,
+    symptoms: existing?.symptoms ?? const [],
+    notes: existing?.notes ?? '',
+    excludeFromPredictions: result.excluded,
+    predictionExclusionReason: result.reason,
   );
 
   if (!context.mounted) return;
@@ -994,11 +1156,19 @@ Future<void> _openPeriodEditor(
 }
 
 class _PeriodRange {
-  const _PeriodRange(this.start, this.end, this.flow);
+  const _PeriodRange(
+    this.start,
+    this.end,
+    this.flow,
+    this.excluded,
+    this.reason,
+  );
 
   final DateTime start;
-  final DateTime end;
+  final DateTime? end;
   final FlowIntensity flow;
+  final bool excluded;
+  final String? reason;
 }
 
 /// Start/end/flow editor for a period.
@@ -1007,10 +1177,11 @@ class _PeriodRange {
 /// from the average. Guessing is fine for a prediction; it is not fine for a
 /// record the predictions are then computed from.
 class _PeriodEditor extends StatefulWidget {
-  const _PeriodEditor({required this.start, required this.end});
+  const _PeriodEditor({required this.start, required this.end, this.existing});
 
   final DateTime start;
-  final DateTime end;
+  final DateTime? end;
+  final CycleEvent? existing;
 
   @override
   State<_PeriodEditor> createState() => _PeriodEditorState();
@@ -1019,13 +1190,28 @@ class _PeriodEditor extends StatefulWidget {
 class _PeriodEditorState extends State<_PeriodEditor> {
   late DateTime _start;
   late DateTime _end;
+  late bool _endRecorded;
   FlowIntensity _flow = FlowIntensity.medium;
+  bool _excluded = false;
+  late final TextEditingController _reason;
 
   @override
   void initState() {
     super.initState();
     _start = dateOnly(widget.start);
-    _end = dateOnly(widget.end);
+    _end = dateOnly(widget.end ?? widget.start);
+    _endRecorded = widget.end != null;
+    _flow = widget.existing?.flow ?? FlowIntensity.medium;
+    _excluded = widget.existing?.excludeFromPredictions ?? false;
+    _reason = TextEditingController(
+      text: widget.existing?.predictionExclusionReason ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
   }
 
   Future<void> _pick({required bool isStart}) async {
@@ -1066,6 +1252,7 @@ class _PeriodEditorState extends State<_PeriodEditor> {
               value: _start,
               onTap: () => _pick(isStart: true),
             );
+            if (!_endRecorded) return started;
             final ended = _DateField(
               label: 'Ended',
               value: _end,
@@ -1090,9 +1277,22 @@ class _PeriodEditorState extends State<_PeriodEditor> {
             );
           },
         ),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('End date recorded'),
+          subtitle: const Text(
+            'Switch on only when you know when bleeding ended.',
+          ),
+          value: _endRecorded,
+          onChanged: (value) => setState(() => _endRecorded = value),
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          days == 1 ? '1 day' : '$days days',
+          !_endRecorded
+              ? 'Duration unknown — end not recorded'
+              : days == 1
+              ? '1 day'
+              : '$days days',
           style: textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w700,
             color: context.mutedColor,
@@ -1112,7 +1312,9 @@ class _PeriodEditorState extends State<_PeriodEditor> {
           runSpacing: AppSpacing.sm,
           children: [
             for (final flow in FlowIntensity.values)
-              if (flow != FlowIntensity.none)
+              // Very heavy is stored and shown, but has no control until the
+              // redesigned flow picker ships.
+              if (flow != FlowIntensity.none && flow != FlowIntensity.veryHeavy)
                 SelectableChip(
                   label: flow.label,
                   selected: _flow == flow,
@@ -1121,12 +1323,38 @@ class _PeriodEditorState extends State<_PeriodEditor> {
                 ),
           ],
         ),
+        const SizedBox(height: AppSpacing.lg),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Exclude this cycle from estimates'),
+          subtitle: const Text(
+            'From this period start to the next. Your record '
+            'stays visible; neighbouring cycles are never joined.',
+          ),
+          value: _excluded,
+          onChanged: (value) => setState(() => _excluded = value),
+        ),
+        if (_excluded)
+          TextField(
+            controller: _reason,
+            maxLength: 200,
+            decoration: const InputDecoration(labelText: 'Reason (optional)'),
+          ),
         const SizedBox(height: AppSpacing.xxl),
         PrimaryButton(
           label: 'Save period',
           icon: Icons.check_rounded,
-          onPressed: () =>
-              Navigator.of(context).pop(_PeriodRange(_start, _end, _flow)),
+          onPressed: () => Navigator.of(context).pop(
+            _PeriodRange(
+              _start,
+              _endRecorded ? _end : null,
+              _flow,
+              _excluded,
+              _excluded && _reason.text.trim().isNotEmpty
+                  ? _reason.text.trim()
+                  : null,
+            ),
+          ),
         ),
       ],
     );
@@ -1183,6 +1411,150 @@ class _DateField extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─── Month summary ───────────────────────────────────────────────────────────
+
+/// Three counts for the month on screen. Recorded and forecast period days are
+/// separate numbers, so an estimate is never presented as a record.
+class _MonthSummaryStrip extends StatelessWidget {
+  const _MonthSummaryStrip({required this.summary});
+
+  final MonthSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final phases = PhaseColors.of(context);
+    final period = summary.periodDays > 0
+        ? '${summary.periodDays}'
+        : summary.predictedPeriodDays > 0
+        ? '~${summary.predictedPeriodDays}'
+        : '0';
+    final periodLabel =
+        summary.periodDays > 0 || summary.predictedPeriodDays == 0
+        ? 'Period days'
+        : 'Expected period';
+
+    return Row(
+      children: [
+        Expanded(
+          child: _SummaryTile(
+            icon: AppIcons.period,
+            swatch: phases.period,
+            value: period,
+            label: periodLabel,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _SummaryTile(
+            icon: AppIcons.fertile,
+            swatch: phases.fertile,
+            value: '${summary.fertileDays}',
+            label: 'Fertile days',
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _SummaryTile(
+            icon: AppIcons.notes,
+            swatch: phases.ovulation,
+            value: '${summary.loggedDays}',
+            label: 'Days logged',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SummaryTile extends StatelessWidget {
+  const _SummaryTile({
+    required this.icon,
+    required this.swatch,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final PhaseSwatch swatch;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      container: true,
+      label: '$label: $value',
+      child: ExcludeSemantics(
+        child: AppCard(
+          emphasis: CardEmphasis.raised,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 16, color: swatch.text),
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(
+                      value,
+                      style: text.titleLarge?.copyWith(
+                        color: context.inkColor,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: text.labelSmall?.copyWith(color: context.mutedColor),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Month / Year toggle ─────────────────────────────────────────────────────
+
+class _ViewToggle extends StatelessWidget {
+  const _ViewToggle({required this.year, required this.onChanged});
+
+  final bool year;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<bool>(
+      showSelectedIcon: false,
+      segments: const [
+        ButtonSegment(
+          value: false,
+          label: Text('Month'),
+          icon: Icon(Icons.calendar_view_month_rounded),
+        ),
+        ButtonSegment(
+          value: true,
+          label: Text('Year'),
+          icon: Icon(Icons.calendar_view_week_rounded),
+        ),
+      ],
+      selected: {year},
+      onSelectionChanged: (v) => onChanged(v.first),
     );
   }
 }

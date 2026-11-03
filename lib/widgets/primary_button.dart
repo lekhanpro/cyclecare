@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/services/haptics.dart';
+import '../core/theme/app_accents.dart';
 import '../core/theme/app_motion.dart';
+import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_tokens.dart';
 import '../core/theme/phase_colors.dart';
 import 'motion.dart';
@@ -30,16 +32,22 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final motion = Motion.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final tone = destructive ? scheme.error : scheme.primary;
+    final accent = context.accent;
+    final brightness = Theme.of(context).brightness;
+    final danger = AccentRoles.destructive(brightness);
+    final dangerText = AccentRoles.dangerText(brightness);
     final hasAction = onPressed != null;
     final enabled = hasAction && !loading;
+    // Filled: `.primary` (accent fill + measured onFill). Outlined: the
+    // design's `.secondary` hairline variant, accent text on paper.
+    final fillTone = destructive ? danger.$1 : accent.fill;
+    final textTone = destructive ? dangerText : accent.text;
     final activeForeground = outlined
-        ? tone
-        : (destructive ? scheme.onError : scheme.onPrimary);
+        ? textTone
+        : (destructive ? danger.$2 : accent.onFill);
     final foreground = hasAction || loading
         ? activeForeground
-        : scheme.onSurface.withOpacity(0.38);
+        : context.inkColor.withOpacity(0.38);
 
     final labelContent = Row(
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
@@ -54,12 +62,11 @@ class PrimaryButton extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: AppTextStyles.body(
               fontSize: 15,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.1,
-              color: foreground,
-            ),
+              height: 1.25,
+              fontWeight: FontWeight.w600,
+            ).copyWith(color: foreground),
           ),
         ),
       ],
@@ -90,13 +97,15 @@ class PrimaryButton extends StatelessWidget {
 
     final radius = BorderRadius.circular(AppRadii.control);
     final background = outlined
-        ? Colors.transparent
+        ? context.cardColor
         : hasAction
-            ? tone
-            : scheme.onSurface.withOpacity(0.12);
-    final borderColor = hasAction
-        ? tone
-        : scheme.onSurface.withOpacity(0.18);
+            ? fillTone
+            : context.inkColor.withOpacity(0.10);
+    final borderColor = !hasAction
+        ? context.inkColor.withOpacity(0.14)
+        : destructive
+            ? dangerText
+            : context.lineColor;
 
     final surface = AnimatedContainer(
       duration: motion(AppDurations.fast),
@@ -109,18 +118,11 @@ class PrimaryButton extends StatelessWidget {
         border: outlined
             ? Border.all(
                 color: borderColor,
-                width: AppStrokes.selected,
+                width: AppStrokes.hairline,
               )
             : null,
-        boxShadow: outlined || !enabled
-            ? null
-            : [
-                BoxShadow(
-                  color: tone.withOpacity(context.isDark ? 0.22 : 0.16),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+        // The design's `.primary` is flat; depth comes from the fill alone.
+        boxShadow: null,
       ),
       child: Center(child: content),
     );

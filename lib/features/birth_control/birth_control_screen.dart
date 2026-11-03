@@ -151,7 +151,7 @@ class _Body extends ConsumerWidget {
             children: [
               Expanded(
                 child: StatTile(
-                  label: 'Current streak',
+                  label: 'Streak',
                   value: '$currentStreak',
                   unit: currentStreak == 1 ? 'day' : 'days',
                   icon: Icons.local_fire_department_rounded,
@@ -212,8 +212,7 @@ class _Body extends ConsumerWidget {
         Reveal(
           index: index++,
           child: ActionTile(
-            icon: Icons.help_outline_rounded,
-            emoji: '❓',
+            icon: AppIcons.help,
             title: 'Missed a pill or a dose?',
             subtitle: 'Where to get an answer for your product',
             onTap: () => _showMissedPillSheet(context, ref),
@@ -494,7 +493,7 @@ class _MethodHero extends StatelessWidget {
               color: accent.withOpacity(context.isDark ? 0.22 : 0.11),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Text(method.emoji, style: const TextStyle(fontSize: 26)),
+            child: Icon(method.icon, size: 26, color: accent),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -669,10 +668,7 @@ class _TodayCard extends StatelessWidget {
                         size: 24,
                         color: swatch.text,
                       )
-                    : Text(
-                        bc.method.emoji,
-                        style: const TextStyle(fontSize: 21),
-                      ),
+                    : Icon(bc.method.icon, size: 21, color: swatch.text),
               ),
               const SizedBox(width: 13),
               Expanded(
@@ -729,12 +725,10 @@ class _TodayCard extends StatelessWidget {
               ),
               const Spacer(),
               if (streak > 0)
-                Text(
-                  '🔥',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: context.inkColor,
-                  ),
+                const Icon(
+                  AppIcons.streak,
+                  size: 20,
+                  color: AppColors.luteal,
                 ),
             ],
           ),
@@ -1419,7 +1413,7 @@ class _MethodOption extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(method.emoji, style: const TextStyle(fontSize: 20)),
+              Icon(method.icon, size: 20, color: context.accentColor),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -1515,7 +1509,7 @@ class _MissedPillSheet extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         const _SourceTile(
-          emoji: '📄',
+          icon: AppIcons.document,
           title: 'The leaflet that came with your pack',
           body:
               'The patient information leaflet is written for your specific '
@@ -1524,7 +1518,7 @@ class _MissedPillSheet extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         const _SourceTile(
-          emoji: '🧑‍⚕️',
+          icon: AppIcons.clinician,
           title: 'A pharmacist or your clinician',
           body:
               'A pharmacist can usually answer the same day and without an '
@@ -1570,12 +1564,12 @@ class _MissedPillSheet extends StatelessWidget {
 
 class _SourceTile extends StatelessWidget {
   const _SourceTile({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.body,
   });
 
-  final String emoji;
+  final IconData icon;
   final String title;
   final String body;
 
@@ -1587,7 +1581,7 @@ class _SourceTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
+          Icon(icon, size: 20, color: context.accentColor),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1637,7 +1631,7 @@ class _AboutSheet extends StatelessWidget {
         ),
         SizedBox(height: 16),
         _SourceTile(
-          emoji: '🚫',
+          icon: AppIcons.blocked,
           title: 'What this screen will not do',
           body:
               'It does not state doses, does not tell you when or whether to take '
@@ -1646,7 +1640,7 @@ class _AboutSheet extends StatelessWidget {
         ),
         SizedBox(height: 10),
         _SourceTile(
-          emoji: '✅',
+          icon: AppIcons.success,
           title: 'What it does do',
           body:
               'Keeps a record of the days you check in, shows where you are in a '
@@ -1655,7 +1649,7 @@ class _AboutSheet extends StatelessWidget {
         ),
         SizedBox(height: 10),
         _SourceTile(
-          emoji: '🔒',
+          icon: AppIcons.privacy,
           title: 'Where your records live',
           body:
               'Check-ins, method and pack settings are stored on this device only. '

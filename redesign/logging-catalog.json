@@ -1,0 +1,2973 @@
+{
+  "title": "CycleCare comprehensive daily logging redesign",
+  "version": "2026-11-02",
+  "scope": "Design and interaction prototype only; not the Flutter implementation",
+  "source_of_truth": {
+    "live_options": "lib/features/tracking/domain/tracking_options.dart",
+    "persisted_fields": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+    "legacy_constants": "lib/core/constants/app_constants.dart",
+    "existing_ui": "lib/features/tracking/presentation/log_screen.dart"
+  },
+  "field_semantics": {
+    "not_logged": "Missing/null/empty is no observation, never automatically a negative finding.",
+    "none": "Explicit observation of none where an appropriate choice is present.",
+    "unknown": "Not sure/unclear is an explicit uncertain observation; never converted to negative.",
+    "single_mood": "Current model stores one mood. Multi-mood persistence is future work.",
+    "optional": "Every health observation is optional. Do not silently save the example values in production.",
+    "legacy_migrations": "painLevel, waterMl and medicineTaken currently conflate default/absent values; implement proper optional states and migrations before shipping this UI."
+  },
+  "required_storage_first": [
+    "Add nullable observation semantics and migrate existing data without inventing history.",
+    "Add explicit fields and serialization for planned structured features.",
+    "Update export/import schema, validation and local encryption/privacy rules where applicable.",
+    "Preserve custom symptom tags and all existing values.",
+    "Then build the unified redesigned Flutter controls, selection summaries and reduced-motion transitions."
+  ],
+  "date_field": {
+    "id": "date",
+    "label": "Log date",
+    "icon": "calendar",
+    "type": "date",
+    "implementation": "implemented",
+    "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+    "required": true
+  },
+  "groups": [
+    {
+      "id": "flow",
+      "title": "Flow",
+      "icon": "flow",
+      "tone": "",
+      "fields": [
+        {
+          "id": "flow",
+          "label": "Flow",
+          "icon": "flow",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "showLabel": false,
+          "preview": 5,
+          "options": [
+            {
+              "label": "None",
+              "icon": "circle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "Spotting",
+              "icon": "spotting",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "Light",
+              "icon": "flow",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "Medium",
+              "icon": "period",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "Heavy",
+              "icon": "waves",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+              "reference_sources": [
+                "references/my-calendar-emulator/43-all-symptoms-bottom.xml"
+              ],
+              "aliases": [
+                "Heavy flow"
+              ]
+            },
+            {
+              "label": "Very heavy",
+              "icon": "bloodTest",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Legacy constant only; not part of FlowIntensity enum. Extend serialization and migrate before implementation."
+            }
+          ]
+        }
+      ],
+      "model_notes": "None is an explicit observation; null is not logged. Very heavy is planned only."
+    },
+    {
+      "id": "mood",
+      "title": "How are you feeling?",
+      "icon": "moodCalm",
+      "tone": "sage",
+      "fields": [
+        {
+          "id": "mood",
+          "label": "Mood",
+          "icon": "moodCalm",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "showLabel": false,
+          "preview": 4,
+          "note": "Choose what fits. Tap again to leave it unlogged.",
+          "options": [
+            {
+              "label": "Happy",
+              "icon": "moodHappy",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Calm",
+              "icon": "moodCalm",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Energetic",
+              "icon": "moodEnergetic",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Sensitive",
+              "icon": "wellbeing",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Sad",
+              "icon": "moodSad",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Anxious",
+              "icon": "moodAnxious",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "reference_sources": [
+                "references/my-calendar-emulator/44-all-symptoms-general.xml"
+              ],
+              "aliases": [
+                "Anxiety"
+              ],
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Irritable",
+              "icon": "moodIrritable",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "reference_sources": [
+                "references/my-calendar-emulator/44-all-symptoms-general.xml"
+              ],
+              "aliases": [
+                "Irritability"
+              ],
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Emotional",
+              "icon": "cuddle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Focused",
+              "icon": "moodFocused",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Stressed",
+              "icon": "energy",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "reference_sources": [
+                "references/my-calendar-emulator/44-all-symptoms-general.xml"
+              ],
+              "aliases": [
+                "Stress"
+              ],
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Tired",
+              "icon": "moodSleepy",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Defined in legacy constants, not in the current tracking_options.dart UI.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Mood swings",
+              "icon": "compare",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Defined in legacy constants, not in the current tracking_options.dart UI.",
+              "reference_sources": [
+                "references/my-calendar-emulator/44-all-symptoms-general.xml"
+              ],
+              "aliases": [
+                "Moodiness"
+              ],
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Confident",
+              "icon": "moodExcited",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Defined in legacy constants, not in the current tracking_options.dart UI.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Confusion",
+              "icon": "moodNeutral",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/44-all-symptoms-general.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Tension",
+              "icon": "waves",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/44-all-symptoms-general.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Sleepy",
+              "icon": "moodSleepy",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/51-day-log-symptoms-mood.xml",
+              "note": "Observed competitor mood label; not a diagnosis. Add explicit local option support before shipping.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Exhausted",
+              "icon": "battery",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/51-day-log-symptoms-mood.xml",
+              "note": "Observed competitor mood label; not a diagnosis. Add explicit local option support before shipping.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Normal",
+              "icon": "moodNeutral",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/51-day-log-symptoms-mood.xml",
+              "note": "Observed competitor mood label; not a diagnosis. Add explicit local option support before shipping.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Depressed",
+              "icon": "moodSad",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/51-day-log-symptoms-mood.xml",
+              "note": "Observed competitor mood label; not a diagnosis. Add explicit local option support before shipping.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Surprised",
+              "icon": "moodExcited",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Worried",
+              "icon": "moodAnxious",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Stunned",
+              "icon": "moodNeutral",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Accomplished",
+              "icon": "trophy",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Smug",
+              "icon": "moodCalm",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Indifferent",
+              "icon": "moodNeutral",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Sexy",
+              "icon": "cuddle",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Assertive",
+              "icon": "goalTrack",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Impatient",
+              "icon": "clock",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Pensive",
+              "icon": "headache",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Weird",
+              "icon": "dizzy",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "General"
+            },
+            {
+              "label": "Excited",
+              "icon": "moodExcited",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Hopeful",
+              "icon": "ovulation",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Horny",
+              "icon": "cuddle",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "In love",
+              "icon": "partner",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Peaceful",
+              "icon": "moodCalm",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Playful",
+              "icon": "moodEnergetic",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Proud",
+              "icon": "medal",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Relaxed",
+              "icon": "sleep",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Satisfied",
+              "icon": "moodHappy",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Silly",
+              "icon": "moodExcited",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Hyped",
+              "icon": "moodEnergetic",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Positive"
+            },
+            {
+              "label": "Jealous",
+              "icon": "moodIrritable",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Frustrated",
+              "icon": "moodIrritable",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Angry",
+              "icon": "moodIrritable",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Grumpy",
+              "icon": "moodIrritable",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Cranky",
+              "icon": "moodIrritable",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Disappointed",
+              "icon": "moodSad",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Tormented",
+              "icon": "moodAnxious",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Insecure",
+              "icon": "moodAnxious",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Bored",
+              "icon": "moodNeutral",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Lonely",
+              "icon": "moodSad",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Panicky",
+              "icon": "moodAnxious",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Ashamed",
+              "icon": "moodSad",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            },
+            {
+              "label": "Ill",
+              "icon": "sick",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+              "note": "Observed competitor mood label. Subjective self-report, not a clinical diagnosis; implement the local option before release.",
+              "nativeMoodSection": "Negative"
+            }
+          ]
+        }
+      ],
+      "model_notes": "Current DailyLog persists one mood. Multiple simultaneous moods require a schema migration and are not implied by this preview."
+    },
+    {
+      "id": "symptoms",
+      "title": "Symptoms & little signals",
+      "icon": "symptoms",
+      "tone": "peach",
+      "description": "Choose a few, or leave this space empty. Your experience is the guide.",
+      "fields": [
+        {
+          "id": "symptomsBody",
+          "label": "Aches & body signals",
+          "icon": "pain",
+          "type": "multi",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "storageKey": "symptoms",
+          "preview": 6,
+          "options": [
+            {
+              "label": "Cramps",
+              "icon": "cramps",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "reference_sources": [
+                "references/my-calendar-emulator/41-all-symptoms-top.xml"
+              ],
+              "aliases": [
+                "Abdominal cramps"
+              ]
+            },
+            {
+              "label": "Headache",
+              "icon": "headache",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Back pain",
+              "icon": "backPain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "aliases": [
+                "Backache"
+              ],
+              "reference_sources": [
+                "references/my-calendar-emulator/41-all-symptoms-top.xml"
+              ]
+            },
+            {
+              "label": "Tender breasts",
+              "icon": "breast",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "aliases": [
+                "Breast tenderness"
+              ],
+              "reference_sources": [
+                "references/my-calendar-emulator/42-all-symptoms-middle.xml"
+              ]
+            },
+            {
+              "label": "Dizziness",
+              "icon": "dizzy",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Pelvic discomfort",
+              "icon": "pelvis",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Migraine",
+              "icon": "warning",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Joint pain",
+              "icon": "pain",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Muscle pain",
+              "icon": "exercise",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Lower back tension",
+              "icon": "backPain",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Pelvic pressure",
+              "icon": "pelvis",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Weight gain",
+              "icon": "weight",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/41-all-symptoms-top.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Body aches",
+              "icon": "pain",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Breast sensitivity",
+              "icon": "breast",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Neck pain",
+              "icon": "backPain",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Shoulder pain",
+              "icon": "exercise",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Ovulation pain",
+              "icon": "pelvis",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Bleeding",
+              "icon": "period",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Breast texture changes",
+              "icon": "breast",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Vaginal dryness",
+              "icon": "discharge",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Vaginal irritation",
+              "icon": "pelvis",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            }
+          ]
+        },
+        {
+          "id": "symptomsDigestion",
+          "label": "Digestion & appetite",
+          "icon": "digestion",
+          "type": "multi",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "storageKey": "symptoms",
+          "preview": 6,
+          "options": [
+            {
+              "label": "Bloating",
+              "icon": "bloating",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Nausea",
+              "icon": "nausea",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Cravings",
+              "icon": "cookie",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Digestive changes",
+              "icon": "digestion",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Constipation",
+              "icon": "hourglass",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Diarrhea",
+              "icon": "waves",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Appetite changes",
+              "icon": "nutrition",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Heartburn",
+              "icon": "hotFlash",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option",
+              "reference_sources": [
+                "references/my-calendar-emulator/43-all-symptoms-bottom.xml"
+              ],
+              "aliases": [
+                "Reflux"
+              ]
+            },
+            {
+              "label": "Flatulence",
+              "icon": "waves",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/43-all-symptoms-bottom.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Hunger",
+              "icon": "nutrition",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/43-all-symptoms-bottom.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Stomach pain",
+              "icon": "bloating",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/43-all-symptoms-bottom.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            }
+          ]
+        },
+        {
+          "id": "symptomsSkin",
+          "label": "Skin & changes",
+          "icon": "face",
+          "type": "multi",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "storageKey": "symptoms",
+          "preview": 6,
+          "options": [
+            {
+              "label": "Acne",
+              "icon": "acne",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Spotting",
+              "icon": "spotting",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart"
+            },
+            {
+              "label": "Oily skin",
+              "icon": "discharge",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Dry skin",
+              "icon": "fertile",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Skin sensitivity",
+              "icon": "face",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Hair changes",
+              "icon": "person",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Clear skin",
+              "icon": "face",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/41-all-symptoms-top.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Itchiness",
+              "icon": "face",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Skin rash",
+              "icon": "acne",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            }
+          ]
+        },
+        {
+          "id": "symptomsRest",
+          "label": "Rest, energy & temperature",
+          "icon": "sleep",
+          "type": "multi",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "storageKey": "symptoms",
+          "preview": 6,
+          "options": [
+            {
+              "label": "Fatigue",
+              "icon": "battery",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Sleep changes",
+              "icon": "moonOff",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Hot flashes",
+              "icon": "hotFlash",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Night sweats",
+              "icon": "nightSweat",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Insomnia",
+              "icon": "insomnia",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Low energy",
+              "icon": "battery",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Brain fog",
+              "icon": "cloudOff",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option",
+              "reference_sources": [
+                "references/my-calendar-emulator/44-all-symptoms-general.xml"
+              ],
+              "aliases": [
+                "Hard to focus"
+              ]
+            },
+            {
+              "label": "Chills",
+              "icon": "water",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Feeling warm",
+              "icon": "temperature",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Fever",
+              "icon": "temperature",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/41-all-symptoms-top.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first.",
+              "aliases": [
+                "Hectic fever"
+              ]
+            },
+            {
+              "label": "Poor sleep",
+              "icon": "insomnia",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/43-all-symptoms-bottom.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Sickness",
+              "icon": "sick",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/43-all-symptoms-bottom.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pain",
+      "title": "Pain & comfort",
+      "icon": "pain",
+      "tone": "",
+      "description": "Optional. A number is only one way to describe your day.",
+      "fields": [
+        {
+          "id": "painLevel",
+          "label": "Pain level",
+          "icon": "pain",
+          "type": "scale",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "note": "0 means no pain. Clear means not recorded.",
+          "options": [
+            {
+              "label": "0",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "1",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "2",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "3",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "4",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "5",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "6",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "7",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "8",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "9",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "10",
+              "icon": "pain",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            }
+          ]
+        },
+        {
+          "id": "painLocation",
+          "label": "Where you feel it",
+          "icon": "pelvis",
+          "type": "multi",
+          "implementation": "planned",
+          "source": "Redesign requirement: structured pain location",
+          "options": [
+            {
+              "label": "Lower belly",
+              "icon": "pelvis",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Lower back",
+              "icon": "backPain",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Head",
+              "icon": "headache",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Breasts",
+              "icon": "breast",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Joints",
+              "icon": "pain",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Other",
+              "icon": "tag",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        },
+        {
+          "id": "painInterference",
+          "label": "Effect on daily activities",
+          "icon": "wellbeing",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "options": [
+            {
+              "label": "No interference",
+              "icon": "wellbeing",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Some activities harder",
+              "icon": "wellbeing",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Unable to do usual activities",
+              "icon": "wellbeing",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Not sure",
+              "icon": "wellbeing",
+              "implementation": "implemented"
+            }
+          ]
+        }
+      ],
+      "model_notes": "Existing painLevel defaults to 0. Introduce nullable painLevel before representing no pain and not logged as distinct persistent states."
+    },
+    {
+      "id": "fertility",
+      "title": "Discharge & fertility signs",
+      "icon": "fertile",
+      "tone": "sage",
+      "description": "Only if you track them. All observations are optional.",
+      "fields": [
+        {
+          "id": "discharge",
+          "label": "Discharge",
+          "icon": "discharge",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "options": [
+            {
+              "label": "None",
+              "icon": "circle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart",
+              "reference_sources": [
+                "references/my-calendar-emulator/48-all-symptoms-discharge.xml"
+              ],
+              "aliases": [
+                "No discharge"
+              ]
+            },
+            {
+              "label": "Light",
+              "icon": "flow",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Creamy",
+              "icon": "egg",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Watery",
+              "icon": "water",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Sticky",
+              "icon": "spotting",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Unusual",
+              "icon": "help",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Egg-white",
+              "icon": "egg",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/48-all-symptoms-discharge.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first.",
+              "aliases": [
+                "Egg white"
+              ]
+            },
+            {
+              "label": "With blood",
+              "icon": "bloodTest",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/48-all-symptoms-discharge.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            },
+            {
+              "label": "Green",
+              "icon": "discharge",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/48-all-symptoms-discharge.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            }
+          ]
+        },
+        {
+          "id": "cervicalMucus",
+          "label": "Cervical mucus",
+          "icon": "discharge",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "options": [
+            {
+              "label": "Dry",
+              "icon": "fertile",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Sticky",
+              "icon": "spotting",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Creamy",
+              "icon": "egg",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Watery",
+              "icon": "water",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Egg-white",
+              "icon": "egg",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            }
+          ]
+        },
+        {
+          "id": "cervicalPosition",
+          "label": "Cervical position",
+          "icon": "ruler",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "options": [
+            {
+              "label": "Low",
+              "icon": "down",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Medium",
+              "icon": "circle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "High",
+              "icon": "up",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            }
+          ]
+        },
+        {
+          "id": "cervicalFirmness",
+          "label": "Cervical firmness",
+          "icon": "goalTrack",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "options": [
+            {
+              "label": "Firm",
+              "icon": "goalTrack",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Medium",
+              "icon": "circle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Soft",
+              "icon": "basics",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            }
+          ]
+        },
+        {
+          "id": "cervicalOpening",
+          "label": "Cervical opening",
+          "icon": "ring",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "options": [
+            {
+              "label": "Closed",
+              "icon": "locked",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Partially open",
+              "icon": "circle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            },
+            {
+              "label": "Open",
+              "icon": "unlock",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/tracking_options.dart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body",
+      "title": "Body measurements",
+      "icon": "temperature",
+      "tone": "violet",
+      "fields": [
+        {
+          "id": "temperatureCelsius",
+          "label": "Basal body temperature",
+          "icon": "temperature",
+          "type": "number",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "unit": "°C",
+          "hint": "Record your measured value",
+          "step": 0.01
+        },
+        {
+          "id": "temperatureContext",
+          "label": "Temperature measurement context",
+          "icon": "temperature",
+          "type": "multi",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "note": "Context is stored with the measured value. These observations do not confirm ovulation.",
+          "options": [
+            {
+              "label": "Usual conditions",
+              "icon": "temperature",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Disrupted sleep",
+              "icon": "temperature",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Illness or fever",
+              "icon": "temperature",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Different measurement time",
+              "icon": "temperature",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Alcohol",
+              "icon": "temperature",
+              "implementation": "implemented"
+            },
+            {
+              "label": "Other disturbance",
+              "icon": "temperature",
+              "implementation": "implemented"
+            }
+          ]
+        },
+        {
+          "id": "weightKg",
+          "label": "Weight",
+          "icon": "weight",
+          "type": "number",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "unit": "kg",
+          "hint": "Optional; use your preferred units",
+          "step": 0.1
+        },
+        {
+          "id": "heightCm",
+          "label": "Height",
+          "icon": "ruler",
+          "type": "number",
+          "implementation": "planned",
+          "source": "Redesign requirement: optional body metrics",
+          "unit": "cm",
+          "hint": "Optional profile measurement",
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "id": "rest",
+      "title": "Sleep, water & energy",
+      "icon": "sleep",
+      "tone": "sage",
+      "fields": [
+        {
+          "id": "sleepHours",
+          "label": "Sleep",
+          "icon": "sleep",
+          "type": "number",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "unit": "h",
+          "hint": "Hours you slept",
+          "min": 0,
+          "max": 24,
+          "step": 0.5
+        },
+        {
+          "id": "waterMl",
+          "label": "Water",
+          "icon": "water",
+          "type": "number",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "unit": "ml",
+          "hint": "Zero and not logged should remain distinct",
+          "min": 0,
+          "step": 250
+        },
+        {
+          "id": "sleepQuality",
+          "label": "Sleep quality",
+          "icon": "moonOff",
+          "type": "single",
+          "implementation": "planned",
+          "source": "Redesign requirement: sleep quality",
+          "options": [
+            {
+              "label": "Restful",
+              "icon": "moodCalm",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Light sleep",
+              "icon": "sleep",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Restless",
+              "icon": "moonOff",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Interrupted",
+              "icon": "insomnia",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        },
+        {
+          "id": "energy",
+          "label": "Your energy",
+          "icon": "energy",
+          "type": "single",
+          "implementation": "planned",
+          "source": "Redesign requirement: energy rating",
+          "options": [
+            {
+              "label": "Low",
+              "icon": "battery",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Steady",
+              "icon": "fertile",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "High",
+              "icon": "energy",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        }
+      ],
+      "model_notes": "Existing waterMl defaults to 0. Add nullable/missing distinction in storage before representing explicit zero intake and unlogged separately."
+    },
+    {
+      "id": "movement",
+      "title": "Movement & nourishment",
+      "icon": "exercise",
+      "tone": "peach",
+      "fields": [
+        {
+          "id": "exerciseType",
+          "label": "Movement",
+          "icon": "exercise",
+          "type": "multi",
+          "implementation": "planned",
+          "source": "lib/core/constants/app_constants.dart",
+          "options": [
+            {
+              "label": "Walking",
+              "icon": "person",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Running",
+              "icon": "energy",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Yoga",
+              "icon": "wellbeing",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Swimming",
+              "icon": "waves",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Cycling",
+              "icon": "cycle",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Strength",
+              "icon": "exercise",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Pilates",
+              "icon": "person",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Dancing",
+              "icon": "moodEnergetic",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "HIIT",
+              "icon": "streak",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            },
+            {
+              "label": "Other",
+              "icon": "tag",
+              "implementation": "planned",
+              "source": "lib/core/constants/app_constants.dart",
+              "note": "Exercise constants exist; no persisted DailyLog exercise field."
+            }
+          ]
+        },
+        {
+          "id": "exerciseMinutes",
+          "label": "Time moving",
+          "icon": "clock",
+          "type": "number",
+          "implementation": "planned",
+          "source": "Redesign requirement: activity duration",
+          "unit": "min",
+          "min": 0,
+          "step": 5
+        },
+        {
+          "id": "appetite",
+          "label": "Appetite",
+          "icon": "nutrition",
+          "type": "single",
+          "implementation": "planned",
+          "source": "Redesign requirement: appetite observation",
+          "options": [
+            {
+              "label": "Less than usual",
+              "icon": "methodNone",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option",
+              "reference_sources": [
+                "references/my-calendar-emulator/43-all-symptoms-bottom.xml"
+              ],
+              "aliases": [
+                "Low appetite"
+              ]
+            },
+            {
+              "label": "As usual",
+              "icon": "circle",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "More than usual",
+              "icon": "nutrition",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Cravings",
+              "icon": "cookie",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "intimacy",
+      "title": "Intimacy & protection",
+      "icon": "partner",
+      "tone": "",
+      "description": "A private space, only if it is useful to you.",
+      "fields": [
+        {
+          "id": "intimacy",
+          "label": "Intimacy",
+          "icon": "partner",
+          "type": "single",
+          "implementation": "planned",
+          "source": "No current DailyLog intimacy field",
+          "options": [
+            {
+              "label": "None",
+              "icon": "circle",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Partnered",
+              "icon": "partnerPair",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Solo",
+              "icon": "person",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Prefer not to say",
+              "icon": "privacy",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Kissing",
+              "icon": "partner",
+              "implementation": "planned",
+              "source": "references/my-calendar-emulator/40-selected-day-details.xml",
+              "note": "Observed in the installed My Calendar reference. This option is not currently wired in CycleCare; implement storage and UI support first."
+            }
+          ]
+        },
+        {
+          "id": "protection",
+          "label": "Protection used",
+          "icon": "condom",
+          "type": "single",
+          "implementation": "planned",
+          "source": "No current DailyLog protection field",
+          "options": [
+            {
+              "label": "Condom",
+              "icon": "condom",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Regular method",
+              "icon": "pill",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Other",
+              "icon": "shield",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "None",
+              "icon": "circle",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Not sure",
+              "icon": "help",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        },
+        {
+          "id": "libido",
+          "label": "Sex drive",
+          "icon": "cuddle",
+          "type": "single",
+          "implementation": "planned",
+          "source": "No current DailyLog libido field",
+          "options": [
+            {
+              "label": "Low",
+              "icon": "moonOff",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option",
+              "reference_sources": [
+                "references/my-calendar-emulator/45-all-symptoms-emotions.xml"
+              ],
+              "aliases": [
+                "Decreased libido"
+              ]
+            },
+            {
+              "label": "Usual",
+              "icon": "cuddle",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option",
+              "reference_sources": [
+                "references/my-calendar-emulator/45-all-symptoms-emotions.xml"
+              ],
+              "aliases": [
+                "Neutral libido"
+              ]
+            },
+            {
+              "label": "High",
+              "icon": "streak",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option",
+              "reference_sources": [
+                "references/my-calendar-emulator/45-all-symptoms-emotions.xml"
+              ],
+              "aliases": [
+                "Increased libido"
+              ]
+            },
+            {
+              "label": "Not sure",
+              "icon": "help",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tests",
+      "title": "Tests & observations",
+      "icon": "science",
+      "tone": "violet",
+      "description": "Record the result shown on your test. A positive LH test does not confirm ovulation. Calendar fertile days are estimates; these observations do not establish contraceptive safe days.",
+      "fields": [
+        {
+          "id": "pregnancyTest",
+          "label": "Pregnancy test",
+          "icon": "pregnancy",
+          "type": "single",
+          "implementation": "planned",
+          "source": "No current persisted test-result field",
+          "options": [
+            {
+              "label": "Positive",
+              "icon": "plus",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Negative",
+              "icon": "methodNone",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Unclear",
+              "icon": "help",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Not taken",
+              "icon": "circle",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        },
+        {
+          "id": "ovulationTest",
+          "label": "Ovulation test",
+          "icon": "ovulation",
+          "type": "single",
+          "implementation": "planned",
+          "source": "No current persisted ovulation test-result field",
+          "options": [
+            {
+              "label": "Positive",
+              "icon": "plus",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Negative",
+              "icon": "methodNone",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Unclear",
+              "icon": "help",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Not taken",
+              "icon": "circle",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        },
+        {
+          "id": "testNote",
+          "label": "Test note",
+          "icon": "notes",
+          "type": "text",
+          "implementation": "planned",
+          "source": "No current structured test-note field",
+          "placeholder": "Time, brand or anything useful to remember"
+        }
+      ]
+    },
+    {
+      "id": "medication",
+      "title": "Medication & care",
+      "icon": "medicine",
+      "tone": "sage",
+      "fields": [
+        {
+          "id": "medicineTaken",
+          "label": "Medication today",
+          "icon": "pill",
+          "type": "single",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "note": "Clear if you haven’t recorded this today.",
+          "options": [
+            {
+              "label": "Taken",
+              "icon": "success",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            },
+            {
+              "label": "Not taken",
+              "icon": "circle",
+              "implementation": "implemented",
+              "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog"
+            }
+          ]
+        },
+        {
+          "id": "medicineName",
+          "label": "Medication name",
+          "icon": "medicine",
+          "type": "text",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "placeholder": "Name, if you want to record it"
+        },
+        {
+          "id": "medicineDose",
+          "label": "Dose as prescribed",
+          "icon": "medicine",
+          "type": "text",
+          "implementation": "planned",
+          "source": "Current DailyLog persists medicineName and medicineTaken only",
+          "placeholder": "Only as shown on your prescription"
+        },
+        {
+          "id": "careActions",
+          "label": "Comfort & care",
+          "icon": "wellbeing",
+          "type": "multi",
+          "implementation": "planned",
+          "source": "Redesign requirement: self-care observations",
+          "options": [
+            {
+              "label": "Heat pad",
+              "icon": "hotFlash",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Rest",
+              "icon": "sleep",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Stretching",
+              "icon": "wellbeing",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Breathing",
+              "icon": "waves",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "A little walk",
+              "icon": "person",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            },
+            {
+              "label": "Other",
+              "icon": "tag",
+              "implementation": "planned",
+              "source": "Redesign specification; no corresponding persisted DailyLog field/option"
+            }
+          ]
+        }
+      ],
+      "model_notes": "medicineTaken currently defaults false. Implement a nullable/timestamped status before presenting not taken and not logged as separate stored observations."
+    },
+    {
+      "id": "personal",
+      "title": "Your words & custom tags",
+      "icon": "notes",
+      "tone": "peach",
+      "fields": [
+        {
+          "id": "notes",
+          "label": "A little note",
+          "icon": "notes",
+          "type": "textarea",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/domain/cycle_models.dart:DailyLog",
+          "placeholder": "Anything you want to remember about today?"
+        },
+        {
+          "id": "customTags",
+          "label": "Your own symptoms",
+          "icon": "tag",
+          "type": "custom",
+          "implementation": "implemented",
+          "source": "lib/features/tracking/application/custom_tags_controller.dart",
+          "storageKey": "symptoms"
+        }
+      ]
+    }
+  ],
+  "proposed_not_implemented": true,
+  "reference_note": "The original 140-choice catalogue was expanded after inspecting native emulator captures 40–48. Captured options and aliases have explicit provenance. Additional design proposals remain marked planned; no competitor observation is claimed as implemented in CycleCare.",
+  "counts": {
+    "groups": 12,
+    "fields": 38,
+    "options": 214,
+    "implemented_options": 74,
+    "planned_options": 140
+  },
+  "referenceCoverage": {
+    "source": "Installed My Calendar Android app captured in the local emulator",
+    "category_count": 10,
+    "captures": [
+      "references/my-calendar-emulator/40-selected-day-details.xml",
+      "references/my-calendar-emulator/41-all-symptoms-top.xml",
+      "references/my-calendar-emulator/42-all-symptoms-middle.xml",
+      "references/my-calendar-emulator/43-all-symptoms-bottom.xml",
+      "references/my-calendar-emulator/44-all-symptoms-general.xml",
+      "references/my-calendar-emulator/45-all-symptoms-emotions.xml",
+      "references/my-calendar-emulator/46-all-symptoms-sexual-activity.xml",
+      "references/my-calendar-emulator/47-all-symptoms-cervix.xml",
+      "references/my-calendar-emulator/48-all-symptoms-discharge.xml",
+      "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+      "references/my-calendar-emulator/65-mood-editor-top.xml",
+      "references/my-calendar-emulator/66-mood-editor-bottom.xml",
+      "references/my-calendar-emulator/67-moods-negative.xml"
+    ],
+    "categories": [
+      {
+        "native_category": "Head",
+        "redesign_groups": [
+          "symptoms"
+        ],
+        "options": [
+          {
+            "native_option": "Headache",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Headache",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Migraine",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Migraine",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Dizziness",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Dizziness",
+            "alias": false,
+            "implementation": "implemented"
+          }
+        ]
+      },
+      {
+        "native_category": "Face",
+        "redesign_groups": [
+          "symptoms"
+        ],
+        "options": [
+          {
+            "native_option": "Acne",
+            "redesign_field": "symptomsSkin",
+            "redesign_option": "Acne",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Clear skin",
+            "redesign_field": "symptomsSkin",
+            "redesign_option": "Clear skin",
+            "alias": false,
+            "implementation": "planned"
+          }
+        ]
+      },
+      {
+        "native_category": "Body",
+        "redesign_groups": [
+          "symptoms"
+        ],
+        "options": [
+          {
+            "native_option": "Chills",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Chills",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Weight gain",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Weight gain",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Hectic fever",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Fever",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Abdominal cramps",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Cramps",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Backache",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Back pain",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Cramps",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Cramps",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Body aches",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Body aches",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Breast sensitivity",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Breast sensitivity",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Breast tenderness",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Tender breasts",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Itchiness",
+            "redesign_field": "symptomsSkin",
+            "redesign_option": "Itchiness",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Muscle pain",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Muscle pain",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Neck pain",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Neck pain",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Night sweats",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Night sweats",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Skin rash",
+            "redesign_field": "symptomsSkin",
+            "redesign_option": "Skin rash",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Shoulder pain",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Shoulder pain",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Hot flashes",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Hot flashes",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Ovulation pain",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Ovulation pain",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Bleeding",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Bleeding",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Breast texture changes",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Breast texture changes",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Vaginal dryness",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Vaginal dryness",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Vaginal irritation",
+            "redesign_field": "symptomsBody",
+            "redesign_option": "Vaginal irritation",
+            "alias": false,
+            "implementation": "planned"
+          }
+        ]
+      },
+      {
+        "native_category": "Digestion",
+        "redesign_groups": [
+          "symptoms",
+          "movement"
+        ],
+        "options": [
+          {
+            "native_option": "Bloating",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Bloating",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Flatulence",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Flatulence",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Constipation",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Constipation",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Cravings",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Cravings",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Diarrhea",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Diarrhea",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Hunger",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Hunger",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Nausea",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Nausea",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Stomach pain",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Stomach pain",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Reflux",
+            "redesign_field": "symptomsDigestion",
+            "redesign_option": "Heartburn",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Low appetite",
+            "redesign_field": "appetite",
+            "redesign_option": "Less than usual",
+            "alias": true,
+            "implementation": "planned"
+          }
+        ]
+      },
+      {
+        "native_category": "General",
+        "redesign_groups": [
+          "flow",
+          "symptoms"
+        ],
+        "options": [
+          {
+            "native_option": "Fatigue",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Fatigue",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Insomnia",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Insomnia",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Poor sleep",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Poor sleep",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Sickness",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Sickness",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Spotting",
+            "redesign_field": "symptomsSkin",
+            "redesign_option": "Spotting",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Heavy flow",
+            "redesign_field": "flow",
+            "redesign_option": "Heavy",
+            "alias": true,
+            "implementation": "implemented"
+          }
+        ]
+      },
+      {
+        "native_category": "Emotions",
+        "redesign_groups": [
+          "mood",
+          "symptoms"
+        ],
+        "options": [
+          {
+            "native_option": "Anxiety",
+            "redesign_field": "mood",
+            "redesign_option": "Anxious",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Confusion",
+            "redesign_field": "mood",
+            "redesign_option": "Confusion",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Irritability",
+            "redesign_field": "mood",
+            "redesign_option": "Irritable",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Moodiness",
+            "redesign_field": "mood",
+            "redesign_option": "Mood swings",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Stress",
+            "redesign_field": "mood",
+            "redesign_option": "Stressed",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Tension",
+            "redesign_field": "mood",
+            "redesign_option": "Tension",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Hard to focus",
+            "redesign_field": "symptomsRest",
+            "redesign_option": "Brain fog",
+            "alias": true,
+            "implementation": "planned"
+          }
+        ]
+      },
+      {
+        "native_category": "Sexual activity",
+        "redesign_groups": [
+          "intimacy"
+        ],
+        "options": [
+          {
+            "native_option": "Increased libido",
+            "redesign_field": "libido",
+            "redesign_option": "High",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Decreased libido",
+            "redesign_field": "libido",
+            "redesign_option": "Low",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Neutral libido",
+            "redesign_field": "libido",
+            "redesign_option": "Usual",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Kissing",
+            "redesign_field": "intimacy",
+            "redesign_option": "Kissing",
+            "alias": false,
+            "implementation": "planned"
+          }
+        ]
+      },
+      {
+        "native_category": "Cervix",
+        "redesign_groups": [
+          "fertility"
+        ],
+        "options": [
+          {
+            "native_option": "Cervical firmness",
+            "redesign_field": "cervicalFirmness",
+            "redesign_option": null,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Cervical mucus",
+            "redesign_field": "cervicalMucus",
+            "redesign_option": null,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Cervical opening",
+            "redesign_field": "cervicalOpening",
+            "redesign_option": null,
+            "implementation": "implemented"
+          }
+        ]
+      },
+      {
+        "native_category": "Discharge",
+        "redesign_groups": [
+          "fertility"
+        ],
+        "options": [
+          {
+            "native_option": "No discharge",
+            "redesign_field": "discharge",
+            "redesign_option": "None",
+            "alias": true,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Sticky",
+            "redesign_field": "discharge",
+            "redesign_option": "Sticky",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Creamy",
+            "redesign_field": "discharge",
+            "redesign_option": "Creamy",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Watery",
+            "redesign_field": "discharge",
+            "redesign_option": "Watery",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Egg white",
+            "redesign_field": "discharge",
+            "redesign_option": "Egg-white",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "With blood",
+            "redesign_field": "discharge",
+            "redesign_option": "With blood",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Green",
+            "redesign_field": "discharge",
+            "redesign_option": "Green",
+            "alias": false,
+            "implementation": "planned"
+          }
+        ]
+      },
+      {
+        "native_category": "Moods",
+        "redesign_groups": [
+          "mood"
+        ],
+        "sections": {
+          "General": [
+            "Normal",
+            "Sleepy",
+            "Confident",
+            "Surprised",
+            "Worried",
+            "Stunned",
+            "Focused",
+            "Accomplished",
+            "Smug",
+            "Indifferent",
+            "Sexy",
+            "Assertive",
+            "Impatient",
+            "Exhausted",
+            "Emotional",
+            "Pensive",
+            "Weird"
+          ],
+          "Positive": [
+            "Happy",
+            "Excited",
+            "Hopeful",
+            "Horny",
+            "In love",
+            "Peaceful",
+            "Playful",
+            "Proud",
+            "Relaxed",
+            "Satisfied",
+            "Silly",
+            "Hyped"
+          ],
+          "Negative": [
+            "Jealous",
+            "Sad",
+            "Tense",
+            "Frustrated",
+            "Angry",
+            "Grumpy",
+            "Cranky",
+            "Depressed",
+            "Disappointed",
+            "Tormented",
+            "Insecure",
+            "Bored",
+            "Anxious",
+            "Lonely",
+            "Panicky",
+            "Stressed",
+            "Ashamed",
+            "Ill"
+          ]
+        },
+        "source": "references/my-calendar-emulator/68-moods-negative-bottom.xml",
+        "options": [
+          {
+            "native_option": "Normal",
+            "redesign_field": "mood",
+            "redesign_option": "Normal",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Sleepy",
+            "redesign_field": "mood",
+            "redesign_option": "Sleepy",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Confident",
+            "redesign_field": "mood",
+            "redesign_option": "Confident",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Surprised",
+            "redesign_field": "mood",
+            "redesign_option": "Surprised",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Worried",
+            "redesign_field": "mood",
+            "redesign_option": "Worried",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Stunned",
+            "redesign_field": "mood",
+            "redesign_option": "Stunned",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Focused",
+            "redesign_field": "mood",
+            "redesign_option": "Focused",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Accomplished",
+            "redesign_field": "mood",
+            "redesign_option": "Accomplished",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Smug",
+            "redesign_field": "mood",
+            "redesign_option": "Smug",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Indifferent",
+            "redesign_field": "mood",
+            "redesign_option": "Indifferent",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Sexy",
+            "redesign_field": "mood",
+            "redesign_option": "Sexy",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Assertive",
+            "redesign_field": "mood",
+            "redesign_option": "Assertive",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Impatient",
+            "redesign_field": "mood",
+            "redesign_option": "Impatient",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Exhausted",
+            "redesign_field": "mood",
+            "redesign_option": "Exhausted",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Emotional",
+            "redesign_field": "mood",
+            "redesign_option": "Emotional",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Pensive",
+            "redesign_field": "mood",
+            "redesign_option": "Pensive",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Weird",
+            "redesign_field": "mood",
+            "redesign_option": "Weird",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Happy",
+            "redesign_field": "mood",
+            "redesign_option": "Happy",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Excited",
+            "redesign_field": "mood",
+            "redesign_option": "Excited",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Hopeful",
+            "redesign_field": "mood",
+            "redesign_option": "Hopeful",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Horny",
+            "redesign_field": "mood",
+            "redesign_option": "Horny",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "In love",
+            "redesign_field": "mood",
+            "redesign_option": "In love",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Peaceful",
+            "redesign_field": "mood",
+            "redesign_option": "Peaceful",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Playful",
+            "redesign_field": "mood",
+            "redesign_option": "Playful",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Proud",
+            "redesign_field": "mood",
+            "redesign_option": "Proud",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Relaxed",
+            "redesign_field": "mood",
+            "redesign_option": "Relaxed",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Satisfied",
+            "redesign_field": "mood",
+            "redesign_option": "Satisfied",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Silly",
+            "redesign_field": "mood",
+            "redesign_option": "Silly",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Hyped",
+            "redesign_field": "mood",
+            "redesign_option": "Hyped",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Jealous",
+            "redesign_field": "mood",
+            "redesign_option": "Jealous",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Sad",
+            "redesign_field": "mood",
+            "redesign_option": "Sad",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Tense",
+            "redesign_field": "mood",
+            "redesign_option": "Tension",
+            "alias": true,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Frustrated",
+            "redesign_field": "mood",
+            "redesign_option": "Frustrated",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Angry",
+            "redesign_field": "mood",
+            "redesign_option": "Angry",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Grumpy",
+            "redesign_field": "mood",
+            "redesign_option": "Grumpy",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Cranky",
+            "redesign_field": "mood",
+            "redesign_option": "Cranky",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Depressed",
+            "redesign_field": "mood",
+            "redesign_option": "Depressed",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Disappointed",
+            "redesign_field": "mood",
+            "redesign_option": "Disappointed",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Tormented",
+            "redesign_field": "mood",
+            "redesign_option": "Tormented",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Insecure",
+            "redesign_field": "mood",
+            "redesign_option": "Insecure",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Bored",
+            "redesign_field": "mood",
+            "redesign_option": "Bored",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Anxious",
+            "redesign_field": "mood",
+            "redesign_option": "Anxious",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Lonely",
+            "redesign_field": "mood",
+            "redesign_option": "Lonely",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Panicky",
+            "redesign_field": "mood",
+            "redesign_option": "Panicky",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Stressed",
+            "redesign_field": "mood",
+            "redesign_option": "Stressed",
+            "alias": false,
+            "implementation": "implemented"
+          },
+          {
+            "native_option": "Ashamed",
+            "redesign_field": "mood",
+            "redesign_option": "Ashamed",
+            "alias": false,
+            "implementation": "planned"
+          },
+          {
+            "native_option": "Ill",
+            "redesign_field": "mood",
+            "redesign_option": "Ill",
+            "alias": false,
+            "implementation": "planned"
+          }
+        ],
+        "note": "All 47 observed native mood labels are mapped. Tense is an explicit alias of Tension; original CycleCare moods are retained."
+      }
+    ],
+    "note": "Category mapping preserves observations while fitting the unified CycleCare accordion system. Competitor wording may be represented by a plain-language alias. No new choice is claimed implemented."
+  }
+}

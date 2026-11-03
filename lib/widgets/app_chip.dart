@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../core/services/haptics.dart';
+import '../core/theme/app_accents.dart';
+import '../core/theme/app_contrast.dart';
 import '../core/theme/app_motion.dart';
+import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_tokens.dart';
 import '../core/theme/phase_colors.dart';
 import 'motion.dart';
@@ -23,17 +26,41 @@ class SelectableChip extends StatelessWidget {
   final ValueChanged<bool> onSelected;
   final IconData? icon;
   final Color? accent;
+
+  /// Accepted but **not rendered** — pass an `AppIcons` value to [icon]
+  /// instead. See the identical note on `ActionTile.emoji` in app_display.dart.
   final String? emoji;
 
   @override
   Widget build(BuildContext context) {
     final motion = Motion.of(context);
-    final tone = accent ?? context.accentColor;
-    final foreground = selected
-        ? (context.isDark
-            ? Colors.white
-            : Color.lerp(tone, Colors.black, 0.40)!)
-        : context.inkColor;
+    final roles = context.accent;
+    final custom = accent;
+    // Selected: the design's `.chip.selected` — accent surface, accent border,
+    // accent text. A caller tone (a phase colour) gets the same treatment,
+    // with its text measured against the tint rather than assumed.
+    final selectedFill = custom == null
+        ? roles.surface
+        : Color.alphaBlend(
+            custom.withOpacity(context.isDark ? 0.30 : 0.14),
+            context.cardColor,
+          );
+    final selectedText = custom == null
+        ? roles.onSurface
+        : AppContrast.readable(
+            custom,
+            surface: selectedFill,
+            isDark: context.isDark,
+          );
+    final selectedBorder = custom == null
+        ? roles.border
+        : AppContrast.readable(
+            custom,
+            surface: context.canvasColor,
+            isDark: context.isDark,
+            floor: AppContrast.largeFloor,
+          );
+    final foreground = selected ? selectedText : context.inkColor;
     final radius = BorderRadius.circular(AppRadii.pill);
 
     return Pressable(
@@ -60,27 +87,22 @@ class SelectableChip extends StatelessWidget {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? tone.withOpacity(context.isDark ? 0.30 : 0.14)
-              : context.cardColor,
+          color: selected ? selectedFill : context.cardColor,
           borderRadius: radius,
           border: Border.all(
-            color: selected ? tone : context.lineColor,
-            width: selected ? AppStrokes.selected : AppStrokes.hairline,
+            color: selected ? selectedBorder : context.lineColor,
+            width: AppStrokes.hairline,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (emoji != null) ...[
-              Text(emoji!, style: const TextStyle(fontSize: 14)),
-              const SizedBox(width: AppSpacing.sm),
-            ] else if (icon != null) ...[
+            if (icon != null) ...[
               Icon(
                 icon,
                 size: 16,
-                color: selected ? tone : context.mutedColor,
+                color: selected ? selectedText : context.mutedColor,
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
@@ -89,11 +111,11 @@ class SelectableChip extends StatelessWidget {
                 label,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  color: foreground,
-                ),
+                style: AppTextStyles.body(
+                  fontSize: 13,
+                  height: 1.3,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                ).copyWith(color: foreground),
               ),
             ),
           ],
@@ -142,7 +164,15 @@ class SegmentedSelector<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final motion = Motion.of(context);
-    final tone = accent ?? context.accentColor;
+    final custom = accent;
+    // Selected label: the accent as text on the paper thumb.
+    final tone = custom == null
+        ? context.accent.text
+        : AppContrast.readable(
+            custom,
+            surface: context.cardColor,
+            isDark: context.isDark,
+          );
     final keys = segments.keys.toList();
     final selectedIndex = keys.indexOf(value);
     final index = selectedIndex < 0 ? 0 : selectedIndex;
@@ -158,13 +188,11 @@ class SegmentedSelector<T> extends StatelessWidget {
           height: AppLayout.minTouchTarget,
           padding: const EdgeInsets.all(trackPadding),
           decoration: BoxDecoration(
-            color: context.isDark
-                ? Colors.black.withOpacity(0.24)
-                : tone.withOpacity(0.07),
+            // The segmented track is the canvas inside a hairline, as in
+            // SegmentedTabs, so both segmented controls read as one family.
+            color: context.canvasColor,
             borderRadius: radius,
-            border: Border.all(
-              color: context.lineColor.withOpacity(context.isDark ? 0.72 : 0.62),
-            ),
+            border: Border.all(color: context.lineColor),
           ),
           child: Stack(
             children: [
@@ -179,18 +207,8 @@ class SegmentedSelector<T> extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: context.cardColor,
                     borderRadius: BorderRadius.circular(AppRadii.compact),
-                    border: Border.all(
-                      color: context.lineColor.withOpacity(0.66),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(
-                          context.isDark ? 0.20 : 0.045,
-                        ),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(color: context.lineColor),
+                    boxShadow: AppElevation.low(context.isDark),
                   ),
                 ),
               ),
@@ -221,11 +239,13 @@ class SegmentedSelector<T> extends StatelessWidget {
                           child: AnimatedDefaultTextStyle(
                             duration: motion(AppDurations.fast),
                             curve: AppCurves.out,
-                            style: TextStyle(
+                            style: AppTextStyles.body(
                               fontSize: 13,
+                              height: 1.25,
                               fontWeight: keys[itemIndex] == value
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ).copyWith(
                               color: keys[itemIndex] == value
                                   ? tone
                                   : context.mutedColor,

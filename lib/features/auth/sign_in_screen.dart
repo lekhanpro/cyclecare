@@ -8,6 +8,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/haptics.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../../widgets/widgets.dart';
+import '../tracking/domain/cycle_models.dart' show CyclePhase;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sign in
@@ -99,50 +100,76 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final toolbarHeight =
         Theme.of(context).appBarTheme.toolbarHeight ?? kToolbarHeight;
 
+    final swatch = PhaseColors.of(context).phase(CyclePhase.ovulation);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        // The bar sits on the saturated hero, so its back arrow and title take
+        // hero ink rather than page ink.
+        foregroundColor: Colors.white,
         title: Text(_isRegister ? 'Create account' : 'Sign in'),
       ),
-      body: PhaseBackdrop(
-        colors: AppColors.ovulationGradient,
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
+      // Note the structure: a saturated hero band carries the heading, and the
+      // form sits on the page *below* it as an opaque card.
+      //
+      // The previous version wrapped the whole screen in a pale PhaseBackdrop
+      // and put the form in a GlassCard. Glass samples what is behind it, and
+      // behind it was a near-white wash — so it rendered as a flat grey panel
+      // with a border, which is the failure mode described in glass.dart. The
+      // colour now lives in one band that the glass greeting genuinely has
+      // something to refract, and the text fields stay on an opaque surface
+      // where their labels and error text are reliably legible.
+      body: SingleChildScrollView(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
+            final safe = MediaQuery.paddingOf(context);
 
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  gutter,
-                  toolbarHeight + AppSpacing.md,
-                  gutter,
-                  AppSpacing.xxxl,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PhaseHero(
+                  swatch: swatch,
+                  padding: EdgeInsets.fromLTRB(
+                    gutter,
+                    toolbarHeight + AppSpacing.sm,
+                    gutter,
+                    AppSpacing.xxl,
+                  ),
+                  child: Reveal(child: _Intro(isRegister: _isRegister)),
                 ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: AppLayout.maxContentWidth,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Reveal(child: _Intro(isRegister: _isRegister)),
-                        const SizedBox(height: AppSpacing.xl),
-                        Reveal(index: 1, child: _credentialsCard(locked)),
-                        const SizedBox(height: AppSpacing.xl),
-                        Reveal(
-                          index: 2,
-                          child: _skipCard(text: text, locked: locked),
-                        ),
-                      ],
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    gutter + safe.left,
+                    AppSpacing.xl,
+                    gutter + safe.right,
+                    AppSpacing.xxxl + safe.bottom,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: AppLayout.maxContentWidth,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Reveal(index: 1, child: _credentialsCard(locked)),
+                          const SizedBox(height: AppSpacing.xl),
+                          Reveal(
+                            index: 2,
+                            child: _skipCard(text: text, locked: locked),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -151,9 +178,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   /// The form itself: two fields, one filled action, one alternative, and the
   /// mode switch. The only elevated surface on the screen.
   Widget _credentialsCard(bool locked) {
-    return GlassCard(
+    // Opaque and floating, not glass. Text fields need a dependable surface
+    // behind their labels, hint text and inline errors; a translucent one puts
+    // whatever scrolls past underneath a 12sp error message.
+    return AppCard(
+      emphasis: CardEmphasis.floating,
       padding: const EdgeInsets.all(AppSpacing.lg),
-      borderRadius: BorderRadius.circular(AppRadii.card),
       child: Form(
         key: _formKey,
         // Errors appear once a field has been touched, then track every
@@ -359,6 +389,9 @@ class _Intro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    // Hero ink: this sits on the saturated band, where page ink would be
+    // close to unreadable.
+    final ink = HeroInk.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,9 +400,9 @@ class _Intro extends StatelessWidget {
           header: true,
           child: Text(
             isRegister ? 'Create your account' : 'Welcome back',
-            style: text.headlineSmall?.copyWith(
-              letterSpacing: -0.4,
-              color: context.inkColor,
+            style: text.headlineMedium?.copyWith(
+              letterSpacing: -0.5,
+              color: ink.primary,
             ),
           ),
         ),
@@ -381,7 +414,7 @@ class _Intro extends StatelessWidget {
                   'device.'
               : 'Signing in is optional. Your entries stay on this device '
                   'either way, and nothing is shared with anyone else.',
-          style: text.bodyMedium?.copyWith(color: context.mutedColor),
+          style: text.bodyMedium?.copyWith(color: ink.secondary),
         ),
       ],
     );

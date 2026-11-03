@@ -197,7 +197,7 @@ class _SetupView extends StatelessWidget {
       ),
       children: [
         EmptyState(
-          emoji: '🤰',
+          icon: AppIcons.pregnancy,
           title: 'Pregnancy mode',
           message: 'Follow the weeks as they come — what is developing, what '
               'your body is doing, and every appointment kept in one place.',
@@ -216,7 +216,6 @@ class _SetupView extends StatelessWidget {
           index: 5,
           child: ActionTile(
             icon: Icons.auto_stories_rounded,
-            emoji: '📖',
             title: 'Week-by-week updates',
             subtitle: 'Weeks 4 to 40, with a size you can actually picture',
             trailing: SizedBox.shrink(),
@@ -227,7 +226,6 @@ class _SetupView extends StatelessWidget {
           index: 6,
           child: ActionTile(
             icon: Icons.child_care_rounded,
-            emoji: '👣',
             title: 'Kick counter',
             subtitle: 'Track a counting session with one thumb',
             trailing: SizedBox.shrink(),
@@ -238,7 +236,6 @@ class _SetupView extends StatelessWidget {
           index: 7,
           child: ActionTile(
             icon: Icons.event_note_rounded,
-            emoji: '🗓️',
             title: 'Appointment tracking',
             subtitle: 'Scans, checks and the notes you took last visit',
             trailing: SizedBox.shrink(),

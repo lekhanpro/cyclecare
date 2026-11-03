@@ -25,7 +25,7 @@ class CycleRepository {
   }
 
   Future<void> savePeriods(List<CycleEvent> periods) {
-    return _preferences.setString(
+    return _setString(
       _periodsKey,
       jsonEncode(periods.map((period) => period.toJson()).toList()),
     );
@@ -43,7 +43,7 @@ class CycleRepository {
   }
 
   Future<void> saveLogs(List<DailyLog> logs) {
-    return _preferences.setString(
+    return _setString(
       _logsKey,
       jsonEncode(logs.map((log) => log.toJson()).toList()),
     );
@@ -58,12 +58,20 @@ class CycleRepository {
   }
 
   Future<void> savePreferences(CyclePreferences preferences) {
-    return _preferences.setString(
-        _preferencesKey, jsonEncode(preferences.toJson()));
+    return _setString(_preferencesKey, jsonEncode(preferences.toJson()));
+  }
+
+  Future<void> _setString(String key, String value) async {
+    final saved = await _preferences.setString(key, value);
+    if (!saved) {
+      throw StateError('CycleCare could not save data on this device.');
+    }
   }
 
   Future<String> exportJson() async {
     return const JsonEncoder.withIndent('  ').convert({
+      'format': CycleBackupFormat.identifier,
+      'version': CycleBackupFormat.currentVersion,
       'periods': loadPeriods().map((period) => period.toJson()).toList(),
       'dailyLogs': loadLogs().map((log) => log.toJson()).toList(),
       'preferences': loadPreferences().toJson(),

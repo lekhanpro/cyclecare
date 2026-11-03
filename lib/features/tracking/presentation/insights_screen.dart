@@ -9,6 +9,9 @@ import '../../../core/theme/cyclecare_theme.dart';
 import '../../../widgets/widgets.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/cycle_analytics.dart';
+import 'insights_extra_cards.dart';
+import 'insights_phase_cards.dart';
+import 'record_summary_card.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Insights
@@ -69,7 +72,8 @@ class InsightsScreen extends ConsumerWidget {
           child: EmptyState(
             icon: Icons.refresh_rounded,
             title: 'Could not load your insights',
-            message: 'Your logs are still saved on this device. Something went '
+            message:
+                'Your logs are still saved on this device. Something went '
                 'wrong reading them back.',
             actionLabel: 'Try again',
             onAction: () => ref.invalidate(cycleTrackerControllerProvider),
@@ -96,9 +100,10 @@ class _InsightsBody extends StatelessWidget {
       // rather than saying "no data".
       return const _Bounded(
         child: EmptyState(
-          emoji: '📊',
+          icon: AppIcons.chart,
           title: 'Nothing to analyse yet',
-          message: 'Log a period, then tick symptoms and moods on a few daily '
+          message:
+              'Log a period, then tick symptoms and moods on a few daily '
               'entries. Cycle length needs two period starts; the pattern '
               'cards need two or three cycles before they can say anything '
               'honest.',
@@ -134,13 +139,35 @@ class _InsightsBody extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xxl),
+                    const _Section(
+                      index: 1,
+                      title: 'Your cycle, measured',
+                      subtitle:
+                          'How steady it is and how well it can be '
+                          'estimated',
+                    ),
+                    Reveal(
+                      index: 1,
+                      child: RegularityCard(analytics: analytics),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Reveal(
+                      index: 1,
+                      child: PredictionAccuracyCard(analytics: analytics),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Reveal(
+                      index: 1,
+                      child: CycleComparisonCard(analytics: analytics),
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
                     _Section(
                       index: 1,
                       title: 'Cycle trends',
                       subtitle: history.isEmpty
                           ? 'Needs two logged periods'
                           : 'Based on ${history.length} '
-                              '${_plural(history.length, 'cycle')}',
+                                '${_plural(history.length, 'cycle')}',
                     ),
                     Reveal(
                       index: 2,
@@ -157,6 +184,8 @@ class _InsightsBody extends StatelessWidget {
                       title: 'Patterns',
                       subtitle: 'Where your symptoms tend to land',
                     ),
+                    RecordSummaryCard(periods: data.periods, logs: data.logs),
+                    const SizedBox(height: AppSpacing.md),
                     Reveal(
                       index: 5,
                       child: _SymptomPatternCard(analytics: analytics),
@@ -168,6 +197,23 @@ class _InsightsBody extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Reveal(index: 7, child: _MoodCard(analytics: analytics)),
+                    const SizedBox(height: AppSpacing.md),
+                    Reveal(
+                      index: 7,
+                      child: SymptomHeatmapCard(analytics: analytics),
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    const _Section(
+                      index: 7,
+                      title: 'Through your cycle',
+                      subtitle: 'How mood, sleep and water shift by phase',
+                    ),
+                    Reveal(index: 7, child: ByPhaseCard(analytics: analytics)),
+                    const SizedBox(height: AppSpacing.md),
+                    Reveal(
+                      index: 7,
+                      child: LoggingPerCycleCard(analytics: analytics),
+                    ),
                     const SizedBox(height: AppSpacing.xxl),
                     const _Section(
                       index: 8,
@@ -182,16 +228,19 @@ class _InsightsBody extends StatelessWidget {
                     Reveal(index: 8, child: _PainCard(analytics: analytics)),
                     const SizedBox(height: AppSpacing.md),
                     Reveal(index: 8, child: _WeightCard(analytics: analytics)),
-                    if (history.isNotEmpty) ...[
+                    if (analytics
+                        .cycleHistory(includeExcluded: true)
+                        .isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.xxl),
                       const _Section(
                         index: 8,
                         title: 'Cycle history',
-                        subtitle: 'Every completed cycle, most recent first',
+                        subtitle: 'Recorded cycles, including exclusions',
                       ),
                       _CycleHistoryList(
-                        history: history,
-                        average: data.prediction?.averageCycleLength ??
+                        history: analytics.cycleHistory(includeExcluded: true),
+                        average:
+                            data.prediction?.averageCycleLength ??
                             data.preferences.averageCycleLength,
                       ),
                     ],
@@ -252,18 +301,22 @@ class _SummaryPanel extends StatelessWidget {
     final oldest = history.isEmpty ? null : history.last.start;
 
     final notes = <Widget>[
+      if (prediction != null)
+        _SummaryNote(icon: AppIcons.help, text: prediction.estimateExplanation),
       if (measured &&
           prediction.shortestCycle != null &&
           prediction.longestCycle != null)
         _SummaryNote(
           icon: Icons.straighten_rounded,
-          text: 'Your cycles have ranged from ${prediction.shortestCycle} '
+          text:
+              'Your cycles have ranged from ${prediction.shortestCycle} '
               'to ${prediction.longestCycle} days.',
         ),
       _SummaryNote(
         icon: Icons.local_fire_department_rounded,
         tone: AppColors.luteal,
-        text: '$streak ${_plural(streak, 'day')} logged in a row, covering '
+        text:
+            '$streak ${_plural(streak, 'day')} logged in a row, covering '
             '$consistency% of the last 30 days.',
       ),
     ];
@@ -303,8 +356,8 @@ class _SummaryPanel extends StatelessWidget {
                   : 'Needs 2+ cycles',
               semanticValue: measured
                   ? 'plus or minus '
-                      '${prediction.cycleLengthVariation.toStringAsFixed(1)} '
-                      'days, ${variable ? 'variable' : 'steady'}'
+                        '${prediction.cycleLengthVariation.toStringAsFixed(1)} '
+                        'days, ${variable ? 'variable' : 'steady'}'
                   : 'Not enough cycles measured yet',
             ),
             _MetricTile(
@@ -433,7 +486,7 @@ class _MetricTile extends StatelessWidget {
       value: caption == null ? spoken : '$spoken. $caption',
       child: ExcludeSemantics(
         child: AppCard(
-          emphasis: CardEmphasis.outlined,
+          emphasis: CardEmphasis.raised,
           padding: AppInsets.compactCard,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,7 +615,8 @@ class _CycleLengthCard extends StatelessWidget {
       lowData: points.isEmpty
           ? const (
               takeaway: 'No cycle length to show yet.',
-              detail: 'Log two periods and the gap between them becomes your '
+              detail:
+                  'Log two periods and the gap between them becomes your '
                   'first cycle length.',
             )
           : (
@@ -603,7 +657,8 @@ class _PeriodLengthCard extends StatelessWidget {
       ),
       lowData: const (
         takeaway: 'Not enough completed periods for a trend yet.',
-        detail: 'Set an end date when you mark a period and this fills in. '
+        detail:
+            'Set an end date when you mark a period and this fills in. '
             'Three completed periods gives a trend.',
       ),
     );
@@ -674,7 +729,8 @@ class _WeightCard extends StatelessWidget {
       ),
       lowData: const (
         takeaway: 'Not enough weight entries for a trend yet.',
-        detail: 'Weight shifts a kilogram or two across a normal cycle. Three '
+        detail:
+            'Weight shifts a kilogram or two across a normal cycle. Three '
             'entries and the pattern starts to show.',
       ),
     );
@@ -782,7 +838,8 @@ class _TrendCard extends StatelessWidget {
       title: title,
       icon: icon,
       accent: color,
-      takeaway: '$subject has ranged $low to $high $unitLabel across '
+      takeaway:
+          '$subject has ranged $low to $high $unitLabel across '
           '${stats.count} $sampleNoun, averaging $average. The latest is '
           '$latest $unitLabel, $drift.',
       footnote: [
@@ -794,7 +851,8 @@ class _TrendCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ChartFrame(
-            semanticsLabel: 'Line chart of ${title.toLowerCase()}. '
+            semanticsLabel:
+                'Line chart of ${title.toLowerCase()}. '
                 '${stats.count} points'
                 '${range == null ? '' : ' from $range'}. '
                 'Values from $low to $high $unitLabel, averaging $average. '
@@ -865,7 +923,8 @@ class _SymptomPatternCard extends StatelessWidget {
       title: 'Symptom timing',
       icon: Icons.hub_rounded,
       accent: AppColors.ovulation,
-      takeaway: '${patterns.length} of your symptoms show up in one phase '
+      takeaway:
+          '${patterns.length} of your symptoms show up in one phase '
           'more often than an even spread would predict.',
       footnote: [
         'Co-occurrence, not cause',
@@ -949,7 +1008,8 @@ class _SymptomFrequencyCard extends StatelessWidget {
         accent: AppColors.luteal,
         takeaway: 'No symptoms logged yet.',
         child: _NotYet(
-          message: 'Tick whatever you notice on a daily log and the most '
+          message:
+              'Tick whatever you notice on a daily log and the most '
               'frequent ones rank here.',
         ),
       );
@@ -958,10 +1018,10 @@ class _SymptomFrequencyCard extends StatelessWidget {
     final first = top.first;
     final takeaway = top.length == 1
         ? '${first.symptom} is the only symptom you have logged, on '
-            '${first.count} ${_plural(first.count, 'day')}.'
+              '${first.count} ${_plural(first.count, 'day')}.'
         : '${first.symptom} is your most logged symptom '
-            '(${first.count} ${_plural(first.count, 'day')}), followed by '
-            '${top[1].symptom} (${top[1].count}).';
+              '(${first.count} ${_plural(first.count, 'day')}), followed by '
+              '${top[1].symptom} (${top[1].count}).';
 
     return _InsightCard(
       title: 'Most logged symptoms',
@@ -992,8 +1052,9 @@ class _MoodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final moods = analytics.moodDistribution();
-    final logs =
-        analytics.logs.where((log) => log.mood != null && log.mood!.isNotEmpty);
+    final logs = analytics.logs.where(
+      (log) => log.mood != null && log.mood!.isNotEmpty,
+    );
     final total = moods.fold(0, (sum, entry) => sum + entry.count);
     final range = _dateRangeLabel(logs.map((log) => log.date));
 
@@ -1017,7 +1078,8 @@ class _MoodCard extends StatelessWidget {
       title: 'Mood distribution',
       icon: Icons.mood_rounded,
       accent: AppColors.info,
-      takeaway: 'You logged ${first.mood} most often — ${first.count} of '
+      takeaway:
+          'You logged ${first.mood} most often — ${first.count} of '
           '$total ${_plural(total, 'entry', 'entries')}, about $share%.',
       footnote: [
         'Entries logged',
@@ -1114,7 +1176,8 @@ class _RankedBar extends StatelessWidget {
     return Semantics(
       container: true,
       label: label,
-      value: '$count ${_plural(count, unitNoun, unitNounPlural)}, '
+      value:
+          '$count ${_plural(count, unitNoun, unitNounPlural)}, '
           'ranked $rank of $total',
       child: ExcludeSemantics(
         child: Column(
@@ -1185,21 +1248,17 @@ class _TemperatureCard extends StatelessWidget {
     final analysis = analytics.temperatureAnalysis();
     final points = analysis.points;
 
-    if (!analysis.hasEnoughData) {
-      return _InsightCard(
+    if (points.isEmpty) {
+      return const _InsightCard(
         title: 'Basal temperature',
         icon: Icons.thermostat_rounded,
         accent: AppColors.fertile,
-        takeaway: points.isEmpty
-            ? 'No temperature readings this cycle yet.'
-            : '${points.length} of the 8 readings needed this cycle.',
+        takeaway: 'No temperature readings this cycle yet.',
         child: _NotYet(
-          message: points.isEmpty
-              ? 'Log your temperature each morning before getting up. After '
-                  'about eight readings the post-ovulation shift becomes '
-                  'visible.'
-              : '${points.length} of 8 readings needed this cycle '
-                  'before a coverline can be drawn.',
+          message:
+              'Log your temperature each morning before getting up. '
+              'A pattern check needs nine consecutive readings under usual '
+              'conditions. Readings do not confirm ovulation.',
         ),
       );
     }
@@ -1223,26 +1282,37 @@ class _TemperatureCard extends StatelessWidget {
       title: 'Basal temperature',
       icon: Icons.thermostat_rounded,
       accent: AppColors.fertile,
-      takeaway: shift == null
-          ? 'No sustained rise detected yet this cycle. Temperature confirms '
-              'ovulation after it happens, so this can stay flat until the '
-              'luteal phase begins.'
+      takeaway: !analysis.hasEnoughData
+          ? '${points.length} of 9 readings needed for a pattern check. '
+                'The check needs six baseline days and three higher days, all '
+                'consecutive and recorded under usual conditions. '
+                'Temperature alone does not confirm ovulation.'
+          : shift == null
+          ? 'No sustained temperature rise detected in consecutive undisturbed readings. '
+                'Temperature alone does not confirm ovulation.'
           : 'Your readings have stayed above a '
-              '${coverline!.toStringAsFixed(2)} °C coverline since day $shift '
-              '— consistent with ovulation having happened.',
-      footnote: 'Degrees Celsius · cycle days $firstDay–$lastDay · '
-          '${points.length} readings',
+                '${coverline!.toStringAsFixed(2)} °C coverline since day $shift '
+                '— a temperature pattern, not confirmation of ovulation.',
+      footnote:
+          'Degrees Celsius · cycle days $firstDay–$lastDay · '
+          '${points.length} readings; '
+          '${points.where((p) => p.context.any((c) => c != 'Usual conditions')).length} '
+          'flagged readings kept on chart, excluded from rise detection. '
+          '${points.where((p) => p.context.isEmpty).length} readings with unknown '
+          'context also excluded from rise detection. Gaps are not joined. '
+          'Calendar fertile dates are separate estimates.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ChartFrame(
             aspectRatio: 1.6,
-            semanticsLabel: 'Line chart of basal temperature by cycle day. '
+            semanticsLabel:
+                'Line chart of basal temperature by cycle day. '
                 '${points.length} readings from cycle day $firstDay to '
                 '$lastDay, ranging ${low.toStringAsFixed(2)} to '
                 '${high.toStringAsFixed(2)} degrees Celsius. '
                 '${coverline == null ? 'No coverline yet.' : 'Coverline '
-                    '${coverline.toStringAsFixed(2)}.'} '
+                          '${coverline.toStringAsFixed(2)}.'} '
                 '${shift == null ? 'No sustained rise detected yet.' : 'Sustained rise from day $shift.'}',
             child: _TemperatureChart(
               analysis: analysis,
@@ -1256,7 +1326,17 @@ class _TemperatureCard extends StatelessWidget {
               (
                 mark: _LegendMark.dot,
                 color: readingTone,
-                label: 'Reading',
+                label: 'Usual conditions',
+              ),
+              (
+                mark: _LegendMark.hollowDot,
+                color: context.subtleColor,
+                label: 'Disturbed conditions',
+              ),
+              (
+                mark: _LegendMark.hollowSquare,
+                color: context.subtleColor,
+                label: 'Context not logged (unknown)',
               ),
               if (coverline != null) ...[
                 (
@@ -1327,23 +1407,26 @@ class _HistoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final deviation = record.deviationFrom(average);
-    final span = '${DateFormat('MMM d').format(record.start)} to '
+    final span =
+        '${DateFormat('MMM d').format(record.start)} to '
         '${DateFormat('MMM d, yyyy').format(record.end)}';
     final deviationPhrase = deviation == 0
         ? 'matching your $average day average'
         : '${deviation.abs()} ${_plural(deviation.abs(), 'day')} '
-            '${deviation > 0 ? 'longer' : 'shorter'} than your $average day '
-            'average';
+              '${deviation > 0 ? 'longer' : 'shorter'} than your $average day '
+              'average';
 
     return Semantics(
       container: true,
       label: span,
-      value: '${record.length} day cycle, $deviationPhrase'
+      value:
+          '${record.length} day cycle, $deviationPhrase'
+          '${record.excludedFromPredictions ? ', excluded from estimates' : ''}'
           '${record.periodLength == null ? '' : ', ${record.periodLength} '
-              'day period'}',
+                    'day period'}',
       child: ExcludeSemantics(
         child: AppCard(
-          emphasis: CardEmphasis.outlined,
+          emphasis: CardEmphasis.raised,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.md,
@@ -1370,9 +1453,7 @@ class _HistoryRow extends StatelessWidget {
                   ),
                   Text(
                     'to ${DateFormat('MMM d, yyyy').format(record.end)}',
-                    style: text.labelSmall?.copyWith(
-                      color: context.mutedColor,
-                    ),
+                    style: text.labelSmall?.copyWith(color: context.mutedColor),
                   ),
                 ],
               ),
@@ -1385,6 +1466,11 @@ class _HistoryRow extends StatelessWidget {
                     _Pill(
                       label: '${record.periodLength}d bleed',
                       color: AppColors.period,
+                    ),
+                  if (record.excludedFromPredictions)
+                    const _Pill(
+                      label: 'Excluded from estimates',
+                      color: AppColors.info,
                     ),
                   _DeviationPill(length: record.length, deviation: deviation),
                 ],
@@ -1444,8 +1530,8 @@ class _DeviationPill extends StatelessWidget {
     final color = deviation.abs() <= 2
         ? AppColors.success
         : deviation.abs() <= 5
-            ? AppColors.warning
-            : AppColors.error;
+        ? AppColors.warning
+        : AppColors.error;
     final ink = _legibleTone(context, color);
 
     return Container(
@@ -1857,7 +1943,7 @@ class _TemperatureChart extends StatelessWidget {
 
   final TemperatureAnalysis analysis;
 
-  /// Pre-ovulatory readings.
+  /// Readings under usual conditions below any descriptive coverline.
   final Color readingTone;
 
   /// Readings at or above the coverline, and the coverline itself.
@@ -1871,6 +1957,14 @@ class _TemperatureChart extends StatelessWidget {
     final values = points.map((point) => point.celsius).toList();
     final coverline = analysis.coverline;
     final tickStyle = text.labelSmall?.copyWith(color: context.subtleColor);
+    final byDay = {for (final point in points) point.cycleDay: point};
+    final plotted = <FlSpot>[];
+    for (var i = 0; i < points.length; i++) {
+      if (i > 0 && points[i].cycleDay - points[i - 1].cycleDay > 1) {
+        plotted.add(FlSpot.nullSpot);
+      }
+      plotted.add(FlSpot(points[i].cycleDay.toDouble(), points[i].celsius));
+    }
 
     // Padded to include the coverline, otherwise it can sit outside the
     // plotted range and simply not render.
@@ -1883,6 +1977,8 @@ class _TemperatureChart extends StatelessWidget {
       duration: motion(AppDurations.normal),
       curve: AppCurves.out,
       LineChartData(
+        minX: points.first.cycleDay.toDouble() - (points.length == 1 ? 0.5 : 0),
+        maxX: points.last.cycleDay.toDouble() + (points.length == 1 ? 0.5 : 0),
         minY: lowest,
         maxY: highest,
         borderData: FlBorderData(show: false),
@@ -1916,15 +2012,18 @@ class _TemperatureChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 26,
-              interval: (points.length / 5).ceilToDouble(),
+              interval: max(
+                1.0,
+                (points.last.cycleDay - points.first.cycleDay) / 5,
+              ).ceilToDouble(),
               getTitlesWidget: (value, _) {
-                final index = value.toInt();
-                if (index < 0 || index >= points.length) {
+                final day = value.toInt();
+                if (value != day.toDouble()) {
                   return const SizedBox.shrink();
                 }
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.xs),
-                  child: Text('d${points[index].cycleDay}', style: tickStyle),
+                  child: Text('d$day', style: tickStyle),
                 );
               },
             ),
@@ -1950,22 +2049,58 @@ class _TemperatureChart extends StatelessWidget {
               ),
           ],
         ),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            tooltipRoundedRadius: AppRadii.compact,
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+            getTooltipColor: (_) =>
+                context.isDark ? AppColors.darkCard : AppColors.ink,
+            getTooltipItems: (spots) => [
+              for (final spot in spots)
+                if (byDay[spot.x.toInt()] case final point?)
+                  LineTooltipItem(
+                    '${point.celsius.toStringAsFixed(2)} °C · day ${point.cycleDay}\n'
+                    '${point.context.isEmpty ? 'Context not logged (unknown)' : point.context.join(', ')}',
+                    text.labelSmall?.copyWith(color: AppColors.white) ??
+                        const TextStyle(color: AppColors.white),
+                  )
+                else
+                  null,
+            ],
+          ),
+        ),
         lineBarsData: [
           LineChartBarData(
-            spots: [
-              for (var i = 0; i < values.length; i++)
-                FlSpot(i.toDouble(), values[i]),
-            ],
-            isCurved: true,
-            curveSmoothness: 0.2,
+            spots: plotted,
+            isCurved: false,
             color: readingTone,
             barWidth: 2.6,
             dotData: FlDotData(
               show: true,
               getDotPainter: (spot, _, __, ___) {
-                // Readings at or above the coverline are the post-ovulatory
-                // ones — the point of the chart. Marked by shape as well as
-                // colour so the distinction survives greyscale.
+                final point = byDay[spot.x.toInt()];
+                final usable =
+                    point != null &&
+                    point.context.length == 1 &&
+                    point.context.single == 'Usual conditions';
+                if (!usable) {
+                  if (point?.context.isEmpty ?? true) {
+                    return FlDotSquarePainter(
+                      size: 8,
+                      color: context.cardColor,
+                      strokeWidth: 2,
+                      strokeColor: context.subtleColor,
+                    );
+                  }
+                  return FlDotCirclePainter(
+                    radius: 4,
+                    color: context.cardColor,
+                    strokeWidth: 2,
+                    strokeColor: context.subtleColor,
+                  );
+                }
+                // Above-coverline is a temperature comparison, not proof of ovulation.
                 final above = coverline != null && spot.y >= coverline;
                 if (above) {
                   return FlDotSquarePainter(
@@ -2001,7 +2136,7 @@ class _TemperatureChart extends StatelessWidget {
   }
 }
 
-enum _LegendMark { line, dash, dot, square }
+enum _LegendMark { line, dash, dot, square, hollowDot, hollowSquare }
 
 /// Names every series. A chart that can only be read by matching hues is not
 /// readable by everyone.
@@ -2075,17 +2210,29 @@ class _LegendMarker extends StatelessWidget {
         return _bar(9, 9, AppRadii.pill);
       case _LegendMark.square:
         return _bar(9, 9, 2);
+      case _LegendMark.hollowDot:
+      case _LegendMark.hollowSquare:
+        return Container(
+          width: 9,
+          height: 9,
+          decoration: BoxDecoration(
+            border: Border.all(color: color, width: 2),
+            borderRadius: BorderRadius.circular(
+              mark == _LegendMark.hollowDot ? AppRadii.pill : 2,
+            ),
+          ),
+        );
     }
   }
 
   Widget _bar(double width, double height, double radius) => Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-      );
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(radius),
+    ),
+  );
 }
 
 /// Small text badge. Carries the phase name so phase grouping is never colour
@@ -2108,10 +2255,7 @@ class _Tag extends StatelessWidget {
       decoration: BoxDecoration(
         color: swatch.surface,
         borderRadius: BorderRadius.circular(AppRadii.compact),
-        border: Border.all(
-          color: swatch.border,
-          width: AppStrokes.hairline,
-        ),
+        border: Border.all(color: swatch.border, width: AppStrokes.hairline),
       ),
       child: Text(
         label,
@@ -2166,8 +2310,9 @@ class _TrendStats {
   /// gap clears a threshold. Otherwise every series "trends" somewhere.
   static _Drift _driftOf(List<double> values, double threshold) {
     if (values.length < 3) return _Drift.steady;
-    final split =
-        values.length >= 6 ? values.length - 3 : (values.length / 2).ceil();
+    final split = values.length >= 6
+        ? values.length - 3
+        : (values.length / 2).ceil();
     final earlier = values.sublist(0, split);
     final recent = values.sublist(split);
     final delta = _mean(recent) - _mean(earlier);
@@ -2181,10 +2326,10 @@ class _TrendStats {
 }
 
 String _driftWord(_Drift drift) => switch (drift) {
-      _Drift.rising => 'rising',
-      _Drift.falling => 'falling',
-      _Drift.steady => 'holding steady',
-    };
+  _Drift.rising => 'rising',
+  _Drift.falling => 'falling',
+  _Drift.steady => 'holding steady',
+};
 
 String _number(double value, int decimals) => value.toStringAsFixed(decimals);
 

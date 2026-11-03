@@ -6,6 +6,7 @@ import '../../core/theme/cyclecare_theme.dart';
 import '../../core/utils/date_helpers.dart';
 import '../../widgets/widgets.dart';
 import 'application/health_controller.dart';
+import '../tracking/domain/tracking_options.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Health
@@ -69,9 +70,83 @@ const double _readingLeading = 1.6;
 /// read at the same size and rhythm.
 TextStyle? _readingStyle(BuildContext context, {Color? color}) =>
     Theme.of(context).textTheme.bodyMedium?.copyWith(
-          height: _readingLeading,
-          color: color ?? _bodyColor(context),
-        );
+      height: _readingLeading,
+      color: color ?? _bodyColor(context),
+    );
+
+/// The first paragraph of a condition card.
+///
+/// One step up in size and a stronger ink than the detail copy below it. That
+/// paragraph answers "what is this?", so it gets to lead the card instead of
+/// being the first of four interchangeable grey blocks — which is most of why
+/// the expanded card used to read as a wall of prose.
+TextStyle? _leadStyle(BuildContext context) =>
+    Theme.of(context).textTheme.bodyLarge?.copyWith(
+      height: _readingLeading,
+      color: context.isDark
+          ? context.inkColor.withOpacity(0.92)
+          : AppColors.inkLight,
+    );
+
+/// The palette accent, corrected for use as text or an icon.
+///
+/// `context.accentColor` is the raw palette seed. Several of the eight land
+/// near 2.6:1 against a near-white card, which is fine behind white text and
+/// unreadable as a label or a 19dp glyph. Darkened toward the ink in light mode
+/// and lifted toward white in dark — the same correction `PhaseSwatch.text`
+/// applies to the phase hues, for the same reason.
+Color _accentInk(BuildContext context) => context.isDark
+    ? Color.lerp(context.accentColor, Colors.white, 0.34)!
+    : Color.lerp(context.accentColor, AppColors.ink, 0.42)!;
+
+/// Vertical space the floating tab bar occupies, so each tab body can pad its
+/// scroll view by exactly what the chrome covers.
+const double _tabBarExtent =
+    AppLayout.minTouchTarget + AppSpacing.sm + AppSpacing.md;
+
+/// Holds a paragraph to a comfortable measure.
+///
+/// Inside the 720dp content column, 14pt body copy runs to roughly 85
+/// characters a line — well past the 45–75 that keeps a reader's eye from
+/// losing its place between lines. Phones are narrower than this cap already,
+/// so it only bites on tablets, which is exactly where the old layout turned
+/// a condition summary into a page of legal text.
+class _Prose extends StatelessWidget {
+  const _Prose({required this.child});
+
+  final Widget child;
+
+  static const double measure = 560;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: measure),
+      child: child,
+    );
+  }
+}
+
+/// Hairline between the blocks of an expanded card.
+///
+/// The expanded copy is three distinct things — what to look for, when to act,
+/// what logging here contributes. Without a rule between them they run together
+/// into one column of grey text and the headings stop doing any work.
+class _BlockRule extends StatelessWidget {
+  const _BlockRule();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: Divider(
+        height: AppStrokes.hairline,
+        thickness: AppStrokes.hairline,
+        color: context.lineColor,
+      ),
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Content
@@ -83,7 +158,7 @@ class _Condition {
     required this.id,
     required this.name,
     required this.subtitle,
-    required this.emoji,
+    required this.icon,
     required this.tone,
     required this.summary,
     required this.signs,
@@ -94,7 +169,15 @@ class _Condition {
   final String id;
   final String name;
   final String subtitle;
-  final String emoji;
+
+  /// The condition's visual identity, alongside its name.
+  ///
+  /// This replaced a coloured-circle emoji per condition. A flat primary dot
+  /// says nothing about what it marks and renders as a different glyph on every
+  /// platform, so the identity now comes from a drawn icon that points at the
+  /// subject — where the body is affected, or what the condition is about.
+  final IconData icon;
+
   final _Tone tone;
 
   /// Always visible. The original leaflet copy, tightened.
@@ -116,7 +199,7 @@ const _conditions = <_Condition>[
     id: 'pcos',
     name: 'PCOS',
     subtitle: 'Polycystic ovary syndrome',
-    emoji: '🔵',
+    icon: AppIcons.cycle,
     tone: _Tone.fertile,
     summary:
         'A common hormonal condition among people of reproductive age. It tends '
@@ -146,7 +229,7 @@ const _conditions = <_Condition>[
     id: 'endometriosis',
     name: 'Endometriosis',
     subtitle: 'Tissue growth outside the uterus',
-    emoji: '🟣',
+    icon: AppIcons.pain,
     tone: _Tone.ovulation,
     summary:
         'Tissue similar to the uterine lining grows outside the uterus, where '
@@ -176,7 +259,7 @@ const _conditions = <_Condition>[
     id: 'pmdd',
     name: 'PMDD',
     subtitle: 'Premenstrual dysphoric disorder',
-    emoji: '🟡',
+    icon: AppIcons.moodIrritable,
     tone: _Tone.luteal,
     summary:
         'A severe premenstrual condition affecting mood as much as the body. '
@@ -206,7 +289,7 @@ const _conditions = <_Condition>[
     id: 'perimenopause',
     name: 'Perimenopause',
     subtitle: 'The transition toward menopause',
-    emoji: '🟠',
+    icon: AppIcons.luteal,
     tone: _Tone.predicted,
     summary:
         'The years of hormonal change leading up to menopause, often starting '
@@ -236,7 +319,9 @@ const _conditions = <_Condition>[
     id: 'amenorrhea',
     name: 'Amenorrhea',
     subtitle: 'Absent periods',
-    emoji: '⚪',
+    // No AppIcons entry fits "a period that did not arrive"; the struck-out
+    // calendar is the one glyph that reads as absence rather than illness.
+    icon: Icons.event_busy_rounded,
     tone: _Tone.period,
     summary:
         'Menstruation that has not started, or has stopped. Pregnancy, '
@@ -277,7 +362,7 @@ class _Screener {
     required this.id,
     required this.title,
     required this.subtitle,
-    required this.emoji,
+    required this.icon,
     required this.tone,
     required this.questions,
     required this.threshold,
@@ -288,7 +373,11 @@ class _Screener {
   final String id;
   final String title;
   final String subtitle;
-  final String emoji;
+
+  /// What the questions are about, drawn rather than a coloured dot. See the
+  /// note on [_Condition.icon].
+  final IconData icon;
+
   final _Tone tone;
   final List<String> questions;
 
@@ -307,7 +396,7 @@ const _screeners = <_Screener>[
     id: 'pcos',
     title: 'Cycle and hormone patterns',
     subtitle: 'Questions clinicians often ask when PCOS comes up',
-    emoji: '🔵',
+    icon: AppIcons.cycle,
     tone: _Tone.fertile,
     threshold: 3,
     questions: [
@@ -335,7 +424,7 @@ const _screeners = <_Screener>[
     id: 'pmdd',
     title: 'Premenstrual mood patterns',
     subtitle: 'How the week or two before bleeding tends to go',
-    emoji: '🟡',
+    icon: AppIcons.moodIrritable,
     tone: _Tone.luteal,
     threshold: 4,
     questions: [
@@ -437,48 +526,65 @@ class _SubHeading extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.9,
-              color: color,
-            ),
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.9,
+          color: color,
+        ),
       ),
     );
   }
 }
 
-/// The leading emoji tile on a condition or screener card.
+/// The leading icon tile on a condition or screener card.
 ///
 /// A fixed square: it is decoration, so it holds its size while the text beside
-/// it grows with the user's text scale, and the glyph shrinks to fit rather
-/// than pushing the row apart.
+/// it grows with the user's text scale.
+///
+/// The phase hue is kept as a *wash and a rule*, never as the glyph's own
+/// colour. Five saturated icons down a page compete with the names beside them
+/// and start to look like status badges, which is the wrong promise on a screen
+/// that must not imply anything about you. So the tile carries the hue at low
+/// alpha and the glyph is drawn in the palette's corrected accent — the same
+/// ink for all five, so what distinguishes a condition is its name and its
+/// drawing, not an arbitrary colour the user has to learn.
 class _Glyph extends StatelessWidget {
-  const _Glyph({required this.emoji, required this.swatch, this.tinted = false});
+  const _Glyph({required this.icon, required this.swatch, this.tinted = false});
 
-  final String emoji;
+  final IconData icon;
   final PhaseSwatch swatch;
 
-  /// Fills with the phase tint instead of the card colour. Used where the card
-  /// itself is already white and needs the accent.
+  /// Carries the phase tint instead of the quiet neutral fill. Used where the
+  /// card is marked as the user's, or where the tile is the card's one accent.
   final bool tinted;
 
   @override
   Widget build(BuildContext context) {
+    final dark = context.isDark;
+
     return ExcludeSemantics(
       child: Container(
         width: AppLayout.minTouchTarget,
         height: AppLayout.minTouchTarget,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: tinted ? swatch.surface : context.cardColor,
+          color: tinted
+              ? swatch.surface
+              : context.accentColor.withOpacity(dark ? 0.16 : 0.07),
           borderRadius: BorderRadius.circular(AppRadii.control),
           border: Border.all(
-            color: swatch.border,
+            color: tinted
+                ? swatch.border
+                : context.lineColor.withOpacity(dark ? 0.80 : 1),
             width: AppStrokes.hairline,
           ),
         ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(emoji, style: Theme.of(context).textTheme.titleLarge),
+        child: Icon(
+          icon,
+          // Sized against the tile rather than the text scale: the tile is a
+          // fixed square, so a glyph that grows with the body copy would
+          // outgrow its own box at large text.
+          size: AppSpacing.xxl,
+          color: tinted ? swatch.text : _accentInk(context),
         ),
       ),
     );
@@ -492,7 +598,7 @@ class _Glyph extends StatelessWidget {
 /// is impossible to describe to a screen reader and awkward to hit.
 class _CardHeader extends StatelessWidget {
   const _CardHeader({
-    required this.emoji,
+    required this.icon,
     required this.swatch,
     required this.title,
     required this.subtitle,
@@ -502,9 +608,10 @@ class _CardHeader extends StatelessWidget {
     required this.collapseHint,
     this.subtitleColor,
     this.tintedGlyph = false,
+    this.badge,
   });
 
-  final String emoji;
+  final IconData icon;
   final PhaseSwatch swatch;
   final String title;
   final String subtitle;
@@ -514,6 +621,11 @@ class _CardHeader extends StatelessWidget {
   final String collapseHint;
   final Color? subtitleColor;
   final bool tintedGlyph;
+
+  /// Optional status pill between the title block and the chevron. Used by a
+  /// marked condition, where the state needs naming in words next to the title
+  /// rather than only at the foot of the card.
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -544,7 +656,7 @@ class _CardHeader extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _Glyph(emoji: emoji, swatch: swatch, tinted: tintedGlyph),
+                _Glyph(icon: icon, swatch: swatch, tinted: tintedGlyph),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -552,8 +664,13 @@ class _CardHeader extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: text.titleMedium?.copyWith(
+                        // One step up from titleMedium. The condition's name is
+                        // the card's identity now that an arbitrary hue is no
+                        // longer carrying it, so it is set to lead the row.
+                        style: text.titleLarge?.copyWith(
+                          fontSize: 18,
                           fontWeight: FontWeight.w900,
+                          letterSpacing: -0.2,
                           color: context.inkColor,
                         ),
                       ),
@@ -562,12 +679,16 @@ class _CardHeader extends StatelessWidget {
                         subtitle,
                         style: text.labelMedium?.copyWith(
                           height: 1.35,
-                          color: subtitleColor ?? swatch.text,
+                          color: subtitleColor ?? context.mutedColor,
                         ),
                       ),
                     ],
                   ),
                 ),
+                if (badge != null) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  badge!,
+                ],
                 const SizedBox(width: AppSpacing.sm),
                 AnimatedRotation(
                   turns: open ? 0.5 : 0,
@@ -649,7 +770,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
     if (entry == null || !mounted) return;
 
-    await ref.read(painEntriesProvider.notifier).add(entry);
     if (!mounted) return;
     showAppToast(context, message: 'Pain entry saved');
   }
@@ -665,7 +785,18 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
     if (!confirmed || !mounted) return false;
 
-    await ref.read(painEntriesProvider.notifier).remove(entry.id);
+    try {
+      await ref.read(painEntriesProvider.notifier).remove(entry.id);
+    } catch (_) {
+      if (mounted)
+        showAppToast(
+          context,
+          message:
+              'Could not delete the entry. It remains in your diary. Try again.',
+          kind: ToastKind.warning,
+        );
+      return false;
+    }
     if (mounted) {
       showAppToast(context, message: 'Entry deleted', kind: ToastKind.info);
     }
@@ -676,21 +807,21 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget build(BuildContext context) {
     final content = switch (_tab) {
       _HealthTab.conditions => _ConditionsTab(
-          expanded: _expandedConditions,
-          onToggle: _toggleCondition,
-          onOpenDiary: () => setState(() => _tab = _HealthTab.diary),
-        ),
+        expanded: _expandedConditions,
+        onToggle: _toggleCondition,
+        onOpenDiary: () => setState(() => _tab = _HealthTab.diary),
+      ),
       _HealthTab.diary => _PainDiaryTab(
-          onLogPain: _logPain,
-          onDelete: _deletePain,
-        ),
+        onLogPain: _logPain,
+        onDelete: _deletePain,
+      ),
       _HealthTab.screening => _ScreeningTab(
-          expanded: _expandedScreeners,
-          answers: _answers,
-          onToggle: _toggleScreener,
-          onAnswer: _answer,
-          onReset: _resetScreener,
-        ),
+        expanded: _expandedScreeners,
+        answers: _answers,
+        onToggle: _toggleScreener,
+        onAnswer: _answer,
+        onReset: _resetScreener,
+      ),
     };
 
     return Scaffold(
@@ -698,43 +829,31 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       appBar: AppBar(title: const Text('Health')),
       body: Column(
         children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
-
-              return Padding(
-                padding: EdgeInsets.fromLTRB(
-                  gutter,
-                  AppSpacing.xs,
-                  gutter,
-                  AppSpacing.md,
-                ),
-                child: _Bounded(
-                  // Announced as one labelled group with heading semantics, so
-                  // the three parts of this screen are reachable by heading
-                  // navigation rather than only by swiping through controls.
-                  child: Semantics(
-                    container: true,
-                    explicitChildNodes: true,
-                    header: true,
-                    label: 'Health sections',
-                    child: SegmentedSelector<_HealthTab>(
-                      segments: const {
-                        _HealthTab.conditions: 'Conditions',
-                        _HealthTab.diary: 'Pain diary',
-                        _HealthTab.screening: 'Screening',
-                      },
-                      value: _tab,
-                      onChanged: (tab) => setState(() => _tab = tab),
-                    ),
+          Expanded(
+            // The tab bar floats *over* the scrolling tab body rather than
+            // sitting in a row above it. That is what earns it glass — a
+            // backdrop blur has content moving beneath it to sample, so the bar
+            // reads as a pane of material over the page instead of the flat
+            // grey box glass becomes when there is nothing behind it. Each tab
+            // body pads its scroll view by [_tabBarExtent] so nothing starts
+            // life underneath the bar.
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: BlurSwap(
+                    child: KeyedSubtree(key: ValueKey(_tab), child: content),
                   ),
                 ),
-              );
-            },
-          ),
-          Expanded(
-            child: BlurSwap(
-              child: KeyedSubtree(key: ValueKey(_tab), child: content),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: _TabBar(
+                    value: _tab,
+                    onChanged: (tab) => setState(() => _tab = tab),
+                  ),
+                ),
+              ],
             ),
           ),
           // Pinned rather than appended to each list. A disclaimer that can be
@@ -742,6 +861,177 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           // is doing real work on a screen about medical conditions.
           const _PinnedDisclaimer(),
         ],
+      ),
+    );
+  }
+}
+
+/// The three sections of this screen, as a segmented control.
+///
+/// Built here rather than with `SegmentedSelector` because that control marks
+/// its selection with a white card and a tinted label — quiet by design, and
+/// too quiet when it is the only navigation on the screen. Here the selected
+/// segment is a filled accent pill, which is unmistakable at a glance.
+///
+/// The fill is `scheme.primary` and the label `scheme.onPrimary`, never a
+/// hardcoded white: Material derives that pair from each of the eight seeds
+/// with a guaranteed contrast ratio, in both brightnesses. A literal white
+/// label would fail on the lighter palettes and in dark mode, where primary is
+/// lifted to a pale tone.
+class _TabBar extends StatelessWidget {
+  const _TabBar({required this.value, required this.onChanged});
+
+  final _HealthTab value;
+  final ValueChanged<_HealthTab> onChanged;
+
+  static const Map<_HealthTab, String> _labels = {
+    _HealthTab.conditions: 'Conditions',
+    _HealthTab.diary: 'Pain diary',
+    _HealthTab.screening: 'Screening',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = Motion.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final tabs = _labels.keys.toList();
+    final index = tabs.indexOf(value);
+    final radius = BorderRadius.circular(AppRadii.pill);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            gutter,
+            AppSpacing.xs,
+            gutter,
+            AppSpacing.md,
+          ),
+          child: _Bounded(
+            // Announced as one labelled group with heading semantics, so the
+            // three parts of this screen are reachable by heading navigation
+            // rather than only by swiping through controls.
+            child: Semantics(
+              container: true,
+              explicitChildNodes: true,
+              header: true,
+              label: 'Health sections',
+              child: GlassSurface(
+                tone: GlassTone.chrome,
+                borderRadius: radius,
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                child: LayoutBuilder(
+                  builder: (context, track) {
+                    final slot = track.maxWidth / tabs.length;
+
+                    return SizedBox(
+                      height: AppLayout.minTouchTarget,
+                      child: Stack(
+                        children: [
+                          AnimatedPositionedDirectional(
+                            duration: motion(AppDurations.fast),
+                            curve: AppCurves.inOut,
+                            start: slot * (index < 0 ? 0 : index),
+                            top: 0,
+                            bottom: 0,
+                            width: slot,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: scheme.primary,
+                                borderRadius: radius,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              for (var i = 0; i < tabs.length; i++)
+                                Expanded(
+                                  child: _TabSegment(
+                                    label: _labels[tabs[i]]!,
+                                    position: '${i + 1} of ${tabs.length}',
+                                    selected: tabs[i] == value,
+                                    onTap: () {
+                                      // Guarded here rather than by passing a
+                                      // null callback: Pressable treats a null
+                                      // onTap as disabled, which would drop the
+                                      // *current* tab out of the focus order
+                                      // and announce it as unavailable.
+                                      if (tabs[i] == value) return;
+                                      onChanged(tabs[i]);
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TabSegment extends StatelessWidget {
+  const _TabSegment({
+    required this.label,
+    required this.position,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final String position;
+  final bool selected;
+
+  /// Null on the already-selected tab. See the call site.
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = Motion.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Pressable(
+      onTap: onTap,
+      // Stays an exposed, enabled-looking button when it is the current tab, so
+      // the selected segment is still reachable and announced by name.
+      enabled: true,
+      selected: selected,
+      semanticLabel: label,
+      semanticValue: position,
+      excludeChildSemantics: true,
+      inMutuallyExclusiveGroup: true,
+      scale: 0.97,
+      borderRadius: BorderRadius.circular(AppRadii.pill),
+      minimumSize: const Size(0, AppLayout.minTouchTarget),
+      child: Center(
+        child: AnimatedDefaultTextStyle(
+          duration: motion(AppDurations.fast),
+          curve: AppCurves.out,
+          style: (Theme.of(context).textTheme.labelLarge ?? const TextStyle())
+              .copyWith(
+                fontSize: 13.5,
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+                color: selected ? scheme.onPrimary : context.mutedColor,
+              ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -912,7 +1202,7 @@ class _ConditionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _CardHeader(
-            emoji: condition.emoji,
+            icon: condition.icon,
             swatch: swatch,
             title: condition.name,
             subtitle: condition.subtitle,
@@ -1016,9 +1306,9 @@ class _ConditionDetail extends StatelessWidget {
                 child: Text(
                   condition.tracking,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        height: _readingLeading,
-                        color: _bodyColor(context),
-                      ),
+                    height: _readingLeading,
+                    color: _bodyColor(context),
+                  ),
                 ),
               ),
             ],
@@ -1097,7 +1387,7 @@ class _PainDiaryTab extends ConsumerWidget {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: _Bounded(
                 child: EmptyState(
-                  emoji: '📓',
+                  icon: AppIcons.notes,
                   title: 'No entries yet',
                   message:
                       'Log a flare-up while you remember it. Dated levels and '
@@ -1155,7 +1445,6 @@ class _PainDiaryTab extends ConsumerWidget {
       },
     );
   }
-
 }
 
 /// The header of the diary: what the record adds up to, and the one action that
@@ -1170,10 +1459,31 @@ class _DiarySummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final average =
         entries.fold<int>(0, (sum, entry) => sum + entry.severity) /
-            entries.length;
-    final worst =
-        entries.map((entry) => entry.severity).reduce((a, b) => a > b ? a : b);
+        entries.length;
+    final worst = entries
+        .map((entry) => entry.severity)
+        .reduce((a, b) => a > b ? a : b);
     final topLocation = _mostCommonLocation(entries);
+    final assessed = entries
+        .where(
+          (entry) =>
+              entry.painInterference != null &&
+              entry.painInterference != 'Not sure',
+        )
+        .length;
+    final affected = entries
+        .where(
+          (entry) =>
+              entry.painInterference == 'Some activities harder' ||
+              entry.painInterference == 'Unable to do usual activities',
+        )
+        .length;
+    final unsure = entries
+        .where((entry) => entry.painInterference == 'Not sure')
+        .length;
+    final unlogged = entries
+        .where((entry) => entry.painInterference == null)
+        .length;
 
     // Two number cards side by side stop fitting somewhere past 130% text
     // scale — the value alone is 24pt before scaling. Stacking is the honest
@@ -1229,6 +1539,12 @@ class _DiarySummary extends StatelessWidget {
                     ],
                   ),
                 ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Activities affected in $affected of $assessed assessed entries. '
+                '$unsure not sure; $unlogged not logged.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               if (topLocation != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 Align(
@@ -1378,6 +1694,11 @@ class _PainEntryCard extends StatelessWidget {
                 ],
               ),
             ],
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Activity impact: ${entry.painInterference ?? 'Not logged'}',
+              style: text.bodySmall?.copyWith(color: _bodyColor(context)),
+            ),
             if (entry.notes.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               Text(
@@ -1430,9 +1751,9 @@ class _DeleteBackground extends StatelessWidget {
             Text(
               'Delete',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.error,
-                  ),
+                fontWeight: FontWeight.w900,
+                color: AppColors.error,
+              ),
             ),
           ],
         ),
@@ -1445,15 +1766,18 @@ class _DeleteBackground extends StatelessWidget {
 ///
 /// Its own stateful widget rather than a builder closure so the controller gets
 /// disposed properly and the sheet can hold a draft while the user thinks.
-class _PainSheet extends StatefulWidget {
+class _PainSheet extends ConsumerStatefulWidget {
   const _PainSheet();
 
   @override
-  State<_PainSheet> createState() => _PainSheetState();
+  ConsumerState<_PainSheet> createState() => _PainSheetState();
 }
 
-class _PainSheetState extends State<_PainSheet> {
+class _PainSheetState extends ConsumerState<_PainSheet> {
   int _severity = 0;
+  String? _painInterference;
+  bool _saving = false;
+  String? _saveError;
   final Set<String> _locations = <String>{};
   final TextEditingController _notes = TextEditingController();
   DateTime _date = dateOnly(DateTime.now());
@@ -1476,18 +1800,30 @@ class _PainSheetState extends State<_PainSheet> {
     }
   }
 
-  void _save() {
-    Navigator.of(context).pop(
-      PainEntry(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        date: _date,
-        severity: _severity,
-        // Stored in the canonical order so two entries with the same locations
-        // always read the same way.
-        locations: _painLocations.where(_locations.contains).toList(),
-        notes: _notes.text.trim(),
-      ),
+  Future<void> _save() async {
+    final entry = PainEntry(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      date: _date,
+      severity: _severity,
+      locations: _painLocations.where(_locations.contains).toList(),
+      notes: _notes.text.trim(),
+      painInterference: _painInterference,
     );
+    setState(() {
+      _saving = true;
+      _saveError = null;
+    });
+    try {
+      await ref.read(painEntriesProvider.notifier).add(entry);
+      if (mounted) Navigator.of(context).pop(entry);
+    } catch (_) {
+      if (mounted)
+        setState(() {
+          _saving = false;
+          _saveError =
+              'Could not save this entry. Your draft is kept here. Try saving again.';
+        });
+    }
   }
 
   @override
@@ -1495,8 +1831,9 @@ class _PainSheetState extends State<_PainSheet> {
     final text = Theme.of(context).textTheme;
     final swatch = _severitySwatch(context, _severity);
     final isToday = isSameDate(_date, DateTime.now());
-    final dateLabel =
-        isToday ? 'Today' : DateFormat('EEEE, MMM d').format(_date);
+    final dateLabel = isToday
+        ? 'Today'
+        : DateFormat('EEEE, MMM d').format(_date);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1547,10 +1884,7 @@ class _PainSheetState extends State<_PainSheet> {
           onChanged: (value) => setState(() => _severity = value),
         ),
         const SizedBox(height: AppSpacing.xl),
-        const _SheetSection(
-          title: 'Where',
-          subtitle: 'Anything that applies',
-        ),
+        const _SheetSection(title: 'Where', subtitle: 'Anything that applies'),
         Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
@@ -1572,6 +1906,27 @@ class _PainSheetState extends State<_PainSheet> {
         ),
         const SizedBox(height: AppSpacing.xl),
         const _SheetSection(
+          title: 'Activity impact',
+          subtitle: 'Optional — how pain affected your usual activities',
+        ),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final choice in painInterferenceOptions)
+              SelectableChip(
+                label: choice,
+                icon: AppIcons.pain,
+                selected: _painInterference == choice,
+                accent: swatch.fill,
+                onSelected: (selected) => setState(
+                  () => _painInterference = selected ? choice : null,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        const _SheetSection(
           title: 'Notes',
           subtitle: 'Optional — what it felt like, what you were doing',
         ),
@@ -1584,11 +1939,21 @@ class _PainSheetState extends State<_PainSheet> {
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
+        if (_saveError != null) ...[
+          Text(
+            _saveError!,
+            style: text.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         PrimaryButton(
           label: 'Save entry',
+          loading: _saving,
           icon: Icons.check_rounded,
           // A level is the one thing an entry cannot be summarised without.
-          onPressed: _severity == 0 ? null : _save,
+          onPressed: _severity == 0 || _saving ? null : _save,
         ),
       ],
     );
@@ -1734,7 +2099,7 @@ class _ScreenerCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _CardHeader(
-              emoji: screener.emoji,
+              icon: screener.icon,
               swatch: swatch,
               title: screener.title,
               subtitle: answered == 0
@@ -1761,82 +2126,83 @@ class _ScreenerCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (open) ...[
-                    for (var i = 0; i < total; i++)
-                      _QuestionRow(
-                        index: i,
-                        total: total,
-                        question: screener.questions[i],
-                        answer: answers[i],
-                        accent: swatch.fill,
-                        onAnswer: (value) => onAnswer(i, value),
-                      ),
-                    if (answered > 0)
-                      Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: Pressable(
-                          onTap: onReset,
-                          scale: 0.96,
-                          semanticLabel: 'Clear answers',
-                          semanticHint: 'Removes all $answered answers',
-                          excludeChildSemantics: true,
-                          borderRadius:
-                              BorderRadius.circular(AppRadii.compact),
-                          minimumSize:
-                              const Size(0, AppLayout.minTouchTarget),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm,
+                      for (var i = 0; i < total; i++)
+                        _QuestionRow(
+                          index: i,
+                          total: total,
+                          question: screener.questions[i],
+                          answer: answers[i],
+                          accent: swatch.fill,
+                          onAnswer: (value) => onAnswer(i, value),
+                        ),
+                      if (answered > 0)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Pressable(
+                            onTap: onReset,
+                            scale: 0.96,
+                            semanticLabel: 'Clear answers',
+                            semanticHint: 'Removes all $answered answers',
+                            excludeChildSemantics: true,
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.compact,
                             ),
-                            child: Text(
-                              'Clear answers',
-                              style: text.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: context.mutedColor,
+                            minimumSize: const Size(
+                              0,
+                              AppLayout.minTouchTarget,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                              ),
+                              child: Text(
+                                'Clear answers',
+                                style: text.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: context.mutedColor,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
 
-                  // The result. Never a score and never a verdict — the copy
-                  // says what to do next, and both branches say in words that
-                  // this is not a diagnosis.
-                  if (complete)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.md),
-                      child: Semantics(
-                        liveRegion: true,
-                        child: InfoBanner(
-                          icon: flagged
-                              ? Icons.flag_rounded
-                              : Icons.info_rounded,
-                          tone: flagged
-                              ? AppColors.warning
-                              : AppColors.info,
-                          title: flagged
-                              ? 'Worth raising with a clinician'
-                              : 'Not much overlap here',
-                          message: flagged
-                              ? screener.overlap
-                              : screener.noOverlap,
+                    // The result. Never a score and never a verdict — the copy
+                    // says what to do next, and both branches say in words that
+                    // this is not a diagnosis.
+                    if (complete)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        child: Semantics(
+                          liveRegion: true,
+                          child: InfoBanner(
+                            icon: flagged
+                                ? Icons.flag_rounded
+                                : Icons.info_rounded,
+                            tone: flagged ? AppColors.warning : AppColors.info,
+                            title: flagged
+                                ? 'Worth raising with a clinician'
+                                : 'Not much overlap here',
+                            message: flagged
+                                ? screener.overlap
+                                : screener.noOverlap,
+                          ),
                         ),
-                      ),
-                    )
-                  else if (open && answered > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.md),
-                      child: Text(
-                        'Answer all $total to see what these patterns might be '
-                        'worth discussing.',
-                        style: _readingStyle(context),
-                      ),
-                    )
-                  else if (!open)
-                    const SizedBox.shrink(),
-                ],
+                      )
+                    else if (open && answered > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        child: Text(
+                          'Answer all $total to see what these patterns might be '
+                          'worth discussing.',
+                          style: _readingStyle(context),
+                        ),
+                      )
+                    else if (!open)
+                      const SizedBox.shrink(),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -1957,9 +2323,7 @@ class _AnswerButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: motion(AppDurations.fast),
         curve: AppCurves.out,
-        constraints: const BoxConstraints(
-          minHeight: AppLayout.minTouchTarget,
-        ),
+        constraints: const BoxConstraints(minHeight: AppLayout.minTouchTarget),
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(

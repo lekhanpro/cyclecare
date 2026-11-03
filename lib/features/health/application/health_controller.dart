@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../tracking/domain/tracking_options.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Health state
@@ -52,21 +53,23 @@ class MyConditionsNotifier extends Notifier<List<String>> {
     final next = state.contains(id)
         ? state.where((existing) => existing != id).toList()
         : [...state, id];
-    state = next;
     await _persist(next);
+    state = next;
   }
 
   Future<void> _persist(List<String> ids) async {
     final prefs = _prefs ?? await SharedPreferences.getInstance();
     _prefs = prefs;
-    await prefs.setStringList(_key, ids);
+    if (!await prefs.setStringList(_key, ids)) {
+      throw StateError('Could not save condition choices.');
+    }
   }
 }
 
 final myConditionsProvider =
     NotifierProvider<MyConditionsNotifier, List<String>>(
-  MyConditionsNotifier.new,
-);
+      MyConditionsNotifier.new,
+    );
 
 /// One dated pain record.
 ///
@@ -82,18 +85,21 @@ class PainEntry {
     required this.severity,
     this.locations = const [],
     this.notes = '',
+    this.painInterference,
   });
 
   factory PainEntry.fromJson(Map<String, dynamic> json) => PainEntry(
-        id: json['id'] as String? ?? '',
-        date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
-        severity: (json['severity'] as num?)?.toInt() ?? 0,
-        locations: (json['locations'] as List<dynamic>?)
-                ?.map((value) => value.toString())
-                .toList() ??
-            const [],
-        notes: json['notes'] as String? ?? '',
-      );
+    id: json['id'] as String? ?? '',
+    date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
+    severity: (json['severity'] as num?)?.toInt() ?? 0,
+    locations:
+        (json['locations'] as List<dynamic>?)
+            ?.map((value) => value.toString())
+            .toList() ??
+        const [],
+    notes: json['notes'] as String? ?? '',
+    painInterference: json['painInterference'] as String?,
+  );
 
   final String id;
   final DateTime date;
@@ -106,13 +112,17 @@ class PainEntry {
 
   final String notes;
 
+  /// Optional activity impact. Null means not logged, not no interference.
+  final String? painInterference;
+
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date.toIso8601String(),
-        'severity': severity,
-        'locations': locations,
-        'notes': notes,
-      };
+    'id': id,
+    'date': date.toIso8601String(),
+    'severity': severity,
+    'locations': locations,
+    'notes': notes,
+    'painInterference': painInterference,
+  };
 }
 
 /// The pain diary, newest first.
@@ -124,10 +134,12 @@ class PainEntriesNotifier extends Notifier<List<PainEntry>> {
   static const _maxEntries = 500;
 
   SharedPreferences? _prefs;
+  late Future<void> _ready;
+  Future<void> _pending = Future.value();
 
   @override
   List<PainEntry> build() {
-    _load();
+    _ready = _load();
     return const [];
   }
 
@@ -156,32 +168,49 @@ class PainEntriesNotifier extends Notifier<List<PainEntry>> {
   List<PainEntry> _sorted(List<PainEntry> entries) =>
       entries..sort((a, b) => b.date.compareTo(a.date));
 
-  Future<void> add(PainEntry entry) async {
-    final next = _sorted([entry, ...state]);
-    if (next.length > _maxEntries) {
-      next.removeRange(_maxEntries, next.length);
-    }
-    state = next;
-    await _persist(next);
+  Future<void> _mutate(List<PainEntry> Function() change) {
+    final task = _pending.then((_) async {
+      await _ready;
+      final next = change();
+      await _persist(next);
+      state = next;
+    });
+    _pending = task.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    return task;
   }
 
-  Future<void> remove(String id) async {
-    final next = state.where((entry) => entry.id != id).toList();
-    state = next;
-    await _persist(next);
-  }
+  Future<void> add(PainEntry entry) => _mutate(() {
+    if (entry.severity < 1 ||
+        entry.severity > 10 ||
+        entry.id.isEmpty ||
+        (entry.painInterference != null &&
+            !painInterferenceOptions.contains(entry.painInterference))) {
+      throw ArgumentError('Choose a pain level and a valid activity impact.');
+    }
+    if (state.length >= _maxEntries) {
+      throw StateError(
+        'The diary is full. Export your records before removing any entries.',
+      );
+    }
+    return _sorted([entry, ...state]);
+  });
+
+  Future<void> remove(String id) =>
+      _mutate(() => state.where((entry) => entry.id != id).toList());
 
   Future<void> _persist(List<PainEntry> entries) async {
     final prefs = _prefs ?? await SharedPreferences.getInstance();
     _prefs = prefs;
-    await prefs.setStringList(
+    if (!await prefs.setStringList(
       _key,
       entries.map((entry) => jsonEncode(entry.toJson())).toList(),
-    );
+    )) {
+      throw StateError('Could not save your pain diary. Please try again.');
+    }
   }
 }
 
 final painEntriesProvider =
     NotifierProvider<PainEntriesNotifier, List<PainEntry>>(
-  PainEntriesNotifier.new,
-);
+      PainEntriesNotifier.new,
+    );

@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart' show IconData;
+
+import '../../../core/theme/app_icons.dart';
 import 'cycle_models.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,12 +20,12 @@ class PhaseTip {
   const PhaseTip({
     required this.title,
     required this.body,
-    required this.emoji,
+    required this.icon,
   });
 
   final String title;
   final String body;
-  final String emoji;
+  final IconData icon;
 }
 
 class PhaseGuidance {
@@ -30,28 +33,28 @@ class PhaseGuidance {
 
   static const _menstrual = <PhaseTip>[
     PhaseTip(
-      emoji: '🛏️',
+      icon: AppIcons.sleep,
       title: 'Rest is doing something',
       body:
           'Energy is often lowest in the first couple of days. Lighter movement '
           'like walking or stretching tends to feel better than pushing hard.',
     ),
     PhaseTip(
-      emoji: '🍫',
+      icon: AppIcons.nutrition,
       title: 'Iron and warmth',
       body:
           'Bleeding uses iron. Leafy greens, beans, and red meat are common '
           'sources, and warm food or a heat pack can ease cramping.',
     ),
     PhaseTip(
-      emoji: '💧',
+      icon: AppIcons.water,
       title: 'Hydration helps bloating',
       body:
           'It sounds backwards, but drinking more water usually reduces the '
           'puffy, heavy feeling rather than adding to it.',
     ),
     PhaseTip(
-      emoji: '📝',
+      icon: AppIcons.notes,
       title: 'Log your flow',
       body:
           'Recording heaviness and cramping now is what makes next cycle\'s '
@@ -61,28 +64,28 @@ class PhaseGuidance {
 
   static const _follicular = <PhaseTip>[
     PhaseTip(
-      emoji: '🌱',
+      icon: AppIcons.fertile,
       title: 'Energy on the way up',
       body:
           'Oestrogen climbs after your period ends. Many people find this the '
           'easiest stretch for harder workouts and new projects.',
     ),
     PhaseTip(
-      emoji: '🧠',
+      icon: AppIcons.headache,
       title: 'Good window for hard things',
       body:
           'Focus and mood often improve here. If you have been putting off '
           'something demanding, this is a reasonable time to start it.',
     ),
     PhaseTip(
-      emoji: '🥗',
+      icon: AppIcons.nutrition,
       title: 'Build on protein',
       body:
           'Appetite is usually steadier now. Protein and fibre help keep it '
           'that way through the second half of your cycle.',
     ),
     PhaseTip(
-      emoji: '😴',
+      icon: AppIcons.sleep,
       title: 'Bank the sleep',
       body:
           'Sleep tends to be less disrupted in this phase. Getting ahead now '
@@ -92,28 +95,28 @@ class PhaseGuidance {
 
   static const _ovulation = <PhaseTip>[
     PhaseTip(
-      emoji: '🌸',
+      icon: AppIcons.basics,
       title: 'Peak fertility',
       body:
           'These are your most fertile days. Worth knowing whether you are '
           'trying to conceive or specifically trying not to.',
     ),
     PhaseTip(
-      emoji: '🔍',
+      icon: AppIcons.symptoms,
       title: 'Signs to notice',
       body:
           'Clear, stretchy discharge, a slight temperature rise afterwards, and '
           'mild one-sided twinges are all common around ovulation.',
     ),
     PhaseTip(
-      emoji: '⚡',
+      icon: AppIcons.energy,
       title: 'Often the best you feel',
       body:
           'Energy, mood, and confidence commonly peak here. A good moment for '
           'anything social or demanding.',
     ),
     PhaseTip(
-      emoji: '🌡️',
+      icon: AppIcons.temperature,
       title: 'Temperature confirms it',
       body:
           'A sustained rise of about 0.3°C after ovulation is the clearest sign '
@@ -123,28 +126,28 @@ class PhaseGuidance {
 
   static const _luteal = <PhaseTip>[
     PhaseTip(
-      emoji: '🌙',
+      icon: AppIcons.luteal,
       title: 'Winding down',
       body:
           'Progesterone rises and then falls before your period. Lower energy '
           'and a shorter fuse in the last few days are both very common.',
     ),
     PhaseTip(
-      emoji: '🧘',
+      icon: AppIcons.wellbeing,
       title: 'PMS is usually late luteal',
       body:
           'Symptoms tend to cluster in the five days before bleeding starts. '
           'Knowing that is coming makes it easier to plan around.',
     ),
     PhaseTip(
-      emoji: '🍠',
+      icon: AppIcons.nutrition,
       title: 'Cravings have a reason',
       body:
           'Appetite genuinely increases in this phase. Complex carbohydrates '
           'and magnesium-rich foods often steady it better than resisting.',
     ),
     PhaseTip(
-      emoji: '💤',
+      icon: AppIcons.sleep,
       title: 'Protect your sleep',
       body:
           'Sleep is more easily disrupted now. Cutting caffeine earlier in the '

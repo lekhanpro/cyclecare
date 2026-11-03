@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../../../core/utils/date_helpers.dart';
 import 'cycle_models.dart';
+import 'cycle_samples.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cycle analytics
@@ -25,6 +26,8 @@ class CycleRecord {
     required this.end,
     required this.length,
     this.periodLength,
+    this.excludedFromPredictions = false,
+    this.exclusionReason,
   });
 
   /// 1 = most recent completed cycle.
@@ -40,6 +43,8 @@ class CycleRecord {
 
   /// Bleeding days, when an end date was recorded.
   final int? periodLength;
+  final bool excludedFromPredictions;
+  final String? exclusionReason;
 
   /// Deviation from a supplied average, in days. Positive means longer.
   int deviationFrom(int average) => length - average;
@@ -95,11 +100,13 @@ class TemperaturePoint {
     required this.date,
     required this.celsius,
     required this.cycleDay,
+    this.context = const [],
   });
 
   final DateTime date;
   final double celsius;
   final int cycleDay;
+  final List<String> context;
 }
 
 /// Fertility-awareness temperature analysis for the current cycle.
@@ -114,13 +121,13 @@ class TemperatureAnalysis {
 
   /// The classic fertility-awareness coverline: slightly above the highest of
   /// the six readings preceding the rise. Temperatures sustained above it
-  /// indicate ovulation has already happened.
+  /// may describe a temperature pattern, never confirmation of ovulation.
   final double? coverline;
 
   /// Cycle day the sustained rise began, when one is detectable.
   final int? thermalShiftDay;
 
-  bool get hasEnoughData => points.length >= 8;
+  bool get hasEnoughData => points.length >= 9;
 }
 
 /// A single value plotted over time, for the trend charts.
@@ -150,26 +157,27 @@ class CycleAnalytics {
   /// The in-progress cycle is excluded: its length isn't known until the next
   /// period arrives, and including a partial value would drag every average
   /// downward.
-  List<CycleRecord> cycleHistory() {
-    final starts = _sortedPeriodStarts();
-    if (starts.length < 2) return const [];
-
+  List<CycleRecord> cycleHistory({bool includeExcluded = false}) {
+    final samples = CycleSamples(periods);
     final records = <CycleRecord>[];
-    for (var i = 0; i < starts.length - 1; i++) {
-      final start = starts[i + 1];
-      final next = starts[i];
-      final length = next.difference(start).inDays;
-      // Physiologically implausible gaps are almost always a mis-logged date
-      // or a gap in tracking, not a real cycle.
-      if (length < 15 || length > 90) continue;
+    for (final sample in samples.completed) {
+      if (!sample.isInLearningRange) continue;
+      if (!includeExcluded && !sample.isIncluded) continue;
+      final start = dateOnly(sample.event.startDate);
+      final next = dateOnly(sample.nextEvent.startDate);
+      final length = sample.length;
 
-      records.add(CycleRecord(
-        index: records.length + 1,
-        start: start,
-        end: next.subtract(const Duration(days: 1)),
-        length: length,
-        periodLength: _periodLengthFor(start),
-      ));
+      records.add(
+        CycleRecord(
+          index: records.length + 1,
+          start: start,
+          end: next.subtract(const Duration(days: 1)),
+          length: length,
+          periodLength: _periodLengthFor(start),
+          excludedFromPredictions: sample.event.excludeFromPredictions,
+          exclusionReason: sample.event.predictionExclusionReason,
+        ),
+      );
     }
     return records;
   }
@@ -250,13 +258,15 @@ class CycleAnalytics {
       });
 
       if (best == null) return;
-      patterns.add(SymptomPattern(
-        symptom: symptom,
-        occurrences: total,
-        dominantPhase: best!,
-        lift: bestLift,
-        shareInDominantPhase: bestShare,
-      ));
+      patterns.add(
+        SymptomPattern(
+          symptom: symptom,
+          occurrences: total,
+          dominantPhase: best!,
+          lift: bestLift,
+          shareInDominantPhase: bestShare,
+        ),
+      );
     });
 
     patterns.sort((a, b) => b.lift.compareTo(a.lift));
@@ -289,9 +299,7 @@ class CycleAnalytics {
     }
     final entries = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return [
-      for (final entry in entries) (mood: entry.key, count: entry.value),
-    ];
+    return [for (final entry in entries) (mood: entry.key, count: entry.value)];
   }
 
   // ── Temperature ───────────────────────────────────────────────────────────
@@ -310,15 +318,26 @@ class CycleAnalytics {
       if (temperature == null) continue;
       final date = dateOnly(log.date);
       if (date.isBefore(cycleStart) || date.isAfter(today)) continue;
-      points.add(TemperaturePoint(
-        date: date,
-        celsius: temperature,
-        cycleDay: date.difference(cycleStart).inDays + 1,
-      ));
+      points.add(
+        TemperaturePoint(
+          date: date,
+          celsius: temperature,
+          cycleDay: date.difference(cycleStart).inDays + 1,
+          context: log.temperatureContext,
+        ),
+      );
     }
     points.sort((a, b) => a.cycleDay.compareTo(b.cycleDay));
 
-    final shift = _detectThermalShift(points);
+    final shift = _detectThermalShift(
+      points
+          .where(
+            (p) =>
+                p.context.isNotEmpty &&
+                p.context.every((c) => c == 'Usual conditions'),
+          )
+          .toList(),
+    );
     return TemperatureAnalysis(
       points: points,
       coverline: shift?.coverline,
@@ -326,12 +345,8 @@ class CycleAnalytics {
     );
   }
 
-  /// Finds a sustained post-ovulatory temperature rise.
-  ///
-  /// The rule mirrors symptothermal fertility-awareness practice: three
-  /// consecutive readings above the highest of the previous six, with the
-  /// coverline drawn just above that six-day high. Requiring three days is
-  /// what separates ovulation from a single restless night.
+  /// Describes a sustained rise across nine consecutive undisturbed readings.
+  /// This heuristic is not a validated ovulation or contraception decision rule.
   ({double coverline, int day})? _detectThermalShift(
     List<TemperaturePoint> points,
   ) {
@@ -340,6 +355,12 @@ class CycleAnalytics {
     if (points.length < lookback + sustained) return null;
 
     for (var i = lookback; i <= points.length - sustained; i++) {
+      final window = points.sublist(i - lookback, i + sustained);
+      if (List.generate(
+        window.length - 1,
+        (j) => window[j + 1].cycleDay - window[j].cycleDay,
+      ).any((gap) => gap != 1))
+        continue;
       final baseline = points
           .sublist(i - lookback, i)
           .map((point) => point.celsius)
@@ -359,24 +380,25 @@ class CycleAnalytics {
 
   // ── Wellness averages ─────────────────────────────────────────────────────
 
+  /// Mean self-rated pain over days a rating was recorded. An explicit 0 (no
+  /// pain) counts; a day without a rating is skipped, never read as 0.
   double? averagePainLevel() => _average(
-        logs.where((log) => log.painLevel > 0).map((log) => log.painLevel.toDouble()),
-      );
+    logs.map((log) => log.painLevel?.toDouble()).whereType<double>(),
+  );
 
-  double? averageSleepHours() => _average(
-        logs.map((log) => log.sleepHours).whereType<double>(),
-      );
+  double? averageSleepHours() =>
+      _average(logs.map((log) => log.sleepHours).whereType<double>());
 
-  double? averageWaterMl() {
-    final values = logs.where((log) => log.waterMl > 0).map((log) => log.waterMl.toDouble());
-    return _average(values);
-  }
+  /// Mean water over days water was recorded. An explicit 0 counts.
+  double? averageWaterMl() =>
+      _average(logs.map((log) => log.waterMl?.toDouble()).whereType<double>());
 
   List<TrendPoint> weightTrend({int limit = 30}) {
     final entries = logs.where((log) => log.weightKg != null).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
-    final recent =
-        entries.length > limit ? entries.sublist(entries.length - limit) : entries;
+    final recent = entries.length > limit
+        ? entries.sublist(entries.length - limit)
+        : entries;
     return [
       for (final log in recent)
         TrendPoint(
@@ -387,16 +409,18 @@ class CycleAnalytics {
     ];
   }
 
+  /// Recorded pain ratings, explicit 0 included, oldest first.
   List<TrendPoint> painTrend({int limit = 30}) {
-    final entries = logs.where((log) => log.painLevel > 0).toList()
+    final entries = logs.where((log) => log.painLevel != null).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
-    final recent =
-        entries.length > limit ? entries.sublist(entries.length - limit) : entries;
+    final recent = entries.length > limit
+        ? entries.sublist(entries.length - limit)
+        : entries;
     return [
       for (final log in recent)
         TrendPoint(
           label: shortDate(log.date),
-          value: log.painLevel.toDouble(),
+          value: log.painLevel!.toDouble(),
           date: log.date,
         ),
     ];
@@ -440,11 +464,9 @@ class CycleAnalytics {
 
   /// Unique period start dates, most recent first.
   List<DateTime> _sortedPeriodStarts() {
-    final unique = <DateTime>{
-      for (final period in periods) dateOnly(period.startDate),
-    }.toList()
-      ..sort((a, b) => b.compareTo(a));
-    return unique;
+    return CycleSamples(
+      periods,
+    ).ordered.map((event) => dateOnly(event.startDate)).toList();
   }
 
   int? _periodLengthFor(DateTime start) {
@@ -474,6 +496,10 @@ class CycleAnalytics {
   /// than from a global average — an irregular cycle's luteal phase stays
   /// anchored to when the next period actually arrived, which is the whole
   /// point of tracking it.
+  /// Phase for every day inside a completed cycle. Days outside one (before
+  /// the first period, or in the cycle still in progress) are absent.
+  Map<DateTime, CyclePhase> phaseByDate() => _phaseByDate();
+
   Map<DateTime, CyclePhase> _phaseByDate() {
     final starts = _sortedPeriodStarts();
     if (starts.length < 2) return const {};
@@ -483,11 +509,18 @@ class CycleAnalytics {
 
     for (var i = 0; i < starts.length - 1; i++) {
       final start = starts[i + 1];
+      if (periods.any(
+        (period) =>
+            dateOnly(period.startDate) == start &&
+            period.excludeFromPredictions,
+      ))
+        continue;
       final nextStart = starts[i];
       final length = nextStart.difference(start).inDays;
       if (length < 15 || length > 90) continue;
 
-      final periodLength = _periodLengthFor(start) ??
+      final periodLength =
+          _periodLengthFor(start) ??
           preferences.averagePeriodLength.clamp(2, 10);
       final ovulationDay = length - luteal;
 

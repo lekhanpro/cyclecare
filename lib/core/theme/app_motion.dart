@@ -78,8 +78,30 @@ class AppDurations {
   static const Duration staggerStep = Duration(milliseconds: 40);
 }
 
-/// Resolves motion against the platform's "reduce motion" accessibility
-/// setting.
+/// Publishes the app's resolved motion policy to every routed screen.
+///
+/// The root resolves the persisted System/Play/Pause choice once. Existing
+/// [Motion.of] consumers then rebuild automatically when that choice or the
+/// platform accessibility setting changes.
+class MotionScope extends InheritedWidget {
+  const MotionScope({
+    super.key,
+    required this.reduced,
+    required super.child,
+  });
+
+  final bool reduced;
+
+  static MotionScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<MotionScope>();
+
+  @override
+  bool updateShouldNotify(MotionScope oldWidget) =>
+      reduced != oldWidget.reduced;
+}
+
+/// Resolves motion against the root app policy, then the platform's
+/// "reduce motion" accessibility setting when no scope is available.
 ///
 /// Reduced motion does not mean *no* feedback: colour and immediate state
 /// changes remain. Spatial movement, scaling, and decorative delays are
@@ -88,7 +110,13 @@ class Motion {
   const Motion._(this.reduced);
 
   factory Motion.of(BuildContext context) {
-    final disable = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final scoped = MotionScope.maybeOf(context);
+    if (scoped != null) return Motion._(scoped.reduced);
+
+    final media = MediaQuery.maybeOf(context);
+    final disable = media?.disableAnimations ??
+        WidgetsBinding
+            .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
     return Motion._(disable);
   }
 

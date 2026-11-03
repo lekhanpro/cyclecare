@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../core/services/haptics.dart';
+import '../core/theme/app_accents.dart';
 import '../core/theme/app_colors.dart';
+import '../core/theme/app_icons.dart';
 import '../core/theme/app_motion.dart';
+import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_tokens.dart';
 import '../core/theme/phase_colors.dart';
 
@@ -21,7 +24,7 @@ Future<T?> showAppSheet<T>({
     isScrollControlled: isScrollControlled,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withOpacity(context.isDark ? 0.54 : 0.36),
+    barrierColor: AppColors.ink.withOpacity(context.isDark ? 0.56 : 0.32),
     sheetAnimationStyle: AnimationStyle(
       duration: motion(AppDurations.modal),
       reverseDuration: motion(AppDurations.exit),
@@ -32,7 +35,7 @@ Future<T?> showAppSheet<T>({
       final bottomInset = media.viewInsets.bottom;
       final maxHeight = media.size.height * 0.88;
       final surface = Theme.of(context).bottomSheetTheme.backgroundColor ??
-          (context.isDark ? AppColors.darkSurface : AppColors.white);
+          context.cardColor;
 
       return AnimatedPadding(
         padding: EdgeInsets.only(bottom: bottomInset),
@@ -63,7 +66,7 @@ Future<T?> showAppSheet<T>({
                         width: 38,
                         height: AppSpacing.xs,
                         decoration: BoxDecoration(
-                          color: context.subtleColor.withOpacity(0.5),
+                          color: context.lineColor,
                           borderRadius:
                               BorderRadius.circular(AppRadii.pill),
                         ),
@@ -85,26 +88,19 @@ Future<T?> showAppSheet<T>({
                             header: true,
                             child: Text(
                               title,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                color: context.inkColor,
-                              ),
+                              style: AppTextStyles.heading(
+                                fontSize: 22,
+                                height: 1.2,
+                                letterSpacing: -0.5,
+                              ).copyWith(color: context.inkColor),
                             ),
                           ),
                         ),
+                        // The theme's 44 px hairline circle.
                         IconButton(
                           tooltip: 'Close ${title.toLowerCase()}',
                           onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded, size: 20),
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size.square(
-                              AppLayout.minTouchTarget,
-                            ),
-                            backgroundColor:
-                                context.lineColor.withOpacity(0.42),
-                            foregroundColor: context.mutedColor,
-                          ),
+                          icon: const Icon(AppIcons.close, size: 18),
                         ),
                       ],
                     ),
@@ -138,12 +134,17 @@ void showAppToast(
   Duration duration = const Duration(seconds: 3),
   SnackBarAction? action,
 }) {
-  final (icon, tone) = switch (kind) {
-    ToastKind.success => (Icons.check_circle_rounded, AppColors.success),
-    ToastKind.info => (Icons.info_rounded, AppColors.info),
-    ToastKind.warning => (Icons.warning_rounded, AppColors.warning),
-    ToastKind.error => (Icons.error_rounded, AppColors.error),
+  // `.toast` is ink with canvas text. The kind is carried by the glyph shape
+  // (and the screen-reader prefix below), so the icon takes the text colour:
+  // a phase or status hue on the ink background would fail contrast in one
+  // appearance or the other.
+  final (icon, spoken) = switch (kind) {
+    ToastKind.success => (AppIcons.success, null),
+    ToastKind.info => (AppIcons.info, null),
+    ToastKind.warning => (AppIcons.warning, 'Warning'),
+    ToastKind.error => (AppIcons.warning, 'Error'),
   };
+  final foreground = context.canvasColor;
 
   switch (kind) {
     case ToastKind.success:
@@ -165,16 +166,19 @@ void showAppToast(
       action: action,
       content: Row(
         children: [
-          Icon(icon, size: 20, color: tone),
+          ExcludeSemantics(child: Icon(icon, size: 18, color: foreground)),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.white,
-                height: 1.35,
+            child: Semantics(
+              label: spoken == null ? null : '$spoken: $message',
+              excludeSemantics: spoken != null,
+              child: Text(
+                message,
+                style: AppTextStyles.body(
+                  fontSize: 13,
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
+                ).copyWith(color: foreground),
               ),
             ),
           ),
@@ -193,7 +197,10 @@ Future<bool> confirmAction(
   String cancelLabel = 'Cancel',
   bool destructive = true,
 }) async {
-  final scheme = Theme.of(context).colorScheme;
+  final brightness = Theme.of(context).brightness;
+  final confirmColor = destructive
+      ? AccentRoles.dangerText(brightness)
+      : context.accent.text;
 
   final result = await showDialog<bool>(
     context: context,
@@ -215,7 +222,7 @@ Future<bool> confirmAction(
           child: Text(
             cancelLabel,
             style: TextStyle(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: context.mutedColor,
             ),
           ),
@@ -228,8 +235,8 @@ Future<bool> confirmAction(
           child: Text(
             confirmLabel,
             style: TextStyle(
-              fontWeight: FontWeight.w900,
-              color: destructive ? scheme.error : scheme.primary,
+              fontWeight: FontWeight.w700,
+              color: confirmColor,
             ),
           ),
         ),

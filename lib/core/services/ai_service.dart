@@ -149,7 +149,10 @@ class AIContextBuilder {
             'flow: ${log.flow!.name}',
           if (log.mood != null) 'mood: ${log.mood}',
           if (log.symptoms.isNotEmpty) 'symptoms: ${log.symptoms.join(", ")}',
-          if (log.painLevel > 0) 'pain level: ${log.painLevel}/10',
+          if ((log.painLevel ?? 0) > 0) 'pain level: ${log.painLevel}/10',
+          // Privacy: intimacy, protection, libido, pregnancyTest,
+          // ovulationTest and testNote are never sent to an AI service, not
+          // even with includeIntimacy. test/unit/private_fields_test.dart.
           if (log.sleepHours != null)
             'sleep: ${log.sleepHours!.toStringAsFixed(1)} hours',
         ];

@@ -9,6 +9,8 @@ import '../../widgets/widgets.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
 import '../tracking/domain/cycle_models.dart';
 import 'application/partner_sharing_controller.dart';
+import 'domain/partner_snapshot_builder.dart';
+import 'partner_flows.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Partner sharing
@@ -32,6 +34,13 @@ import 'application/partner_sharing_controller.dart';
 //    least resistance.
 //  • The preview is the payload. The string on screen is the identical string
 //    that gets shared, so consent is given to words rather than to a promise.
+//
+// Layout follows from that last point. The screen leads with one surface that
+// states the privacy model, because that is what the user has to believe before
+// any switch below it means anything — and the explanation of what "share"
+// actually does sits immediately under it rather than at the foot of the page.
+// A privacy note positioned last is fine print, and fine print is read after
+// the decision instead of before it.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Font size used to probe the current text scale. Dense rows swap to a stacked
@@ -40,6 +49,14 @@ const double _textScaleProbe = 14;
 
 double _textScaleOf(BuildContext context) =>
     MediaQuery.textScalerOf(context).scale(_textScaleProbe) / _textScaleProbe;
+
+/// Width of the leading icon column every row on this screen shares.
+const double _markerSize = AppSpacing.huge;
+
+/// Where a row's text starts, and therefore where its divider starts. Running
+/// the rule under the icon column instead would hide the one alignment that
+/// makes a list of rows read as a group.
+const double _rowTextInset = AppSpacing.lg + _markerSize + AppSpacing.md;
 
 class PartnerScreen extends ConsumerWidget {
   const PartnerScreen({super.key});
@@ -60,7 +77,7 @@ class PartnerScreen extends ConsumerWidget {
             return const _PageShell(
               fillViewport: true,
               child: EmptyState(
-                emoji: '💑',
+                icon: AppIcons.partnerPair,
                 title: 'Nothing to share yet',
                 message: 'Log a period first. Once CycleCare can estimate your '
                     'cycle, you can build a summary and share it with someone '
@@ -225,9 +242,21 @@ class _PartnerBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Reveal(offsetY: AppSpacing.md, child: _Intro()),
-          const SizedBox(height: AppSpacing.xl),
+
+          // The three facts about what sharing does, directly below the lead
+          // surface that claims it. Sitting where it does, this is read before
+          // the first switch is touched rather than after the text has already
+          // been sent.
+          const SizedBox(height: AppSpacing.md),
           const Reveal(
             index: 1,
+            offsetY: AppSpacing.md,
+            child: _PrivacyTerms(),
+          ),
+
+          const SizedBox(height: AppSpacing.xl),
+          const Reveal(
+            index: 2,
             offsetY: AppSpacing.md,
             child: _SectionTitle(
               title: 'What to include',
@@ -235,13 +264,25 @@ class _PartnerBody extends StatelessWidget {
             ),
           ),
           Reveal(
-            index: 2,
+            index: 3,
             offsetY: AppSpacing.md,
             child: _OptionsCard(options: options),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.md),
+          Reveal(
+            index: 3,
+            offsetY: AppSpacing.md,
+            child: _NoteField(initial: options.note),
+          ),
+          const SizedBox(height: AppSpacing.lg),
           const Reveal(
             index: 3,
+            offsetY: AppSpacing.md,
+            child: _FlowButtons(),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          const Reveal(
+            index: 4,
             offsetY: AppSpacing.md,
             child: _SectionTitle(
               title: 'Preview',
@@ -249,30 +290,15 @@ class _PartnerBody extends StatelessWidget {
             ),
           ),
           Reveal(
-            index: 4,
+            index: 5,
             offsetY: AppSpacing.md,
             child: _PreviewCard(summary: summary),
           ),
           const SizedBox(height: AppSpacing.lg),
           Reveal(
-            index: 5,
-            offsetY: AppSpacing.md,
-            child: _ShareActions(summary: summary),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          const Reveal(
             index: 6,
             offsetY: AppSpacing.md,
-            child: InfoBanner(
-              icon: Icons.lock_rounded,
-              tone: AppColors.info,
-              title: 'A snapshot, not a live link',
-              message: 'This is a one-off copy of the text above, made on this '
-                  'device when you tap Share or Copy. Your partner gets no '
-                  'account, no link, and no access to your history, and the '
-                  'text never updates on its own. Nothing is sent in the '
-                  'background — share again whenever you want to.',
-            ),
+            child: _ShareActions(summary: summary),
           ),
         ],
       ),
@@ -280,62 +306,224 @@ class _PartnerBody extends StatelessWidget {
   }
 }
 
-/// What this screen is, before the user turns anything on.
+/// What sharing does and does not do, as three separate claims.
+///
+/// This was one 50-word paragraph in an info banner at the foot of the page.
+/// Nobody reads a paragraph of reassurance, and a privacy model stated as prose
+/// cannot be checked against — so each guarantee is now its own line with its
+/// own icon, which is scannable and makes a broken promise obvious.
+///
+/// Deliberately a plain outlined surface rather than a tinted notice: this is
+/// the screen's standing terms, not an alert, and a warning tint on a permanent
+/// condition is the fastest way to teach someone to ignore it.
+class _PrivacyTerms extends StatelessWidget {
+  const _PrivacyTerms();
+
+  static const _terms = <({IconData icon, String title, String detail})>[
+    (
+      icon: AppIcons.privacy,
+      title: 'Nothing is sent until you tap Share or Copy',
+      detail: 'There is no background sync and no automatic path out of this '
+          'device.',
+    ),
+    (
+      icon: Icons.link_off_rounded,
+      title: 'A snapshot, not a live link',
+      detail: 'Your partner needs no account and gets no access to your '
+          'history. A text or code never updates on its own; send a new one '
+          'when things change.',
+    ),
+    (
+      icon: AppIcons.notes,
+      title: 'Only what you switch on',
+      detail: 'The text and the share code carry exactly the items switched '
+          'on below, and nothing else. Use Preview to see it as they will.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final radius = BorderRadius.circular(AppRadii.card);
+
+    return AppCard(
+      emphasis: CardEmphasis.outlined,
+      padding: EdgeInsets.zero,
+      borderRadius: radius,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < _terms.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  height: AppStrokes.hairline,
+                  thickness: AppStrokes.hairline,
+                  indent: _rowTextInset,
+                  endIndent: AppSpacing.lg,
+                  color: context.lineColor,
+                ),
+              MergeSemantics(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ExcludeSemantics(
+                        child: SizedBox(
+                          width: _markerSize,
+                          child: Icon(
+                            _terms[i].icon,
+                            size: AppSpacing.xl,
+                            color: context.accentColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _terms[i].title,
+                              style: text.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: context.inkColor,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              _terms[i].detail,
+                              style: text.bodySmall?.copyWith(
+                                color: context.mutedColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What this screen is — the one surface that leads the page.
+///
+/// A saturated block rather than another pale tinted card. The screen is about
+/// trusting the app with health information, and the claim that earns that
+/// trust should not be rendered at the same weight as the six switches it
+/// governs. One colour block at the top with every surface below it a quiet
+/// near-white card is the same figure-to-ground split the home screen uses.
+///
+/// The ink is `onPrimary`, not [HeroInk]. HeroInk is white at three opacities,
+/// which is correct over the phase gradients it was built for — those stops are
+/// deep by construction. The palette accent is not: three of the eight seeds
+/// are light enough that white text on them fails AA. `ColorScheme.fromSeed`
+/// derives a contrast-safe primary/onPrimary pair for every palette and both
+/// brightnesses, so taking both from the scheme is what keeps this legible
+/// across all sixteen combinations instead of just the default one.
 class _Intro extends StatelessWidget {
   const _Intro();
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(AppRadii.card);
 
     return MergeSemantics(
-      child: AppCard(
-        emphasis: CardEmphasis.tinted,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ExcludeSemantics(
-              child: Container(
-                width: AppLayout.minTouchTarget,
-                height: AppLayout.minTouchTarget,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: context.accentColor
-                      .withOpacity(context.isDark ? 0.22 : 0.12),
-                  borderRadius: BorderRadius.circular(AppRadii.control),
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text('💑', style: text.headlineSmall),
-                ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          // Tinted with the surface's own hue rather than black: a black
+          // shadow under a saturated block muddies the bottom edge exactly
+          // where it meets the page. See the note on [AppElevation.glow].
+          boxShadow: AppElevation.glow(scheme.primary, context.isDark),
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  scheme.primary,
+                  // Deepened toward the container tone rather than toward
+                  // black, so the block stays in the palette's family.
+                  Color.lerp(scheme.primary, scheme.primaryContainer, 0.28)!,
+                ],
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'You choose every word',
-                    style: text.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: context.inkColor,
-                    ),
+                  Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Container(
+                          width: AppLayout.minTouchTarget,
+                          height: AppLayout.minTouchTarget,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            // A wash of the surface's own light. A white card
+                            // with a grey hairline looks pasted onto a
+                            // saturated block; this reads as part of it.
+                            color: scheme.onPrimary.withOpacity(0.18),
+                            borderRadius:
+                                BorderRadius.circular(AppRadii.control),
+                            border: Border.all(
+                              color: scheme.onPrimary.withOpacity(0.26),
+                              width: AppStrokes.hairline,
+                            ),
+                          ),
+                          child: Icon(
+                            AppIcons.partnerPair,
+                            size: AppSpacing.xxl,
+                            color: scheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          'You choose every word',
+                          style: text.titleLarge?.copyWith(
+                            letterSpacing: -0.3,
+                            color: scheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
-                    'CycleCare builds a short summary here on your phone. '
-                    'Nothing leaves the device until you tap Share or Copy.',
-                    style: text.bodySmall?.copyWith(
-                      color: context.isDark
-                          ? context.inkColor.withOpacity(0.86)
-                          : context.mutedColor,
+                    'CycleCare builds a short summary here on your phone, from '
+                    'only the things you switch on. Nothing leaves the device '
+                    'until you tap Share or Copy.',
+                    style: text.bodyMedium?.copyWith(
+                      // 0.88 rather than full strength: the headline above has
+                      // to stay the brighter of the two, and the same hierarchy
+                      // trick HeroInk uses applies here.
+                      color: scheme.onPrimary.withOpacity(0.88),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -378,23 +566,25 @@ class _OptionsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(partnerSharingProvider.notifier);
 
+    // Icons resolve through the shared registry so "cycle", "fertile" and
+    // "symptoms" are drawn the same here as everywhere else in the app.
     final rows = <Widget>[
       _OptionRow(
-        icon: Icons.donut_large_rounded,
+        icon: AppIcons.cycle,
         title: 'Cycle phase',
         subtitle: 'Which phase you are in right now',
         value: options.sharePhase,
         onChanged: controller.setSharePhase,
       ),
       _OptionRow(
-        icon: Icons.event_rounded,
+        icon: AppIcons.calendarRange,
         title: 'Next period',
         subtitle: 'How many days until it is expected',
         value: options.shareNextPeriod,
         onChanged: controller.setShareNextPeriod,
       ),
       _OptionRow(
-        icon: Icons.mood_rounded,
+        icon: AppIcons.moodNeutral,
         title: "Today's mood",
         subtitle: 'Only if you logged one today',
         value: options.shareMood,
@@ -402,7 +592,7 @@ class _OptionsCard extends ConsumerWidget {
         sensitive: true,
       ),
       _OptionRow(
-        icon: Icons.healing_rounded,
+        icon: AppIcons.symptoms,
         title: "Today's symptoms",
         subtitle: 'What you logged feeling today',
         value: options.shareSymptoms,
@@ -410,7 +600,7 @@ class _OptionsCard extends ConsumerWidget {
         sensitive: true,
       ),
       _OptionRow(
-        icon: Icons.spa_rounded,
+        icon: AppIcons.fertile,
         title: 'Fertile window',
         subtitle: 'The dates CycleCare estimates as fertile',
         value: options.shareFertileWindow,
@@ -418,7 +608,30 @@ class _OptionsCard extends ConsumerWidget {
         sensitive: true,
       ),
       _OptionRow(
-        icon: Icons.favorite_rounded,
+        icon: AppIcons.ovulation,
+        title: 'Ovulation day',
+        subtitle: 'The single day CycleCare estimates',
+        value: options.shareOvulation,
+        onChanged: controller.setShareOvulation,
+        sensitive: true,
+      ),
+      _OptionRow(
+        icon: AppIcons.pms,
+        title: 'PMS window',
+        subtitle: 'The days before your period starts',
+        value: options.sharePms,
+        onChanged: controller.setSharePms,
+      ),
+      _OptionRow(
+        icon: AppIcons.pain,
+        title: "Today's pain level",
+        subtitle: 'Only if you logged one today',
+        value: options.sharePain,
+        onChanged: controller.setSharePain,
+        sensitive: true,
+      ),
+      _OptionRow(
+        icon: AppIcons.partner,
         title: 'A note on support',
         subtitle: 'A line on what tends to help in this phase',
         value: options.shareSupportTip,
@@ -426,23 +639,34 @@ class _OptionsCard extends ConsumerWidget {
       ),
     ];
 
+    final radius = BorderRadius.circular(AppRadii.card);
+
+    // Outlined, matching the privacy terms above and the preview below. These
+    // three lists are the same kind of object and the page reads as composed
+    // only while they stay the same weight — the lead surface is the one thing
+    // on this screen allowed to sit above the page.
     return AppCard(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Container(
+      emphasis: CardEmphasis.outlined,
+      padding: EdgeInsets.zero,
+      borderRadius: radius,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0)
+                Divider(
                   height: AppStrokes.hairline,
-                  color: context.lineColor.withOpacity(0.75),
+                  thickness: AppStrokes.hairline,
+                  indent: _rowTextInset,
+                  endIndent: AppSpacing.lg,
+                  color: context.lineColor,
                 ),
-              ),
-            rows[i],
+              rows[i],
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -475,10 +699,15 @@ class _OptionRow extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final stacked = _textScaleOf(context) > 1.3;
 
-    final marker = Icon(
-      icon,
-      size: AppSpacing.xl,
-      color: value ? context.accentColor : context.subtleColor,
+    // Sized to the shared icon column so a switch row's title starts at the
+    // same inset as a privacy term's, and the dividers line up with both.
+    final marker = SizedBox(
+      width: _markerSize,
+      child: Icon(
+        icon,
+        size: AppSpacing.xl,
+        color: value ? context.accentColor : context.subtleColor,
+      ),
     );
 
     final labels = Column(
@@ -511,8 +740,15 @@ class _OptionRow extends StatelessWidget {
 
     // Merged so the switch is announced with its field name, its description and
     // its sensitivity, instead of as a bare "on/off" control.
+    //
+    // The whole row toggles, not just the switch. Before, tapping the title — the
+    // biggest thing in the row — did nothing, which a widget test caught. A tap
+    // on the switch itself is claimed by the switch first, so it never toggles
+    // twice.
     return MergeSemantics(
-      child: Padding(
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
@@ -556,6 +792,7 @@ class _OptionRow extends StatelessWidget {
                   toggle,
                 ],
               ),
+        ),
       ),
     );
   }
@@ -752,78 +989,121 @@ String buildPartnerSummary({
   required CycleTrackerState data,
   required PartnerSharingOptions options,
 }) {
-  final prediction = data.prediction;
-  if (prediction == null) return '';
-
-  final name = data.preferences.profileName;
-  final today = data.logFor(DateTime.now());
-  final lines = <String>[];
-
-  if (options.sharePhase) {
-    lines.add(
-      'Cycle day ${prediction.cycleDay} — '
-      '${prediction.currentPhase.label.toLowerCase()} phase.',
-    );
-  }
-
-  if (options.shareNextPeriod) {
-    if (prediction.isLate) {
-      lines.add(
-        'Period is ${prediction.daysLate} '
-        '${prediction.daysLate == 1 ? 'day' : 'days'} later than expected.',
-      );
-    } else if (prediction.daysUntilPeriod == 0) {
-      lines.add('Period expected today.');
-    } else {
-      lines.add(
-        'Next period expected in ${prediction.daysUntilPeriod} '
-        '${prediction.daysUntilPeriod == 1 ? 'day' : 'days'}, around '
-        '${DateFormat('MMM d').format(prediction.nextPeriodStart)}.',
-      );
-    }
-  }
-
-  if (options.shareFertileWindow) {
-    lines.add(
-      'Fertile window: '
-      '${DateFormat('MMM d').format(prediction.fertileWindowStart)} to '
-      '${DateFormat('MMM d').format(prediction.fertileWindowEnd)}.',
-    );
-  }
-
-  if (options.shareMood && today?.mood != null && today!.mood!.isNotEmpty) {
-    lines.add('Feeling ${today.mood!.toLowerCase()} today.');
-  }
-
-  if (options.shareSymptoms && (today?.symptoms.isNotEmpty ?? false)) {
-    lines.add('Today: ${today!.symptoms.join(', ').toLowerCase()}.');
-  }
-
-  if (options.shareSupportTip) {
-    lines.add('');
-    lines.add(_supportTipFor(prediction.currentPhase));
-  }
-
+  // Built from the same snapshot as the code and the preview, so the text, the
+  // code and the dashboard always say the same things.
+  final s = buildPartnerSnapshot(
+    prediction: data.prediction,
+    todayLog: data.logFor(DateTime.now()),
+    options: options,
+    ownerName: data.preferences.profileName,
+    now: DateTime.now(),
+  );
+  final d = DateFormat('MMM d');
+  final lines = <String>[
+    if (s.phase != null) 'Cycle day ${s.cycleDay} — ${s.phase!.toLowerCase()} phase.',
+    if (s.daysLate != null)
+      'Period is ${s.daysLate} ${s.daysLate == 1 ? 'day' : 'days'} later than expected.'
+    else if (s.nextPeriod != null)
+      'Next period expected around ${d.format(s.nextPeriod!)}.',
+    if (s.fertileStart != null)
+      'Fertile window: ${d.format(s.fertileStart!)} to ${d.format(s.fertileEnd!)}.',
+    if (s.ovulation != null) 'Estimated ovulation: ${d.format(s.ovulation!)}.',
+    if (s.pmsStart != null)
+      'PMS window: ${d.format(s.pmsStart!)} to ${d.format(s.pmsEnd!)}.',
+    if (s.mood != null) 'Feeling ${s.mood!.toLowerCase()} today.',
+    if (s.symptoms != null) 'Today: ${s.symptoms!.join(', ').toLowerCase()}.',
+    if (s.painLevel != null) 'Pain today: ${s.painLevel} out of 10.',
+    if (s.note != null) '"${s.note}"',
+    if (s.supportTip != null) ...['', s.supportTip!],
+  ];
   if (lines.isEmpty) return '';
-
-  final header = name.isEmpty ? 'Cycle update' : "$name's cycle update";
+  final header =
+      s.ownerName == null ? 'Cycle update' : "${s.ownerName}'s cycle update";
   return '$header\n\n${lines.join('\n')}';
 }
 
-/// A single line of practical, non-clinical guidance for a partner.
-///
-/// Framed as what tends to help rather than instructions, and deliberately
-/// mild — nobody wants an app telling their partner how to manage them.
-String _supportTipFor(CyclePhase phase) => switch (phase) {
-      CyclePhase.menstrual =>
-        'Energy is usually lowest now. Warmth, food, and a lighter schedule '
-            'tend to help more than anything else.',
-      CyclePhase.follicular =>
-        'Energy is usually climbing in this stretch — a good window for plans '
-            'and bigger things.',
-      CyclePhase.ovulation =>
-        'Energy and mood are often at their highest around now.',
-      CyclePhase.luteal =>
-        'The days before a period can bring lower energy and a shorter fuse. '
-            'Patience and an early night both go a long way.',
-    };
+
+/// A line from the owner, sent as written. Saved as they type so it survives
+/// leaving the screen.
+class _NoteField extends ConsumerStatefulWidget {
+  const _NoteField({required this.initial});
+
+  final String initial;
+
+  @override
+  ConsumerState<_NoteField> createState() => _NoteFieldState();
+}
+
+class _NoteFieldState extends ConsumerState<_NoteField> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void didUpdateWidget(_NoteField old) {
+    super.didUpdateWidget(old);
+    // The saved note loads after the first frame; pick it up once, without
+    // overwriting anything the user has already typed.
+    if (_controller.text.isEmpty && widget.initial.isNotEmpty) {
+      _controller.text = widget.initial;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      key: const Key('partner-note-field'),
+      controller: _controller,
+      maxLength: 140,
+      maxLines: 2,
+      minLines: 1,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: const InputDecoration(
+        labelText: 'Add a note (optional)',
+        hintText: 'e.g. Could use a quiet night in',
+        prefixIcon: Icon(Icons.edit_note_rounded),
+      ),
+      onChanged: ref.read(partnerSharingProvider.notifier).setNote,
+    );
+  }
+}
+
+/// The three ways forward: see it as they will, send it as a code, or open
+/// one you were sent.
+class _FlowButtons extends StatelessWidget {
+  const _FlowButtons();
+
+  void _push(BuildContext context, Widget screen) => Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => screen));
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PrimaryButton(
+          label: 'Preview as your partner',
+          icon: Icons.visibility_rounded,
+          onPressed: () => _push(context, const PartnerPreviewScreen()),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        PrimaryButton(
+          label: 'Create share code',
+          icon: Icons.qr_code_2_rounded,
+          outlined: true,
+          onPressed: () => _push(context, const PartnerShareCodeScreen()),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        TextButton.icon(
+          onPressed: () => _push(context, const PartnerOpenCodeScreen()),
+          icon: const Icon(Icons.key_rounded),
+          label: const Text('I have a code from my partner'),
+        ),
+      ],
+    );
+  }
+}

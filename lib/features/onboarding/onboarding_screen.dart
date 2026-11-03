@@ -50,7 +50,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _nameCtrl = TextEditingController();
 
   int _page = 0;
-  DateTime _lastPeriod = DateTime.now().subtract(const Duration(days: 7));
+  DateTime? _lastPeriod;
 
   // Held as ints rather than the doubles a Slider needed. Same values reach
   // `completeOnboarding`, minus a rounding step that could only lose data.
@@ -66,12 +66,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   static const _totalPages = 5;
 
-  static const _goalEmoji = <TrackingGoal, String>{
-    TrackingGoal.trackPeriods: '🌸',
-    TrackingGoal.tryingToConceive: '🌿',
-    TrackingGoal.pregnancy: '🤰',
-    TrackingGoal.perimenopause: '🌙',
-    TrackingGoal.symptomWellness: '💜',
+  static const _goalIcons = <TrackingGoal, IconData>{
+    TrackingGoal.trackPeriods: AppIcons.goalTrack,
+    TrackingGoal.tryingToConceive: AppIcons.goalConceive,
+    TrackingGoal.pregnancy: AppIcons.goalPregnancy,
+    TrackingGoal.perimenopause: AppIcons.goalPerimenopause,
+    TrackingGoal.symptomWellness: AppIcons.goalWellness,
   };
 
   @override
@@ -119,16 +119,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _pickLastPeriod() async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _lastPeriod,
-      firstDate: now.subtract(const Duration(days: 90)),
-      lastDate: now,
+      initialDate: _lastPeriod ?? today,
+      firstDate: today.subtract(const Duration(days: 90)),
+      lastDate: today,
       helpText: 'When did your last period start?',
     );
     if (picked == null || !mounted) return;
     Haptics.selection();
     setState(() => _lastPeriod = picked);
+  }
+
+  void _clearLastPeriod() {
+    Haptics.selection();
+    if (_lastPeriod == null) return;
+    setState(() => _lastPeriod = null);
   }
 
   Future<void> _finish() async {
@@ -193,7 +200,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         _GoalPage(
                           gutter: gutter,
                           selected: _goal,
-                          emoji: _goalEmoji,
+                          icons: _goalIcons,
                           onChanged: (goal) => setState(() => _goal = goal),
                         ),
                         _CyclePage(
@@ -202,6 +209,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           cycleLength: _cycleLength,
                           periodLength: _periodLength,
                           onPickDate: _pickLastPeriod,
+                          onClearDate: _clearLastPeriod,
                           onCycleLength: (value) =>
                               setState(() => _cycleLength = value),
                           onPeriodLength: (value) =>
@@ -216,7 +224,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           gutter: gutter,
                           name: _nameCtrl.text.trim(),
                           goal: _goal,
-                          goalEmoji: _goalEmoji,
+                          goalIcons: _goalIcons,
                           lastPeriod: _lastPeriod,
                           cycleLength: _cycleLength,
                           periodLength: _periodLength,
@@ -431,14 +439,14 @@ class _ActionBar extends StatelessWidget {
 class _PageShell extends StatelessWidget {
   const _PageShell({
     required this.gutter,
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.children,
   });
 
   final double gutter;
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final List<Widget> children;
@@ -473,9 +481,10 @@ class _PageShell extends StatelessWidget {
                             .withOpacity(context.isDark ? 0.20 : 0.11),
                         borderRadius: BorderRadius.circular(AppRadii.card),
                       ),
-                      child: Text(
-                        emoji,
-                        style: text.headlineSmall,
+                      child: Icon(
+                        icon,
+                        size: AppSpacing.xxl,
+                        color: context.accentColor,
                       ),
                     ),
                   ),
@@ -596,7 +605,7 @@ class _WelcomePage extends StatelessWidget {
 
     return _PageShell(
       gutter: gutter,
-      emoji: '🌸',
+      icon: AppIcons.basics,
       title: 'Hey, welcome in',
       subtitle: 'A few quick questions and CycleCare will be set up around '
           'you. It takes about a minute.',
@@ -644,20 +653,20 @@ class _GoalPage extends StatelessWidget {
   const _GoalPage({
     required this.gutter,
     required this.selected,
-    required this.emoji,
+    required this.icons,
     required this.onChanged,
   });
 
   final double gutter;
   final TrackingGoal? selected;
-  final Map<TrackingGoal, String> emoji;
+  final Map<TrackingGoal, IconData> icons;
   final ValueChanged<TrackingGoal> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return _PageShell(
       gutter: gutter,
-      emoji: '🧭',
+      icon: AppIcons.compass,
       title: 'What brings you here?',
       subtitle: 'This shapes what CycleCare puts front and centre. Pick the '
           'one that fits best today.',
@@ -669,7 +678,7 @@ class _GoalPage extends StatelessWidget {
             for (final goal in TrackingGoal.values)
               SelectableChip(
                 label: goal.label,
-                emoji: emoji[goal],
+                icon: icons[goal]!,
                 selected: selected == goal,
                 // Reselecting the current answer must not clear it — this page
                 // cannot advance from an empty state.
@@ -695,15 +704,17 @@ class _CyclePage extends StatelessWidget {
     required this.cycleLength,
     required this.periodLength,
     required this.onPickDate,
+    required this.onClearDate,
     required this.onCycleLength,
     required this.onPeriodLength,
   });
 
   final double gutter;
-  final DateTime lastPeriod;
+  final DateTime? lastPeriod;
   final int cycleLength;
   final int periodLength;
   final VoidCallback onPickDate;
+  final VoidCallback onClearDate;
   final ValueChanged<int> onCycleLength;
   final ValueChanged<int> onPeriodLength;
 
@@ -713,12 +724,16 @@ class _CyclePage extends StatelessWidget {
 
     return _PageShell(
       gutter: gutter,
-      emoji: '🗓️',
+      icon: AppIcons.calendarRange,
       title: 'Your cycle so far',
       subtitle: 'Rough numbers are perfect. CycleCare learns your real '
           'pattern from the days you log.',
       children: [
-        _LastPeriodCard(lastPeriod: lastPeriod, onTap: onPickDate),
+        _LastPeriodCard(
+          lastPeriod: lastPeriod,
+          onPickDate: onPickDate,
+          onClearDate: onClearDate,
+        ),
         const SizedBox(height: AppSpacing.md),
         AppCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -758,8 +773,8 @@ class _CyclePage extends StatelessWidget {
           ),
         ),
         const _Reassurance(
-          'Not sure? Leave the defaults. Estimates get sharper on their '
-          'own as you log.',
+          'Not sure of the date? Choose “I’m not sure” and add a period '
+          'later. CycleCare’s estimates learn from what you log.',
           icon: Icons.auto_awesome_rounded,
         ),
       ],
@@ -767,71 +782,204 @@ class _CyclePage extends StatelessWidget {
   }
 }
 
-/// The one date this flow asks for. A whole card rather than a field, because
-/// it is the single most consequential answer on the page.
+/// The one date this flow asks for. The two explicit choices keep an unknown
+/// date distinct from a date the app guessed on the user's behalf.
 class _LastPeriodCard extends StatelessWidget {
-  const _LastPeriodCard({required this.lastPeriod, required this.onTap});
+  const _LastPeriodCard({
+    required this.lastPeriod,
+    required this.onPickDate,
+    required this.onClearDate,
+  });
 
-  final DateTime lastPeriod;
-  final VoidCallback onTap;
+  final DateTime? lastPeriod;
+  final VoidCallback onPickDate;
+  final VoidCallback onClearDate;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final phases = PhaseColors.of(context);
-    final daysAgo = DateTime.now().difference(lastPeriod).inDays;
-    final relative = daysAgo <= 0
-        ? 'Today'
-        : daysAgo == 1
-            ? 'Yesterday'
-            : '$daysAgo days ago';
+    final selectedDate = lastPeriod;
+    final relative = selectedDate == null ? null : _relativeDay(selectedDate);
 
     return AppCard(
-      onTap: onTap,
       padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color:
-                  phases.period.fill.withOpacity(context.isDark ? 0.22 : 0.12),
-              borderRadius: BorderRadius.circular(AppRadii.compact),
-            ),
-            child: Icon(
-              Icons.calendar_today_rounded,
-              size: AppSpacing.xl,
-              color: phases.period.text,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: phases.period.fill
+                      .withOpacity(context.isDark ? 0.22 : 0.12),
+                  borderRadius: BorderRadius.circular(AppRadii.compact),
+                ),
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  size: AppSpacing.xl,
+                  color: phases.period.text,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Last period started',
+                      style: text.labelLarge?.copyWith(color: context.inkColor),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Choose a date only if you remember it.',
+                      style:
+                          text.bodySmall?.copyWith(color: context.mutedColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Last period started',
-                  style: text.labelSmall?.copyWith(color: context.mutedColor),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  DateFormat('EEEE, MMMM d').format(lastPeriod),
-                  style: text.labelLarge?.copyWith(color: context.inkColor),
-                ),
-                Text(
-                  relative,
-                  style: text.labelSmall?.copyWith(color: context.subtleColor),
-                ),
-              ],
-            ),
+          const SizedBox(height: AppSpacing.lg),
+          _LastPeriodChoice(
+            selected: selectedDate != null,
+            label: selectedDate == null
+                ? 'Choose a date'
+                : DateFormat('EEEE, MMMM d, yyyy').format(selectedDate),
+            supporting: relative == null
+                ? 'Open the date picker'
+                : '$relative · Tap to change',
+            semanticLabel: 'Last period start date',
+            semanticValue: selectedDate == null
+                ? 'No date selected'
+                : DateFormat('MMMM d, yyyy').format(selectedDate),
+            semanticHint: 'Opens a calendar to choose a date',
+            icon: Icons.calendar_month_rounded,
+            accent: phases.period.fill,
+            onTap: onPickDate,
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Icon(
-            Icons.chevron_right_rounded,
-            size: AppSpacing.xl,
-            color: context.subtleColor,
+          const SizedBox(height: AppSpacing.sm),
+          _LastPeriodChoice(
+            selected: selectedDate == null,
+            label: 'I’m not sure',
+            supporting: 'You can add a period later',
+            semanticLabel: 'Not sure of last period start date',
+            semanticHint: selectedDate == null
+                ? 'Currently selected'
+                : 'Clears the selected date',
+            icon: Icons.help_outline_rounded,
+            accent: phases.period.fill,
+            onTap: onClearDate,
           ),
         ],
+      ),
+    );
+  }
+
+  String _relativeDay(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    final daysAgo = today.difference(day).inDays;
+    if (daysAgo <= 0) return 'Today';
+    if (daysAgo == 1) return 'Yesterday';
+    return '$daysAgo days ago';
+  }
+}
+
+class _LastPeriodChoice extends StatelessWidget {
+  const _LastPeriodChoice({
+    required this.selected,
+    required this.label,
+    required this.supporting,
+    required this.semanticLabel,
+    required this.semanticHint,
+    required this.icon,
+    required this.accent,
+    required this.onTap,
+    this.semanticValue,
+  });
+
+  final bool selected;
+  final String label;
+  final String supporting;
+  final String semanticLabel;
+  final String? semanticValue;
+  final String semanticHint;
+  final IconData icon;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = Motion.of(context);
+    final text = Theme.of(context).textTheme;
+    final radius = BorderRadius.circular(AppRadii.control);
+
+    return Pressable(
+      onTap: onTap,
+      haptic: false,
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      semanticLabel: semanticLabel,
+      semanticValue: semanticValue,
+      semanticHint: semanticHint,
+      excludeChildSemantics: true,
+      scale: 0.98,
+      borderRadius: radius,
+      child: AnimatedContainer(
+        duration: motion(AppDurations.fast),
+        curve: AppCurves.out,
+        constraints: const BoxConstraints(minHeight: AppLayout.minTouchTarget),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? accent.withOpacity(context.isDark ? 0.24 : 0.11)
+              : context.canvasColor.withOpacity(context.isDark ? 0.44 : 0.72),
+          borderRadius: radius,
+          border: Border.all(
+            color: selected ? accent : context.lineColor,
+            width: selected ? AppStrokes.selected : AppStrokes.hairline,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: AppSpacing.xl,
+              color: selected ? accent : context.mutedColor,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: text.labelLarge?.copyWith(color: context.inkColor),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    supporting,
+                    style: text.bodySmall?.copyWith(color: context.mutedColor),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Icon(
+              selected ? Icons.check_rounded : Icons.chevron_right_rounded,
+              size: AppSpacing.xl,
+              color: selected ? accent : context.subtleColor,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -987,7 +1135,7 @@ class _CompanionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return _PageShell(
       gutter: gutter,
-      emoji: '🐾',
+      icon: AppIcons.petCat,
       title: 'Pick a companion',
       subtitle: 'They grow as you log. It is a small nudge on the days you '
           'would rather not think about any of this.',
@@ -1084,7 +1232,7 @@ class _CompanionTile extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(pet.emoji, style: text.displaySmall),
+            Icon(pet.icon, size: AppSpacing.huge, color: accent),
             const SizedBox(height: AppSpacing.sm),
             Text(
               pet.name,
@@ -1107,7 +1255,7 @@ class _ReviewPage extends StatelessWidget {
     required this.gutter,
     required this.name,
     required this.goal,
-    required this.goalEmoji,
+    required this.goalIcons,
     required this.lastPeriod,
     required this.cycleLength,
     required this.periodLength,
@@ -1118,8 +1266,8 @@ class _ReviewPage extends StatelessWidget {
   final double gutter;
   final String name;
   final TrackingGoal? goal;
-  final Map<TrackingGoal, String> goalEmoji;
-  final DateTime lastPeriod;
+  final Map<TrackingGoal, IconData> goalIcons;
+  final DateTime? lastPeriod;
   final int cycleLength;
   final int periodLength;
   final PetType? petType;
@@ -1133,7 +1281,7 @@ class _ReviewPage extends StatelessWidget {
 
     return _PageShell(
       gutter: gutter,
-      emoji: petType?.emoji ?? '✨',
+      icon: petType?.icon ?? AppIcons.sparkle,
       title: name.isEmpty ? 'Does this look right?' : 'All set, $name?',
       subtitle: 'A quick check before anything is saved. Tap any line to go '
           'back and change it.',
@@ -1154,13 +1302,15 @@ class _ReviewPage extends StatelessWidget {
                 icon: Icons.explore_outlined,
                 label: 'Here for',
                 value: goal?.label ?? 'Not chosen',
-                emoji: goalEmoji[goal],
+                leadingIcon: goalIcons[goal],
                 onTap: () => onEdit(1),
               ),
               _ReviewRow(
                 icon: Icons.calendar_today_rounded,
                 label: 'Last period started',
-                value: DateFormat('MMMM d, yyyy').format(lastPeriod),
+                value: lastPeriod == null
+                    ? 'Not sure yet'
+                    : DateFormat('MMMM d, yyyy').format(lastPeriod!),
                 onTap: () => onEdit(2),
               ),
               _ReviewRow(
@@ -1179,7 +1329,7 @@ class _ReviewPage extends StatelessWidget {
                 icon: Icons.pets_rounded,
                 label: 'Companion',
                 value: petType?.name ?? 'Not chosen',
-                emoji: petType?.emoji,
+                leadingIcon: petType?.icon,
                 onTap: () => onEdit(3),
                 last: true,
               ),
@@ -1219,7 +1369,7 @@ class _ReviewRow extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onTap,
-    this.emoji,
+    this.leadingIcon,
     this.last = false,
   });
 
@@ -1227,7 +1377,10 @@ class _ReviewRow extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
-  final String? emoji;
+
+  /// Optional glyph shown beside the chosen value, so a reviewed answer
+  /// carries the same icon it was picked with.
+  final IconData? leadingIcon;
   final bool last;
 
   @override
@@ -1265,8 +1418,12 @@ class _ReviewRow extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xxs),
                       Row(
                         children: [
-                          if (emoji != null) ...[
-                            Text(emoji!, style: text.labelLarge),
+                          if (leadingIcon != null) ...[
+                            Icon(
+                              leadingIcon,
+                              size: AppSpacing.lg,
+                              color: context.accentColor,
+                            ),
                             const SizedBox(width: AppSpacing.xs),
                           ],
                           Expanded(

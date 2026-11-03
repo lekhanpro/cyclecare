@@ -2,9 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'codex/**']
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -23,19 +31,24 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create .env
-        run: |
-          echo "SUPABASE_URL=https://placeholder.supabase.co" > .env
-          echo "SUPABASE_ANON_KEY=placeholder" >> .env
-
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
         run: flutter test --no-pub
+
+      - name: Verify final Flutter layouts
+        run: flutter test --no-pub --dart-define=SHOTS=true test/shots/release_screens_shots_test.dart
+
+      - name: Upload Flutter screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: flutter-ui-${{ github.sha }}
+          path: build/shots/release-*.png
+          if-no-files-found: error
 
   build-debug:
     name: Build Debug APK
@@ -60,21 +73,8 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create .env
-        run: |
-          echo "SUPABASE_URL=https://placeholder.supabase.co" > .env
-          echo "SUPABASE_ANON_KEY=placeholder" >> .env
-
       - name: Install dependencies
-        run: flutter pub get
-
-      - name: Patch app_links compileSdk (CI fix)
-        run: |
-          APP_LINKS=$(find $HOME/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null | head -1)
-          if [ -n "$APP_LINKS" ]; then
-            sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$APP_LINKS"
-            echo "Patched app_links: $APP_LINKS"
-          fi
+        run: flutter pub get --enforce-lockfile
 
       - name: Build debug APK
         run: flutter build apk --debug --no-pub

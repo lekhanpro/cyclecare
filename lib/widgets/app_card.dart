@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_accents.dart';
 import '../core/theme/app_motion.dart';
 import '../core/theme/app_tokens.dart';
 import '../core/theme/phase_colors.dart';
@@ -14,6 +15,12 @@ enum CardEmphasis {
 
   /// Low-emphasis palette tint for grouping.
   tinted,
+
+  /// Lifted. For the one or two surfaces on a screen that must read as
+  /// sitting above the page — a primary stat, a sheet, the focused card.
+  ///
+  /// Deliberately not the default: if every card is elevated, none is.
+  floating,
 }
 
 class AppCard extends StatelessWidget {
@@ -46,15 +53,25 @@ class AppCard extends StatelessWidget {
     final radius = borderRadius ?? BorderRadius.circular(AppRadii.card);
     final dark = context.isDark;
 
-    final fill = color ??
-        switch (emphasis) {
+    // A caller-supplied tint is usually translucent (`swatch.surface`, an
+    // accent at 8%). Painted as-is, the card's own shadow shows through it and
+    // every tinted card turns a muddy grey. Compositing onto the card colour
+    // keeps the tint and makes the surface opaque.
+    final custom = color;
+    final fill = custom != null
+        ? (custom.opacity < 1
+            ? Color.alphaBlend(custom, context.cardColor)
+            : custom)
+        : switch (emphasis) {
           CardEmphasis.raised => context.cardColor,
-          CardEmphasis.outlined => dark
-              ? context.cardColor.withOpacity(0.62)
-              : Colors.white.withOpacity(0.84),
-          CardEmphasis.tinted => dark
-              ? context.cardColor.withOpacity(0.76)
-              : context.accentColor.withOpacity(0.055),
+          // `.card` is solid paper in both appearances; outlined differs from
+          // raised only by dropping the shade.
+          CardEmphasis.outlined => context.cardColor,
+          CardEmphasis.tinted => context.accent.surface,
+          // Dark mode cannot lift a surface with shadow alone, so a floating
+          // card is also a lighter fill than the cards around it.
+          CardEmphasis.floating =>
+            dark ? context.elevatedCardColor : context.cardColor,
         };
 
     final border = switch (emphasis) {
@@ -63,7 +80,7 @@ class AppCard extends StatelessWidget {
           width: AppStrokes.hairline,
         ),
       CardEmphasis.raised => Border.all(
-          color: borderColor ?? context.lineColor.withOpacity(dark ? 0.70 : 0.58),
+          color: borderColor ?? context.lineColor,
           width: AppStrokes.hairline,
         ),
       CardEmphasis.tinted => borderColor == null
@@ -72,17 +89,23 @@ class AppCard extends StatelessWidget {
               color: borderColor!,
               width: AppStrokes.hairline,
             ),
+      // A floating card is separated by its shadow. Adding a border on top of
+      // that reads as two competing edges and flattens the lift it is for.
+      CardEmphasis.floating => borderColor == null
+          ? (dark
+              ? Border.all(
+                  color: Colors.white.withOpacity(0.06),
+                  width: AppStrokes.hairline,
+                )
+              : null)
+          : Border.all(color: borderColor!, width: AppStrokes.hairline),
     };
 
-    final shadows = emphasis == CardEmphasis.raised
-        ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(dark ? 0.20 : 0.035),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ]
-        : const <BoxShadow>[];
+    final shadows = switch (emphasis) {
+      CardEmphasis.raised => AppElevation.low(dark),
+      CardEmphasis.floating => AppElevation.medium(dark),
+      CardEmphasis.outlined || CardEmphasis.tinted => AppElevation.none,
+    };
 
     Widget surface = AnimatedContainer(
       duration: motion(AppDurations.fast),

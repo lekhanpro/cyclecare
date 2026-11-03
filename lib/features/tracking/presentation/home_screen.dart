@@ -7,37 +7,35 @@ import '../../../core/providers/app_settings_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/cyclecare_theme.dart';
 import '../../../core/utils/date_helpers.dart';
+import '../../../widgets/phase_bar.dart';
 import '../../../widgets/widgets.dart';
+import '../../pet/pet_models.dart';
+import '../../pet/pet_provider.dart';
 import '../application/cycle_tracker_controller.dart';
 import '../domain/amenorrhea_result.dart';
 import '../domain/cycle_models.dart';
+import '../domain/cycle_phase_model.dart';
 import '../domain/phase_guidance.dart';
+import 'home_cycle_dial.dart';
+import 'home_hormone_chart.dart';
+
+part 'home_sections.dart';
+part 'home_week.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Home
 //
-// One question dominates this screen: where am I in my cycle, and when is the
-// next period *estimated*? A single hero answers it — phase, ring, one plain
-// sentence, one filled button — and nothing else on the page is allowed to
-// compete with that block.
+// The redesign's front door, in the order of the approved handoff:
+//   greeting -> cycle dial card (SLOT A) -> reference strip + confidence note
+//   -> hormone chart card (SLOT B) -> cycle map card (SLOT C) -> check-in ->
+//   every phase and window -> week -> care note -> upcoming -> your space ->
+//   companion -> privacy line.
 //
-// Surface hierarchy is deliberately shallow. Exactly one surface is elevated
-// (the glass hero); everything below it is a flat, hairline-bordered card or a
-// tinted phase card. Six elevated tiles stacked down a page reads as six equal
-// priorities, which is the same as none.
+// One [CyclePhaseModel] is built at the top of the body and passed down, so
+// every range on this page agrees with Calendar and Insights.
 //
-// Reading order below the hero, in priority order:
-//   1. A footnote on the status itself (the PMS window).
-//   2. Anything abnormal — a long gap, a late estimate, a wide spread.
-//   3. Week context, for moving to another day.
-//   4. Today's entry, one tap from empty to recorded.
-//   5. Phase guidance.
-//   6. Everything else, grouped into one quiet list behind a section label.
-//
-// Language rules applied throughout: a forecast is always framed as an
-// estimate and hedged with "about", never stated as a fact, and status is never
-// carried by colour alone — the phase pill, the alerts, and the logged-state
-// row each carry an icon and name themselves in text.
+// Forecasts are always framed as estimates, and recorded vs estimated is said
+// in words, never by colour alone.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class HomeScreen extends ConsumerWidget {
@@ -57,12 +55,8 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Re-reads the tracker for pull-to-refresh and the retry action.
-///
-/// The failure is swallowed here on purpose: the provider already carries it
-/// into [HomeScreen], which renders the error surface. Letting the future throw
-/// would additionally surface an unhandled error from a refresh gesture the
-/// user has already been answered about.
+/// Re-reads the tracker for pull-to-refresh and the retry action. The failure
+/// is swallowed: the provider already carries it into the error branch.
 Future<void> _reloadTracker(WidgetRef ref) async {
   ref.invalidate(cycleTrackerControllerProvider);
   try {
@@ -72,99 +66,69 @@ Future<void> _reloadTracker(WidgetRef ref) async {
   }
 }
 
-/// Page scaffolding shared by the loaded and failed states: safe area, pull to
-/// refresh, a width-aware gutter, and a content column that stops growing at
-/// [AppLayout.maxContentWidth] and centres itself on tablets.
+/// Safe area, pull to refresh, the width-aware gutter and a content column
+/// capped at [AppLayout.maxContentWidth].
 class _PageShell extends StatelessWidget {
-  const _PageShell({
-    required this.child,
-    required this.onRefresh,
-    this.fillViewport = false,
-  });
+  const _PageShell({required this.child, required this.onRefresh});
 
   final Widget child;
   final Future<void> Function() onRefresh;
 
-  /// Stretches the content to at least one viewport height, so a short
-  /// placeholder sits centred rather than pinned under the status bar.
-  final bool fillViewport;
-
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: onRefresh,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
-
-            Widget content = Center(
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
+          final safe = MediaQuery.paddingOf(context);
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(
+              gutter + safe.left,
+              safe.top + AppSpacing.md,
+              gutter + safe.right,
+              AppSpacing.xxxl + safe.bottom,
+            ),
+            child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
                   maxWidth: AppLayout.maxContentWidth,
                 ),
                 child: child,
               ),
-            );
-
-            if (fillViewport) {
-              content = ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: content,
-              );
-            }
-
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: fillViewport
-                  ? EdgeInsets.symmetric(horizontal: gutter)
-                  : EdgeInsets.fromLTRB(
-                      gutter,
-                      AppSpacing.md,
-                      gutter,
-                      AppSpacing.xxxl,
-                    ),
-              child: content,
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-/// Loading, kept calm rather than blank.
-///
-/// A bare spinner on an empty page reads as a stall. Naming what is happening
-/// costs one line and removes the ambiguity, and it gives assistive technology
-/// something to announce.
+/// Loading: the page's own silhouette, announced once.
 class _LoadingHome extends StatelessWidget {
   const _LoadingHome();
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xxl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return Semantics(
+      label: 'Loading your cycle',
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: _PageShell(
+          onRefresh: () async {},
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox.square(
-                dimension: AppSpacing.xxl,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.4,
-                  semanticsLabel: 'Loading your cycle',
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Getting your cycle ready',
-                textAlign: TextAlign.center,
-                style: text.labelLarge?.copyWith(color: context.mutedColor),
-              ),
+              LoadingSkeleton(width: 120, height: 12),
+              SizedBox(height: AppSpacing.sm),
+              LoadingSkeleton(width: 240, height: 28),
+              SizedBox(height: AppSpacing.xl),
+              LoadingSkeleton(height: 420, radius: AppRadii.card),
+              SizedBox(height: AppSpacing.md),
+              LoadingSkeleton(height: 48, radius: AppRadii.compact),
+              SizedBox(height: AppSpacing.lg),
+              LoadingSkeleton(height: 220, radius: AppRadii.card),
             ],
           ),
         ),
@@ -173,12 +137,7 @@ class _LoadingHome extends StatelessWidget {
   }
 }
 
-/// Load failure, kept actionable.
-///
-/// The raw exception is never the headline — it is unreadable to the person
-/// holding the phone and it buries the one thing they can do about it. The
-/// message says what happened and that nothing was lost; the type name and the
-/// exception text stay as quiet footnotes for a bug report.
+/// Load failure: says nothing was lost and offers the retry.
 class _LoadFailure extends ConsumerWidget {
   const _LoadFailure({required this.error});
 
@@ -186,45 +145,68 @@ class _LoadFailure extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-    final detail = error.toString().trim();
-
     return _PageShell(
-      fillViewport: true,
       onRefresh: () => _reloadTracker(ref),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          EmptyState(
-            icon: Icons.cloud_off_rounded,
-            title: 'We could not load your cycle',
-            message: 'Nothing was lost — your entries stay on this device. '
-                'Pull down to refresh, or try again.',
-            actionLabel: 'Try again',
-            onAction: () => _reloadTracker(ref),
-          ),
-          Text(
-            'Reference: ${error.runtimeType}',
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: text.labelSmall?.copyWith(color: context.subtleColor),
-          ),
-          if (detail.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              detail,
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: text.labelSmall?.copyWith(color: context.subtleColor),
-            ),
-          ],
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.huge),
+        child: ErrorRetryView(
+          noteTitle: 'We could not load your cycle',
+          noteMessage: 'Nothing was lost. Your entries stay on this phone. '
+              'Pull down to refresh, or try again.',
+          retryLabel: 'Try again',
+          onRetry: () => _reloadTracker(ref),
+          caption: 'Reference: ${error.runtimeType}',
+        ),
       ),
     );
   }
 }
+
+// ─── Shared text helpers ─────────────────────────────────────────────────────
+
+/// Caption text. The board uses 9-10 px; production floors it at 11.
+TextStyle _caption(BuildContext context) =>
+    AppTextStyles.body(fontSize: 11, height: 1.4)
+        .copyWith(color: context.mutedColor);
+
+/// Secondary copy inside cards.
+TextStyle _small(BuildContext context) =>
+    AppTextStyles.body(fontSize: 12, height: 1.45)
+        .copyWith(color: context.mutedColor);
+
+/// Row and card titles.
+TextStyle _strong(BuildContext context, {double size = 13}) =>
+    AppTextStyles.body(fontSize: size, height: 1.3, fontWeight: FontWeight.w600)
+        .copyWith(color: context.inkColor);
+
+/// "November 5–9" / "October 23–November 4".
+String _longRange(DateTime start, DateTime end) {
+  final f = DateFormat('MMMM d');
+  if (isSameDate(start, end)) return f.format(start);
+  if (start.month == end.month) return '${f.format(start)}–${end.day}';
+  return '${f.format(start)}–${f.format(end)}';
+}
+
+/// "Nov 5–9" / "Dec 31–Jan 4".
+String _shortRange(DateTime start, DateTime end) {
+  if (isSameDate(start, end)) return shortDate(start);
+  if (start.month == end.month) return '${shortDate(start)}–${end.day}';
+  return '${shortDate(start)}–${shortDate(end)}';
+}
+
+IconData _phaseIcon(CyclePhase phase) => switch (phase) {
+      CyclePhase.menstrual => AppIcons.period,
+      CyclePhase.follicular => AppIcons.basics,
+      CyclePhase.ovulation => AppIcons.ovulation,
+      CyclePhase.luteal => AppIcons.luteal,
+    };
+
+/// How much history the estimate rests on, in plain words.
+String _confidenceCopy(CyclePrediction p) {
+  return p.estimateExplanation;
+}
+
+// ─── Body ────────────────────────────────────────────────────────────────────
 
 class _HomeBody extends ConsumerWidget {
   const _HomeBody({required this.data});
@@ -233,153 +215,138 @@ class _HomeBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final phases = PhaseColors.of(context);
+    final settings = ref.watch(appSettingsSyncProvider);
     final prediction = data.prediction;
-    final phase = prediction?.currentPhase ?? CyclePhase.follicular;
-    final swatch = phases.phase(phase);
+    final today = dateOnly(DateTime.now());
+    final model = CyclePhaseModel.maybeFromPrediction(
+      prediction,
+      today: today,
+      showFertileWindow: settings.showFertileWindow,
+      showOvulation: settings.showOvulation,
+    );
 
-    return PhaseBackdrop(
-      colors: swatch.gradient,
-      child: _PageShell(
-        onRefresh: () => _reloadTracker(ref),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _Greeting(data: data),
-            const SizedBox(height: AppSpacing.xl),
+    var index = 0;
+    Widget reveal(Widget child) => Reveal(
+          index: (index++).clamp(0, 8),
+          offsetY: AppSpacing.md,
+          child: child,
+        );
 
-            // 1 — the answer. The only elevated surface on the page.
-            Reveal(
-              offsetY: AppSpacing.md,
-              child: _StatusHero(data: data),
-            ),
+    final gap = _longGap(data.periods, today);
+    final phase = model?.currentPhase ?? CyclePhase.follicular;
 
-            // 1b — a footnote on the same fact, deliberately not a card.
-            if (prediction != null && !prediction.isLate)
-              _PmsNote(prediction: prediction),
+    return _PageShell(
+      onRefresh: () => _reloadTracker(ref),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          reveal(_Greeting(data: data)),
+          const SizedBox(height: AppSpacing.lg + AppSpacing.xxs),
 
-            // 2 — anomalies, only when they apply.
-            ..._alerts(ref, prediction),
-
-            // 3 — move to another day.
+          // Alerts lead when they apply: long gap outranks late, late
+          // outranks irregular.
+          if (gap != null) ...[
+            reveal(_GapAlert(result: gap, today: today)),
             const SizedBox(height: AppSpacing.lg),
-            Reveal(
-              index: 3,
-              offsetY: AppSpacing.md,
-              child: _WeekSection(data: data),
-            ),
-
-            // 4 — today's entry.
+          ] else if (prediction != null && prediction.isLate) ...[
+            reveal(_LateAlert(prediction: prediction, today: today)),
             const SizedBox(height: AppSpacing.lg),
-            Reveal(
-              index: 4,
-              offsetY: AppSpacing.md,
-              child: _TodaySection(data: data),
-            ),
-
-            // 5 — phase guidance.
+          ] else if (prediction != null &&
+              prediction.isIrregular &&
+              prediction.cyclesTracked >= 3) ...[
+            reveal(_ConfidenceNote(
+              key: const ValueKey('home-irregular-alert'),
+              title: 'Your cycles vary quite a bit',
+              text: 'Lengths have ranged from ${prediction.shortestCycle} to '
+                  '${prediction.longestCycle} days, so every estimate here is '
+                  'wider than usual. Logging each period narrows it.',
+            )),
             const SizedBox(height: AppSpacing.lg),
-            Reveal(
-              index: 5,
-              offsetY: AppSpacing.md,
-              child: _GuidanceCard(
-                phase: phase,
-                swatch: swatch,
-                cycleDay: prediction?.cycleDay ?? 1,
-              ),
-            ),
-
-            // 6 — everything else, one grouped list instead of six cards.
-            const SizedBox(height: AppSpacing.xxl),
-            const Reveal(
-              index: 6,
-              offsetY: AppSpacing.md,
-              child: SectionHeader(
-                title: 'Explore',
-                subtitle: 'Tools and guidance for the rest of your health',
-              ),
-            ),
-            const Reveal(
-              index: 7,
-              offsetY: AppSpacing.md,
-              child: _ExploreList(),
-            ),
           ],
-        ),
+
+          if (prediction != null && model != null) ...[
+            reveal(_ExplorerBlock(
+              data: data,
+              prediction: prediction,
+              model: model,
+            )),
+            const SizedBox(height: AppSpacing.lg),
+            reveal(_CycleMapCard(
+              model: model,
+              phaseBar: (selected, onSelected) =>
+                  _phaseBarSlot(model, selected, onSelected),
+            )),
+            const SizedBox(height: AppSpacing.lg),
+          ] else ...[
+            reveal(_NoHistoryCard(today: today)),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+
+          reveal(_CheckInCard(data: data, today: today)),
+
+          if (prediction != null && model != null) ...[
+            const SizedBox(height: AppSpacing.xxl),
+            reveal(_AllWindowsCard(
+              data: data,
+              prediction: prediction,
+              model: model,
+            )),
+          ],
+
+          ListSectionLabel(
+            label: 'Your week',
+            action: TextButton(
+              onPressed: () => context.go(AppRoutes.calendar),
+              child: const Text('View calendar'),
+            ),
+          ),
+          _HomeWeek(data: data, today: today),
+          const SizedBox(height: AppSpacing.xl + 2),
+          if (model != null)
+            _CareNote(phase: phase, cycleDay: model.cycleDay),
+
+          if (prediction != null && prediction.upcomingCycles.isNotEmpty) ...[
+            ListSectionLabel(
+              label: 'Looking a little ahead',
+              action: TextButton(
+                onPressed: () => context.go(AppRoutes.insights),
+                child: const Text('Your patterns'),
+              ),
+            ),
+            _UpcomingCard(forecasts: prediction.upcomingCycles, today: today),
+          ],
+
+          const ListSectionLabel(label: 'Your space'),
+          const _FeatureGrid(),
+          const SizedBox(height: AppSpacing.xl),
+          const _CompanionSection(),
+          const SizedBox(height: AppSpacing.xl),
+          const _PrivacyLine(),
+        ],
       ),
     );
   }
 
-  /// Alert cards, ordered most-urgent first. Returns an empty list in the
-  /// normal case so the home screen stays quiet unless there is something to
-  /// say — a dashboard that always shows a warning trains people to ignore it.
-  List<Widget> _alerts(WidgetRef ref, CyclePrediction? prediction) {
-    final widgets = <Widget>[];
-    final gap = _AmenorrheaCheck.evaluate(data.periods);
-
-    if (gap != null) {
-      widgets
-        ..add(const SizedBox(height: AppSpacing.md))
-        ..add(Reveal(
-          index: 2,
-          offsetY: AppSpacing.md,
-          child: _AmenorrheaCard(result: gap),
-        ));
-    } else if (prediction != null && prediction.isLate) {
-      widgets
-        ..add(const SizedBox(height: AppSpacing.md))
-        ..add(Reveal(
-          index: 2,
-          offsetY: AppSpacing.md,
-          child: InfoBanner(
-            icon: Icons.schedule_rounded,
-            tone: AppColors.warning,
-            title: prediction.daysLate == 1
-                ? 'Your period is 1 day past the estimate'
-                : 'Your period is ${prediction.daysLate} days past the '
-                    'estimate',
-            message:
-                'Timing shifts with stress, travel, illness, and sleep, and '
-                'the estimate is only as good as the cycles behind it. If it '
-                'stays off or something feels wrong, a clinician is the right '
-                'next step.',
-            actionLabel: 'Log it now',
-            onAction: () => ref
-                .read(cycleTrackerControllerProvider.notifier)
-                .logPeriodStart(DateTime.now()),
+  // The design's four-phase bar with its overlay lane, and the phase tabs.
+  // Both are driven entirely by the model.
+  Widget _phaseBarSlot(
+    CyclePhaseModel model,
+    CyclePhase selected,
+    ValueChanged<CyclePhase> onSelected,
+  ) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PhaseBar(model: model),
+          const SizedBox(height: AppSpacing.md),
+          PhaseTabs(
+            model: model,
+            selected: selected,
+            onSelected: onSelected,
           ),
-        ));
-    } else if (prediction != null &&
-        prediction.isIrregular &&
-        prediction.cyclesTracked >= 3) {
-      widgets
-        ..add(const SizedBox(height: AppSpacing.md))
-        ..add(Reveal(
-          index: 2,
-          offsetY: AppSpacing.md,
-          child: InfoBanner(
-            icon: Icons.show_chart_rounded,
-            tone: AppColors.info,
-            title: 'Your cycles vary quite a bit',
-            message: 'Lengths have ranged from ${prediction.shortestCycle} to '
-                '${prediction.longestCycle} days, so every estimate here is '
-                'wider than usual. Logging each period narrows it.',
-          ),
-        ));
-    }
-
-    return widgets;
-  }
+        ],
+      );
 }
-
-/// Non-colour phase cue. Paired with the phase name so the pill never relies on
-/// its tint to say which phase it is.
-IconData _phaseIcon(CyclePhase phase) => switch (phase) {
-      CyclePhase.menstrual => Icons.water_drop_rounded,
-      CyclePhase.follicular => Icons.eco_rounded,
-      CyclePhase.ovulation => Icons.wb_sunny_rounded,
-      CyclePhase.luteal => Icons.nights_stay_rounded,
-    };
 
 // ─── Greeting ────────────────────────────────────────────────────────────────
 
@@ -390,534 +357,129 @@ class _Greeting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good morning'
-        : hour < 17
-            ? 'Good afternoon'
-            : 'Good evening';
-    final name = data.preferences.profileName;
+    final name = data.preferences.profileName.trim();
 
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
+    final heading = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                greeting,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: text.labelMedium?.copyWith(color: context.mutedColor),
+                DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                style: _small(context),
               ),
-              Text(
-                name.isNotEmpty ? name : 'Welcome back',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: text.titleLarge?.copyWith(
-                  letterSpacing: -0.3,
-                  color: context.inkColor,
+              const SizedBox(height: AppSpacing.xs),
+              Semantics(
+                header: true,
+                child: Text(
+                  'Your day, at a glance.',
+                  style: AppTextStyles.heading(fontSize: 27, letterSpacing: -0.9)
+                      .copyWith(color: context.inkColor),
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        _HeaderAction(
-          icon: Icons.auto_awesome_rounded,
-          label: 'Ask the CycleCare assistant',
+          );
+    final actions = Row(mainAxisSize: MainAxisSize.min, children: [
+        HeaderIconButton(
+          icon: AppIcons.ai,
+          semanticLabel: 'Ask the CycleCare assistant',
           onTap: () => context.push(AppRoutes.aiChat),
         ),
-        const SizedBox(width: AppSpacing.sm),
-        _HeaderAction(
-          icon: Icons.settings_rounded,
-          label: 'Settings',
-          initial: name.isNotEmpty ? name[0].toUpperCase() : null,
-          tinted: true,
-          onTap: () => context.push(AppRoutes.settings),
-        ),
-      ],
-    );
+        const SizedBox(width: AppSpacing.xs),
+        if (name.isEmpty)
+          HeaderIconButton(
+            icon: AppIcons.person,
+            semanticLabel: 'Your space and settings',
+            onTap: () => context.push(AppRoutes.settings),
+          )
+        else
+          HeaderAvatar(
+            initial: name,
+            diameter: 42,
+            semanticLabel: 'Your space and settings',
+            onTap: () => context.push(AppRoutes.settings),
+          ),
+    ]);
+    if (MediaQuery.textScalerOf(context).scale(14) > 18) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Align(alignment: Alignment.centerRight, child: actions),
+        const SizedBox(height: AppSpacing.sm),
+        heading,
+      ]);
+    }
+    return Row(children: [Expanded(child: heading),
+      const SizedBox(width: AppSpacing.md), actions]);
   }
 }
 
-/// Icon-only header control. Icon-only means the label has to live in
-/// semantics, and the box is a full touch target rather than a 42dp square
-/// that happens to sit inside one.
-class _HeaderAction extends StatelessWidget {
-  const _HeaderAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.initial,
-    this.tinted = false,
+// ─── Shared surfaces ─────────────────────────────────────────────────────────
+
+/// The page's paper card: hairline, soft warm depth, 22 radius.
+class _HomeCard extends StatelessWidget {
+  const _HomeCard({
+    required this.child,
+    this.padding = const EdgeInsets.fromLTRB(16, 17, 16, 14),
   });
 
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  /// Shown instead of [icon] when the profile has a name.
-  final String? initial;
-
-  final bool tinted;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppRadii.control);
-
-    return Pressable(
-      onTap: onTap,
-      scale: 0.94,
-      semanticLabel: label,
-      excludeChildSemantics: true,
-      borderRadius: radius,
-      child: Container(
-        width: AppLayout.minTouchTarget,
-        height: AppLayout.minTouchTarget,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: tinted
-              ? context.accentColor.withOpacity(context.isDark ? 0.22 : 0.14)
-              : context.cardColor.withOpacity(context.isDark ? 0.60 : 0.66),
-          borderRadius: radius,
-          border: tinted
-              ? null
-              : Border.all(
-                  color: context.lineColor,
-                  width: AppStrokes.hairline,
-                ),
-        ),
-        child: initial == null
-            ? Icon(icon, size: AppSpacing.xl, color: context.accentColor)
-            : Text(
-                initial!,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: context.accentColor,
-                    ),
-              ),
-      ),
-    );
-  }
-}
-
-// ─── Hero ────────────────────────────────────────────────────────────────────
-
-/// The plain-language status the hero exists to say, split into the sentence
-/// the eye reads and the sentence a screen reader hears.
-///
-/// Every phrasing here is hedged. The app is projecting from a handful of past
-/// cycles, so "about" and "estimated" are load-bearing words, not padding.
-@immutable
-class _CycleStatus {
-  const _CycleStatus({
-    required this.headline,
-    required this.detail,
-    required this.spoken,
-  });
-
-  factory _CycleStatus.from(CyclePrediction prediction) {
-    final date = DateFormat('EEE d MMM').format(prediction.nextPeriodStart);
-
-    if (prediction.isLate) {
-      final days = prediction.daysLate;
-      final headline = days == 1
-          ? 'Your period is a day past the estimate'
-          : 'Your period is $days days past the estimate';
-      return _CycleStatus(
-        headline: headline,
-        detail: 'The estimate was $date. Timing shifts for plenty of '
-            'everyday reasons.',
-        spoken: headline,
-      );
-    }
-
-    if (prediction.daysUntilPeriod <= 0) {
-      const headline = 'Your period is expected today';
-      return _CycleStatus(
-        headline: headline,
-        detail: _basis(prediction, 'Estimated to start today'),
-        spoken: headline,
-      );
-    }
-
-    final days = prediction.daysUntilPeriod;
-    final headline = days == 1
-        ? 'Period expected in about a day'
-        : 'Period expected in about $days days';
-    return _CycleStatus(
-      headline: headline,
-      detail: _basis(prediction, 'Estimated around $date'),
-      spoken: headline,
-    );
-  }
-
-  /// Large, centred, and the loudest text on the screen.
-  final String headline;
-
-  /// The hedge: what the estimate is built on, and how much it might move.
-  final String detail;
-
-  /// Read instead of [headline] when the hero is announced as one node.
-  final String spoken;
-
-  static String _basis(CyclePrediction prediction, String lead) {
-    if (prediction.cyclesTracked < 2) {
-      return '$lead. CycleCare is still learning your pattern, so expect '
-          'this to move.';
-    }
-
-    final shortest = prediction.shortestCycle;
-    final longest = prediction.longestCycle;
-    if (prediction.isIrregular && shortest != null && longest != null) {
-      return '$lead. Your recent cycles ran $shortest to $longest days, so '
-          'this may shift.';
-    }
-
-    return '$lead, based on your recent cycles.';
-  }
-}
-
-/// One surface, one job: where am I, when is the next period estimated, and
-/// what is the single thing to do about it.
-class _StatusHero extends ConsumerWidget {
-  const _StatusHero({required this.data});
-
-  final CycleTrackerState data;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final prediction = data.prediction;
-    if (prediction == null) return const _HeroSetup();
-
-    final text = Theme.of(context).textTheme;
-    final settings = ref.watch(appSettingsSyncProvider);
-    final phases = PhaseColors.of(context);
-    final phase = prediction.currentPhase;
-    final swatch = phases.phase(phase);
-    final status = _CycleStatus.from(prediction);
-    final loggedToday = data.periodFor(DateTime.now()) != null;
-    final ovulationDay =
-        prediction.averageCycleLength - data.preferences.lutealPhaseLength;
-
-    // One merged summary for assistive technology. The pill, the ring, the
-    // sentence, and the fact row are all facets of the same fact, and reading
-    // them as six separate nodes is worse than reading one sentence.
-    final dayClause = 'cycle day ${prediction.cycleDay} of about '
-        '${prediction.averageCycleLength}';
-    final confidenceClause =
-        'estimate confidence ${prediction.confidenceLabel.toLowerCase()}';
-    final summary = <String>[
-      '${phase.label} phase',
-      status.spoken,
-      dayClause,
-      confidenceClause,
-    ].join('. ');
-
-    return GlassCard(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        children: [
-          Semantics(
-            container: true,
-            label: summary,
-            child: ExcludeSemantics(
-              child: Column(
-                children: [
-                  _PhasePill(phase: phase, swatch: swatch),
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // The ring carries cycle position; the sentence below carries
-                  // the estimate. Splitting them stops the hero from saying the
-                  // same number twice in two type sizes.
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      // Large text needs a larger ring, not a clipped one, and
-                      // a 320dp screen needs a smaller one.
-                      final scale = MediaQuery.textScalerOf(context).scale(1);
-                      final ceiling = scale > 1.3 ? 288.0 : 252.0;
-                      final size =
-                          constraints.maxWidth.clamp(168.0, ceiling).toDouble();
-
-                      return CycleRing(
-                        size: size,
-                        strokeWidth:
-                            (size * 0.075).clamp(13.0, 19.0).toDouble(),
-                        cycleDay: prediction.cycleDay,
-                        cycleLength: prediction.averageCycleLength,
-                        centerLabel: 'Cycle day',
-                        centerValue: '${prediction.cycleDay}',
-                        centerCaption:
-                            'of about ${prediction.averageCycleLength}',
-                        markerColor: swatch.fill,
-                        segments: buildCycleSegments(
-                          cycleLength: prediction.averageCycleLength,
-                          periodLength: prediction.averagePeriodLength,
-                          ovulationDay: ovulationDay,
-                          colors: phases,
-                          showFertile: settings.showFertileWindow,
-                          showOvulation: settings.showOvulation,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    status.headline,
-                    textAlign: TextAlign.center,
-                    style: text.titleLarge?.copyWith(
-                      letterSpacing: -0.3,
-                      color: context.inkColor,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    status.detail,
-                    textAlign: TextAlign.center,
-                    style: text.bodySmall?.copyWith(color: context.mutedColor),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  _HeroFacts(prediction: prediction),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-
-          // Exactly one filled action. Once today is already recorded as a
-          // period day the filled slot moves to the full log rather than
-          // offering a duplicate entry, and the confirmation drops to a quiet
-          // row underneath.
-          BlurSwap(
-            child: KeyedSubtree(
-              key: ValueKey(loggedToday),
-              child: loggedToday
-                  ? _HeroActions(
-                      primary: PrimaryButton(
-                        label: 'Log today',
-                        icon: Icons.edit_note_rounded,
-                        onPressed: () => context.go(AppRoutes.log),
-                      ),
-                      secondary: const _QuietNote(
-                        icon: Icons.check_circle_rounded,
-                        label: 'Period logged for today',
-                        tone: AppColors.success,
-                      ),
-                    )
-                  : _HeroActions(
-                      primary: PrimaryButton(
-                        label: 'Log period today',
-                        icon: Icons.water_drop_rounded,
-                        onPressed: () async {
-                          await ref
-                              .read(cycleTrackerControllerProvider.notifier)
-                              .logPeriodStart(DateTime.now());
-                          if (!context.mounted) return;
-                          showAppToast(
-                            context,
-                            message: 'Period logged for today',
-                          );
-                        },
-                      ),
-                      secondary: TextButton(
-                        onPressed: () => context.go(AppRoutes.log),
-                        child: const Text('Log symptoms instead'),
-                      ),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Stacks the single primary action above its secondary, so the hierarchy is
-/// vertical rather than two equal buttons fighting across a row.
-class _HeroActions extends StatelessWidget {
-  const _HeroActions({required this.primary, required this.secondary});
-
-  final Widget primary;
-  final Widget secondary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        primary,
-        const SizedBox(height: AppSpacing.xs),
-        secondary,
-      ],
-    );
-  }
-}
-
-/// First run: no cycles yet, so no ring and no estimate to dress up.
-class _HeroSetup extends ConsumerWidget {
-  const _HeroSetup();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-
-    return GlassCard(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Let\'s set up your cycle',
-            textAlign: TextAlign.center,
-            style: text.titleLarge?.copyWith(color: context.inkColor),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Add the first day of your last period and CycleCare can start '
-            'estimating from there.',
-            textAlign: TextAlign.center,
-            style: text.bodySmall?.copyWith(color: context.mutedColor),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          PrimaryButton(
-            label: 'Log my period',
-            icon: Icons.water_drop_rounded,
-            onPressed: () => ref
-                .read(cycleTrackerControllerProvider.notifier)
-                .logPeriodStart(DateTime.now()),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PhasePill extends StatelessWidget {
-  const _PhasePill({required this.phase, required this.swatch});
-
-  final CyclePhase phase;
-  final PhaseSwatch swatch;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
+      width: double.infinity,
+      padding: padding,
       decoration: BoxDecoration(
-        color: swatch.fill.withOpacity(context.isDark ? 0.26 : 0.15),
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: swatch.border, width: AppStrokes.hairline),
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border:
+            Border.all(color: context.lineColor, width: AppStrokes.hairline),
+        boxShadow: AppElevation.low(context.isDark),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(_phaseIcon(phase), size: AppSpacing.lg, color: swatch.text),
-          const SizedBox(width: AppSpacing.sm),
-          Flexible(
-            child: Text(
-              '${phase.label} phase',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: swatch.text,
-                  ),
-            ),
-          ),
-        ],
-      ),
+      child: child,
     );
   }
 }
 
-/// Supporting numbers, set as running text rather than columns of numerals.
-///
-/// The hero already has one large number in the ring and one large sentence
-/// under it; a row of three more bold figures competes with both. Wrapped text
-/// keeps them available without promoting them, and survives 200% scale on a
-/// 320dp screen where a three-across row does not.
-class _HeroFacts extends StatelessWidget {
-  const _HeroFacts({required this.prediction});
+/// A card's DM Sans title with an optional trailing element.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, this.trailing});
 
-  final CyclePrediction prediction;
+  final String title;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: AppSpacing.lg,
-      runSpacing: AppSpacing.xs,
+    return Row(
       children: [
-        _HeroFact(
-          label: 'Typical cycle',
-          value: '${prediction.averageCycleLength} days',
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: AppTextStyles.body(
+                fontSize: 16,
+                height: 1.3,
+                letterSpacing: -0.4,
+                fontWeight: FontWeight.w600,
+              ).copyWith(color: context.inkColor),
+            ),
+          ),
         ),
-        _HeroFact(
-          label: 'Estimate confidence',
-          value: prediction.confidenceLabel,
-        ),
+        if (trailing != null) ...[
+          const SizedBox(width: AppSpacing.sm),
+          trailing!,
+        ],
       ],
     );
   }
 }
 
-class _HeroFact extends StatelessWidget {
-  const _HeroFact({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(text: '$label '),
-          TextSpan(
-            text: value,
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              color: context.inkColor,
-            ),
-          ),
-        ],
-      ),
-      textAlign: TextAlign.center,
-      style: text.labelMedium?.copyWith(color: context.mutedColor),
-    );
-  }
-}
-
-/// Quiet centred icon-plus-text row. Used for confirmations and footnotes —
-/// anything that states a condition rather than offering an action.
-///
-/// Not a disabled button: a greyed-out control invites taps that do nothing,
-/// while a row that names its state does not. Sized to the minimum touch target
-/// so swapping it in for a button does not shift the layout underneath.
+/// A condition, not an action: icon plus text at touch-target height so it
+/// can stand in for a button without shifting the layout.
 class _QuietNote extends StatelessWidget {
-  const _QuietNote({
-    required this.icon,
-    required this.label,
-    this.tone,
-  });
+  const _QuietNote({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final Color? tone;
 
   @override
   Widget build(BuildContext context) {
@@ -928,20 +490,15 @@ class _QuietNote extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ExcludeSemantics(
-            child: Icon(
-              icon,
-              size: AppSpacing.lg,
-              color: tone ?? context.mutedColor,
-            ),
+            child: Icon(icon, size: AppSpacing.lg, color: context.accent.text),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.xs),
           Flexible(
             child: Text(
               label,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: context.mutedColor,
-                  ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: _small(context),
             ),
           ),
         ],
@@ -950,679 +507,391 @@ class _QuietNote extends StatelessWidget {
   }
 }
 
-/// The premenstrual window, as a footnote to the hero rather than a card of its
-/// own. It qualifies the status directly above it, so giving it a surface would
-/// imply it is a separate topic.
-class _PmsNote extends StatelessWidget {
-  const _PmsNote({required this.prediction});
+// ─── Dial card ───────────────────────────────────────────────────────────────
 
+/// The cycle dial, the reference strip and the hormone illustration.
+///
+/// The dial and the chart explore ONE day, held here, so dragging either moves
+/// both. That day is presentation state only: the next-period estimate inside
+/// the dial stays anchored to today.
+class _ExplorerBlock extends StatefulWidget {
+  const _ExplorerBlock({
+    required this.data,
+    required this.prediction,
+    required this.model,
+  });
+
+  final CycleTrackerState data;
   final CyclePrediction prediction;
+  final CyclePhaseModel model;
+
+  @override
+  State<_ExplorerBlock> createState() => _ExplorerBlockState();
+}
+
+class _ExplorerBlockState extends State<_ExplorerBlock> {
+  int? _day;
+
+  /// Today until the person explores, and never outside the cycle: a reload
+  /// that shortens the cycle must not leave a selected day that cannot exist.
+  int get _selectedDay =>
+      (_day ?? widget.model.cycleDay).clamp(1, widget.model.cycleLength);
+
+  void _select(int day) => setState(() => _day = day);
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final days = prediction.daysUntilPms(now);
-    if (days == null) return const SizedBox.shrink();
+    final model = widget.model;
+    final day = _selectedDay;
 
-    final label = prediction.isPmsOn(now)
-        ? 'You\'re in your PMS window — symptoms often peak now'
-        : days <= 0
-            ? 'PMS window has started'
-            : days == 1
-                ? 'PMS window starts tomorrow'
-                : 'PMS window starts in about $days days';
-
-    return Reveal(
-      index: 1,
-      offsetY: AppSpacing.md,
-      child: _QuietNote(
-        icon: Icons.nights_stay_rounded,
-        label: label,
-        tone: AppColors.luteal,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DialCard(
+          data: widget.data,
+          prediction: widget.prediction,
+          model: model,
+          selectedDay: day,
+          onDayChanged: _select,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _ReferenceStrip(prediction: widget.prediction, model: model),
+        const SizedBox(height: AppSpacing.lg),
+        HormoneChart(
+          model: model,
+          selectedDay: day,
+          onDayChanged: _select,
+        ),
+      ],
     );
   }
 }
 
-// ─── Week ────────────────────────────────────────────────────────────────────
-
-class _WeekSection extends ConsumerWidget {
-  const _WeekSection({required this.data});
+/// The precise cycle dial with the two logging actions beneath it.
+class _DialCard extends ConsumerWidget {
+  const _DialCard({
+    required this.data,
+    required this.prediction,
+    required this.model,
+    required this.selectedDay,
+    required this.onDayChanged,
+  });
 
   final CycleTrackerState data;
+  final CyclePrediction prediction;
+  final CyclePhaseModel model;
+  final int selectedDay;
+  final ValueChanged<int> onDayChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final loggedToday = data.periodFor(model.today) != null;
     final controller = ref.read(cycleTrackerControllerProvider.notifier);
 
-    return AppCard(
-      emphasis: CardEmphasis.outlined,
-      padding: AppInsets.compactCard,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  DateFormat('MMMM yyyy').format(data.selectedDate),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: context.inkColor,
-                      ),
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // The dial brings its own card frame, eyebrow, "Your cycle" heading,
+        // day status and next-period estimate row.
+        CycleDial(
+          model: model,
+          selectedDay: selectedDay,
+          onDayChanged: onDayChanged,
+          onExplainEstimate: () => showAppSheet<void>(
+            context: context,
+            title: 'About this estimate',
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                0,
+                AppSpacing.xl,
+                AppSpacing.xxl,
               ),
-              // Loose-flex plus an end-aligned box: the link keeps half the row
-              // as its ceiling so a long label ellipsises instead of pushing
-              // the month off-screen at large text, but it still sits flush
-              // with the trailing edge instead of floating mid-row.
-              Flexible(
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: _QuietLink(
-                    label: 'Full calendar',
-                    semanticLabel: 'Open the full calendar',
-                    onTap: () => context.go(AppRoutes.calendar),
-                  ),
-                ),
+              child: Text(
+                _confidenceCopy(prediction),
+                style: AppTextStyles.body(fontSize: 14)
+                    .copyWith(color: context.inkColor),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          WeekStrip(
-            selectedDate: data.selectedDate,
-            statusFor: data.statusFor,
-            hasLogFor: data.hasLogFor,
-            onSelected: controller.selectDate,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Text-plus-chevron secondary action. Visually quiet, but still a full-height
-/// touch target and still labelled for assistive technology.
-class _QuietLink extends StatelessWidget {
-  const _QuietLink({
-    required this.label,
-    required this.onTap,
-    this.semanticLabel,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppRadii.compact);
-
-    return Pressable(
-      onTap: onTap,
-      scale: 0.94,
-      semanticLabel: semanticLabel ?? label,
-      excludeChildSemantics: true,
-      borderRadius: radius,
-      minimumSize: const Size(0, AppLayout.minTouchTarget),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-        child: Row(
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Flex(
+          direction: MediaQuery.textScalerOf(context).scale(14) > 18
+              ? Axis.vertical : Axis.horizontal,
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: MediaQuery.textScalerOf(context).scale(14) > 18
+              ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
           children: [
             Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: context.accentColor,
-                    ),
+              child: FilledButton.icon(
+                onPressed: () {
+                  controller.selectDate(model.today);
+                  context.go(AppRoutes.log);
+                },
+                icon: const Icon(AppIcons.plus, size: 18),
+                label: const Text(
+                  'Log today',
+                ),
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: AppSpacing.lg,
-              color: context.accentColor,
+            const SizedBox(width: AppSpacing.sm, height: AppSpacing.sm),
+            Flexible(
+              child: loggedToday
+                  ? const _QuietNote(
+                      icon: AppIcons.check,
+                      label: 'Period logged',
+                    )
+                  : OutlinedButton.icon(
+                      onPressed: () async {
+                        await controller.logPeriodStart(model.today);
+                        if (!context.mounted) return;
+                        showAppToast(
+                          context,
+                          message: 'Period logged for today',
+                        );
+                      },
+                      icon: const Icon(AppIcons.period, size: 18),
+                      label: const Text(
+                        'Log period',
+                      ),
+                    ),
             ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+// ─── Reference strip ─────────────────────────────────────────────────────────
+
+/// Average cycle, average period, and how many cycles the estimate rests on.
+/// The third figure is a button that opens the confidence explanation; with
+/// thin history that explanation is always shown, and the first two figures
+/// say they come from the user's settings rather than from measurement.
+class _ReferenceStrip extends StatefulWidget {
+  const _ReferenceStrip({required this.prediction, required this.model});
+
+  final CyclePrediction prediction;
+  final CyclePhaseModel model;
+
+  @override
+  State<_ReferenceStrip> createState() => _ReferenceStripState();
+}
+
+class _ReferenceStripState extends State<_ReferenceStrip> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.prediction;
+    final learning = !widget.model.history.isSufficient;
+    final cycles = p.cyclesTracked;
+    final motion = Motion.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Flex(
+          direction: MediaQuery.textScalerOf(context).scale(14) > 18
+              ? Axis.vertical : Axis.horizontal,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: MediaQuery.textScalerOf(context).scale(14) > 18
+              ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: _RefStat(
+                value: '${p.averageCycleLength}',
+                unit: 'days',
+                label: cycles == 0 ? 'Cycle, from settings' : 'Average cycle',
+              ),
+            ),
+            Flexible(
+              child: _RefStat(
+                value: '${p.averagePeriodLength}',
+                unit: 'days',
+                label: 'Average period',
+              ),
+            ),
+            Flexible(
+              flex: 1,
+              child: Pressable(
+                onTap: () => setState(() => _open = !_open),
+                semanticLabel: '$cycles ${cycles == 1 ? 'cycle' : 'cycles'} '
+                    'behind this estimate',
+                semanticHint: _open
+                    ? 'Hide the explanation'
+                    : 'Show how this estimate was calculated',
+                excludeChildSemantics: true,
+                borderRadius: BorderRadius.circular(AppRadii.compact),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(color: context.lineColor),
+                    ),
+                  ),
+                  child: _RefStat(
+                    value: '$cycles',
+                    unit: cycles == 1 ? 'cycle' : 'cycles',
+                    label: 'Behind this estimate',
+                    trailingIcon: AppIcons.help,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(p.variationSummary, style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: context.mutedColor)),
+        AnimatedSize(
+          duration: motion(AppDurations.normal),
+          curve: AppCurves.out,
+          alignment: Alignment.topCenter,
+          child: _open || learning
+              ? Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: _ConfidenceNote(
+                    title: learning ? 'Still learning your cycle' : null,
+                    text: _confidenceCopy(p),
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+      ],
+    );
+  }
+}
+
+class _RefStat extends StatelessWidget {
+  const _RefStat({
+    required this.value,
+    required this.unit,
+    required this.label,
+    this.trailingIcon,
+  });
+
+  final String value;
+  final String unit;
+  final String label;
+  final IconData? trailingIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs + 2,
+        vertical: AppSpacing.xs,
+      ),
+      child: Column(
+        children: [
+          Text.rich(
+            TextSpan(
+              text: value,
+              style: AppTextStyles.body(
+                fontSize: 19,
+                height: 1.3,
+                letterSpacing: -0.6,
+                fontWeight: FontWeight.w600,
+              ).copyWith(color: context.inkColor),
+              children: [
+                TextSpan(text: ' $unit', style: _caption(context)),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: _caption(context),
+                ),
+              ),
+              if (trailingIcon != null) ...[
+                const SizedBox(width: 3),
+                Icon(trailingIcon, size: 12, color: context.mutedColor),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-// ─── Today ───────────────────────────────────────────────────────────────────
+class _ConfidenceNote extends StatelessWidget {
+  const _ConfidenceNote({super.key, required this.text, this.title});
 
-class _TodaySection extends ConsumerWidget {
-  const _TodaySection({required this.data});
+  final String text;
+  final String? title;
 
-  final CycleTrackerState data;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(AppRadii.compact + 4),
+        border: Border.all(color: context.lineColor, width: AppStrokes.hairline),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Icon(AppIcons.info, size: 16, color: context.mutedColor),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title != null) ...[
+                  Text(title!, style: _strong(context, size: 12)),
+                  const SizedBox(height: AppSpacing.xxs),
+                ],
+                Text(text, style: _small(context)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── No history ──────────────────────────────────────────────────────────────
+
+/// Nothing logged: no dates are invented. One action starts the model.
+class _NoHistoryCard extends ConsumerWidget {
+  const _NoHistoryCard({required this.today});
+
+  final DateTime today;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-    final today = dateOnly(DateTime.now());
-    final log = data.logFor(today);
-    final controller = ref.read(cycleTrackerControllerProvider.notifier);
-
-    return AppCard(
-      emphasis: CardEmphasis.outlined,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      log == null ? 'How are you today?' : 'Today\'s log',
-                      style: text.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: context.inkColor,
-                      ),
-                    ),
-                    Text(
-                      DateFormat('EEEE d MMMM').format(today),
-                      style:
-                          text.labelSmall?.copyWith(color: context.mutedColor),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: _QuietLink(
-                    label: log == null ? 'Add' : 'Edit',
-                    semanticLabel: log == null
-                        ? 'Add a full log for today'
-                        : 'Edit today\'s log',
-                    onTap: () {
-                      controller.selectDate(today);
-                      context.go(AppRoutes.log);
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (log == null)
-            _QuickMoodRow(
-              onPick: (mood) async {
-                await controller.saveLog(DailyLog(date: today, mood: mood));
-                if (!context.mounted) return;
-                showAppToast(context, message: 'Logged $mood for today');
-              },
-            )
-          else
-            _LoggedChips(log: log),
-        ],
+    return _HomeCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: EmptyStateView(
+        icon: AppIcons.cycle,
+        title: 'Let’s find your rhythm.',
+        message: 'Add the first day of your last period and CycleCare can '
+            'start estimating. Until then there are no dates to show, and '
+            'nothing here is a guess.',
+        actionLabel: 'Log my period',
+        actionIcon: AppIcons.period,
+        onAction: () async {
+          await ref
+              .read(cycleTrackerControllerProvider.notifier)
+              .logPeriodStart(today);
+          if (!context.mounted) return;
+          showAppToast(context, message: 'Period logged for today');
+        },
       ),
-    );
-  }
-}
-
-/// One-tap mood entry.
-///
-/// The fastest possible path from opening the app to having logged something.
-/// Most days a user has thirty seconds, not three minutes, and a tracker that
-/// demands the full form gets abandoned.
-///
-/// Laid out as a [Wrap] rather than a six-across row: six fixed columns fit a
-/// 360dp screen at default text and nothing else.
-class _QuickMoodRow extends StatelessWidget {
-  const _QuickMoodRow({required this.onPick});
-
-  final ValueChanged<String> onPick;
-
-  static const _moods = <({String emoji, String label})>[
-    (emoji: '😀', label: 'Happy'),
-    (emoji: '😌', label: 'Calm'),
-    (emoji: '😐', label: 'Focused'),
-    (emoji: '😣', label: 'Irritable'),
-    (emoji: '😢', label: 'Sad'),
-    (emoji: '😰', label: 'Anxious'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.md,
-      children: [
-        for (final mood in _moods)
-          _MoodButton(
-            emoji: mood.emoji,
-            label: mood.label,
-            onTap: () => onPick(mood.label),
-          ),
-      ],
-    );
-  }
-}
-
-class _MoodButton extends StatelessWidget {
-  const _MoodButton({
-    required this.emoji,
-    required this.label,
-    required this.onTap,
-  });
-
-  final String emoji;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Pressable(
-      onTap: onTap,
-      scale: 0.9,
-      semanticLabel: label,
-      semanticHint: 'Log this mood for today',
-      excludeChildSemantics: true,
-      borderRadius: BorderRadius.circular(AppRadii.control),
-      minimumSize: Size.zero,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: AppLayout.minTouchTarget,
-            height: AppLayout.minTouchTarget,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: context.accentColor.withOpacity(
-                context.isDark ? 0.18 : 0.08,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(emoji, style: text.titleLarge),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            label,
-            style: text.labelSmall?.copyWith(color: context.mutedColor),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LoggedChips extends StatelessWidget {
-  const _LoggedChips({required this.log});
-
-  final DailyLog log;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final items = <String>[
-      if (log.flow != null && log.flow != FlowIntensity.none)
-        '${log.flow!.label} flow',
-      if (log.mood != null && log.mood!.isNotEmpty) log.mood!,
-      ...log.symptoms,
-      if (log.painLevel > 0) 'Pain ${log.painLevel}/10',
-      if (log.waterMl > 0) '${log.waterMl} ml',
-      if (log.sleepHours != null) '${log.sleepHours}h sleep',
-    ];
-
-    if (items.isEmpty) {
-      return Text(
-        'Logged, but nothing recorded yet.',
-        style: text.bodySmall?.copyWith(color: context.mutedColor),
-      );
-    }
-
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: [
-        for (final item in items)
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: context.accentColor.withOpacity(
-                context.isDark ? 0.20 : 0.10,
-              ),
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-            ),
-            child: Text(
-              item,
-              style: text.labelMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: context.isDark ? context.inkColor : context.accentColor,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ─── Phase guidance ──────────────────────────────────────────────────────────
-
-/// Phase guidance on a phase-tinted surface.
-///
-/// A [PhaseCard] rather than a second white card: the tint plus the leading
-/// marker tie the tip to the phase named in the hero, and it keeps the page
-/// from becoming a stack of identical rectangles. The emoji sits directly on the
-/// tint — wrapping it in its own tinted tile would be a tint inside a tint for
-/// one semantic unit.
-class _GuidanceCard extends StatelessWidget {
-  const _GuidanceCard({
-    required this.phase,
-    required this.swatch,
-    required this.cycleDay,
-  });
-
-  final CyclePhase phase;
-  final PhaseSwatch swatch;
-  final int cycleDay;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    // Keyed off the cycle day so the tip rotates daily but stays stable within
-    // a day — a card that changes on every rebuild is unreadable.
-    final tip = PhaseGuidance.tipFor(phase, day: cycleDay);
-
-    return PhaseCard(
-      swatch: swatch,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ExcludeSemantics(
-                child: Text(tip.emoji, style: text.titleLarge),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tip.title,
-                      style: text.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: context.inkColor,
-                      ),
-                    ),
-                    Text(
-                      '${phase.label} phase',
-                      style: text.labelSmall?.copyWith(color: swatch.text),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            tip.body,
-            style: text.bodySmall?.copyWith(
-              color: context.isDark
-                  ? context.inkColor.withOpacity(0.84)
-                  : context.mutedColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Explore ─────────────────────────────────────────────────────────────────
-
-/// The remaining destinations, as one grouped list on a single quiet surface.
-///
-/// Six individually elevated tiles read as six competing priorities and stack
-/// six shadows down the page. One outlined card with hairline-separated rows
-/// says the same thing at a fraction of the visual cost, and it is the shape
-/// people already know from platform settings lists.
-///
-/// One column at every width by choice: the rows carry two lines of text, and a
-/// 2- or 3-across grid of them is the first thing to collapse at 200% text
-/// scale. The page is width-capped for tablets instead.
-class _ExploreList extends StatelessWidget {
-  const _ExploreList();
-
-  static const double _iconSize = AppSpacing.huge;
-  static const double _textInset = AppSpacing.lg + _iconSize + AppSpacing.md;
-
-  @override
-  Widget build(BuildContext context) {
-    const items =
-        <({String emoji, String title, String subtitle, String route})>[
-      (
-        emoji: '💊',
-        title: 'Birth control',
-        subtitle: 'Daily check-ins and streaks',
-        route: AppRoutes.birthControl,
-      ),
-      (
-        emoji: '🤰',
-        title: 'Pregnancy',
-        subtitle: 'Week by week and kick counter',
-        route: AppRoutes.pregnancy,
-      ),
-      (
-        emoji: '💜',
-        title: 'Health conditions',
-        subtitle: 'PCOS, endometriosis, PMDD',
-        route: AppRoutes.health,
-      ),
-      (
-        emoji: '📚',
-        title: 'Learn',
-        subtitle: 'Evidence-based articles',
-        route: AppRoutes.education,
-      ),
-      (
-        emoji: '🔔',
-        title: 'Reminders',
-        subtitle: 'Periods, pills, check-ins',
-        route: AppRoutes.reminders,
-      ),
-      (
-        emoji: '💑',
-        title: 'Share with partner',
-        subtitle: 'Read-only cycle summary',
-        route: AppRoutes.partner,
-      ),
-    ];
-
-    final radius = BorderRadius.circular(AppRadii.card);
-
-    return AppCard(
-      emphasis: CardEmphasis.outlined,
-      padding: EdgeInsets.zero,
-      borderRadius: radius,
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Column(
-          children: [
-            for (var index = 0; index < items.length; index++) ...[
-              if (index > 0)
-                Divider(
-                  height: AppStrokes.hairline,
-                  thickness: AppStrokes.hairline,
-                  indent: _textInset,
-                  endIndent: AppSpacing.lg,
-                  color: context.lineColor,
-                ),
-              _ExploreRow(
-                emoji: items[index].emoji,
-                title: items[index].title,
-                subtitle: items[index].subtitle,
-                iconSize: _iconSize,
-                onTap: () => context.push(items[index].route),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ExploreRow extends StatelessWidget {
-  const _ExploreRow({
-    required this.emoji,
-    required this.title,
-    required this.subtitle,
-    required this.iconSize,
-    required this.onTap,
-  });
-
-  final String emoji;
-  final String title;
-  final String subtitle;
-  final double iconSize;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Pressable(
-      onTap: onTap,
-      scale: 0.99,
-      semanticLabel: title,
-      semanticHint: subtitle,
-      excludeChildSemantics: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: iconSize,
-              height: iconSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.accentColor.withOpacity(
-                  context.isDark ? 0.20 : 0.10,
-                ),
-                borderRadius: BorderRadius.circular(AppRadii.compact),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(emoji, style: text.titleMedium),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: text.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: context.inkColor,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: text.labelSmall?.copyWith(color: context.mutedColor),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: AppSpacing.xl,
-              color: context.subtleColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Long-gap detection ──────────────────────────────────────────────────────
-
-/// Flags an unusually long gap since the last recorded period.
-///
-/// Deliberately conservative: nothing is shown before 46 days, because a single
-/// long cycle is common and a tracker that cries wolf about it is worse than
-/// useless. The copy never names a condition — that is a clinician's call, and
-/// the app's job is to prompt the visit, not pre-empt it.
-class _AmenorrheaCheck {
-  static AmenorrheaResult? evaluate(List<CycleEvent> periods) {
-    if (periods.isEmpty) return null;
-
-    final sorted = List<CycleEvent>.from(periods)
-      ..sort((a, b) => b.startDate.compareTo(a.startDate));
-    final daysSince = dateOnly(DateTime.now())
-        .difference(dateOnly(sorted.first.startDate))
-        .inDays;
-
-    if (daysSince <= 45) return null;
-
-    final severity = daysSince >= 180
-        ? AmenorrheaSeverity.severe
-        : daysSince >= 90
-            ? AmenorrheaSeverity.moderate
-            : AmenorrheaSeverity.mild;
-
-    return AmenorrheaResult(
-      severity: severity,
-      daysSinceLastPeriod: daysSince,
-      lastPeriodDate: sorted.first.startDate,
-      description:
-          '$daysSince days since your last logged period. ${severity.description}.',
-      recommendations: const [
-        'Check whether any periods are missing from your log',
-        'Note recent changes in stress, weight, travel, or medication',
-        'Consider talking to a healthcare provider',
-      ],
-    );
-  }
-}
-
-class _AmenorrheaCard extends StatelessWidget {
-  const _AmenorrheaCard({required this.result});
-
-  final AmenorrheaResult result;
-
-  @override
-  Widget build(BuildContext context) {
-    final tone = switch (result.severity) {
-      AmenorrheaSeverity.none => AppColors.success,
-      AmenorrheaSeverity.mild => AppColors.warning,
-      AmenorrheaSeverity.moderate => const Color(0xFFF4732A),
-      AmenorrheaSeverity.severe => AppColors.error,
-    };
-
-    return InfoBanner(
-      icon: Icons.event_busy_rounded,
-      tone: tone,
-      title: result.severity.displayName,
-      message: '${result.description}\n\n'
-          'This is an observation from your logs, not a diagnosis.',
     );
   }
 }

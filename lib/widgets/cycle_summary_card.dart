@@ -33,10 +33,7 @@ class CycleSummaryCard extends StatelessWidget {
                   color: AppColors.predicted,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  CupertinoIcons.heart_fill,
-                  color: AppColors.rose,
-                ),
+                child: const Icon(AppIcons.wellbeing, color: AppColors.rose),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -55,20 +52,22 @@ class CycleSummaryCard extends StatelessWidget {
                       forecast == null
                           ? 'Start with your last period'
                           : forecast.isLate
-                              ? '${forecast.daysLate} days late'
-                              : 'Cycle day ${forecast.cycleDay}',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.ink,
-                              ),
+                          ? '${forecast.daysLate} days late'
+                          : 'Cycle day ${forecast.cycleDay}',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                          ),
                     ),
                   ],
                 ),
               ),
               CupertinoButton(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 color: AppColors.rose,
                 borderRadius: BorderRadius.circular(16),
                 onPressed: onLogPeriod,
@@ -81,8 +80,8 @@ class CycleSummaryCard extends StatelessWidget {
             forecast == null
                 ? 'Add a period date and CycleCare will estimate your next window.'
                 : forecast.isLate
-                    ? 'Your period was expected around ${shortDate(forecast.nextPeriodStart)}. This can happen for many reasons; seek support if you are concerned.'
-                    : 'Next period is expected ${shortDate(forecast.nextPeriodStart)}-${shortDate(forecast.nextPeriodEnd)}.',
+                ? 'Your period was expected around ${shortDate(forecast.nextPeriodStart)}. This can happen for many reasons; seek support if you are concerned.'
+                : 'Next period is expected ${shortDate(forecast.nextPeriodStart)}-${shortDate(forecast.nextPeriodEnd)}.',
             style: const TextStyle(
               color: AppColors.ink,
               fontSize: 16,
@@ -98,8 +97,8 @@ class CycleSummaryCard extends StatelessWidget {
                 value: forecast == null
                     ? '--'
                     : forecast.isLate
-                        ? '${forecast.daysLate} days'
-                        : '${forecast.daysUntilPeriod} days',
+                    ? '${forecast.daysLate} days'
+                    : '${forecast.daysUntilPeriod} days',
               ),
               const SizedBox(width: 10),
               _MetricPill(

@@ -101,15 +101,6 @@ Future<void> _initMessaging() async {
       debugPrint('Launched from notification: ${initial.data}');
     }
 
-    // Request permission (Android 13+ / iOS) — shows a system dialog
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-    debugPrint('FCM permission: ${settings.authorizationStatus}');
-
     // Get + save FCM token
     final token = await FirebaseMessaging.instance.getToken();
     if (token != null) {

@@ -27,8 +27,8 @@ if (keyPropertiesFile.exists()) {
 
 android {
     namespace "com.lekhanpro.cyclecare"
-    compileSdk 35
-    ndkVersion "27.0.12077973"
+    compileSdk flutter.compileSdkVersion
+    ndkVersion flutter.ndkVersion
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -57,7 +57,7 @@ android {
 
     defaultConfig {
         applicationId "com.lekhanpro.cyclecare"
-        minSdk 23
+        minSdkVersion flutter.minSdkVersion
         targetSdk 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
