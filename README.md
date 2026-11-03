@@ -28,9 +28,13 @@ Period, symptom and wellbeing tracking on your device. Offline tracking needs no
 </div>
 
 These are actual Flutter renders with fictional records. The separate
-[browser design prototype](redesign/README.md) documents the approved direction;
+[design handoff](redesign/README.md) documents the approved direction;
 its screenshots and controls do not prove Android behavior. See
 [implementation and verification details](docs/release-verification.md).
+
+This app-first release includes the Flutter implementation, tests and design
+contracts. The bulky browser prototype and research-media archive, together with
+its original local commit history, remain queued for a separate upload.
 
 ## What ships in v2.2.0
 

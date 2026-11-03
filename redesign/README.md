@@ -23,3 +23,7 @@ Current companion motion: [helpful articulated pets](http://127.0.0.1:4178/?scre
 
 
 **Current appearance correction:** retain the original soft 3D clay PNG look. The active browser uses original face textures, matching clay body/limb layers and the same helpful spring actions. Resting pose shows the untouched original image. The flat vector study is superseded. See [the current pet appearance contract](PET_ANIMATION.md#current-pet-appearance--preserve-the-original-clay-artwork), [live check-in scene](http://127.0.0.1:4178/?screen=pet&motion=on&activity=checkin&revision=original-clay-7) and [original-texture Rive assets](rive-companions/textured-exports/README.md).
+> App-first publication: this folder currently includes the design contracts and
+> logging catalogue. The standalone browser preview, artwork studies and research
+> media described below are retained locally and queued for a separate upload.
+
