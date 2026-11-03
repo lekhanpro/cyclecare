@@ -94,3 +94,8 @@ scripts/make_icon.dart
 
 # Keystore base64 (for GitHub secrets setup — never commit)
 scripts/keystore_base64.txt
+
+# Generated host-specific Android files
+android/local.properties
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+android/.kotlin/

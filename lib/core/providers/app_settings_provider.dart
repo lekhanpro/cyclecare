@@ -23,10 +23,28 @@ enum WeekStart {
   final String label;
 }
 
+/// How CycleCare resolves app-authored motion.
+///
+/// [system] follows the platform accessibility setting. [play] is an explicit
+/// opt-in to app motion, while [pause] removes decorative movement regardless
+/// of the platform setting.
+enum AppMotionPreference {
+  system,
+  play,
+  pause;
+
+  String get label => switch (this) {
+        AppMotionPreference.system => 'System',
+        AppMotionPreference.play => 'Play',
+        AppMotionPreference.pause => 'Pause',
+      };
+}
+
 class AppSettings {
   const AppSettings({
     this.palette = AppPalette.pinkRose,
     this.themeMode = ThemeMode.system,
+    this.motionPreference = AppMotionPreference.system,
     this.privacyMode = false,
     this.hapticsEnabled = true,
     this.weekStart = WeekStart.monday,
@@ -36,6 +54,7 @@ class AppSettings {
 
   final AppPalette palette;
   final ThemeMode themeMode;
+  final AppMotionPreference motionPreference;
   final bool privacyMode;
   final bool hapticsEnabled;
   final WeekStart weekStart;
@@ -50,6 +69,7 @@ class AppSettings {
   AppSettings copyWith({
     AppPalette? palette,
     ThemeMode? themeMode,
+    AppMotionPreference? motionPreference,
     bool? privacyMode,
     bool? hapticsEnabled,
     WeekStart? weekStart,
@@ -59,6 +79,7 @@ class AppSettings {
       AppSettings(
         palette: palette ?? this.palette,
         themeMode: themeMode ?? this.themeMode,
+        motionPreference: motionPreference ?? this.motionPreference,
         privacyMode: privacyMode ?? this.privacyMode,
         hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
         weekStart: weekStart ?? this.weekStart,
@@ -71,6 +92,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
   static const _paletteKey = 'cc.palette';
   static const _darkKey = 'cc.dark';
   static const _themeModeKey = 'cc.theme_mode';
+  static const _motionPreferenceKey = 'cc.motion';
   static const _privacyKey = 'cc.privacy';
   static const _hapticsKey = 'cc.haptics';
   static const _weekStartKey = 'cc.week_start';
@@ -84,6 +106,9 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
       palette: AppPalette.values[
           (prefs.getInt(_paletteKey) ?? 0).clamp(0, AppPalette.values.length - 1)],
       themeMode: _readThemeMode(prefs),
+      motionPreference: AppMotionPreference.values[
+          (prefs.getInt(_motionPreferenceKey) ?? 0)
+              .clamp(0, AppMotionPreference.values.length - 1)],
       privacyMode: prefs.getBool(_privacyKey) ?? false,
       hapticsEnabled: prefs.getBool(_hapticsKey) ?? true,
       weekStart: WeekStart.values[
@@ -112,11 +137,25 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
 
   Future<void> _persist(
     AppSettings next,
-    Future<void> Function(SharedPreferences prefs) write,
+    Future<bool> Function(SharedPreferences prefs) write,
   ) async {
+    final previous = _current;
     state = AsyncData(next);
-    final prefs = await SharedPreferences.getInstance();
-    await write(prefs);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = await write(prefs);
+      if (!saved) {
+        throw StateError('CycleCare could not save this setting.');
+      }
+    } catch (error, stackTrace) {
+      // Do not roll an older failed write over a newer choice that has already
+      // replaced it while the platform call was pending.
+      if (identical(state.valueOrNull, next)) {
+        state = AsyncData(previous);
+        Haptics.enabled = previous.hapticsEnabled;
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
   }
 
   Future<void> setPalette(AppPalette palette) => _persist(
@@ -127,6 +166,11 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
   Future<void> setThemeMode(ThemeMode mode) => _persist(
         _current.copyWith(themeMode: mode),
         (prefs) => prefs.setInt(_themeModeKey, mode.index),
+      );
+
+  Future<void> setMotionPreference(AppMotionPreference preference) => _persist(
+        _current.copyWith(motionPreference: preference),
+        (prefs) => prefs.setInt(_motionPreferenceKey, preference.index),
       );
 
   /// Kept for existing call sites that only expose a light/dark switch.

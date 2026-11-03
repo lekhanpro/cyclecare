@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../../../core/utils/date_helpers.dart';
 import 'cycle_models.dart';
+import 'cycle_samples.dart';
 
 class CyclePredictionService {
   const CyclePredictionService();
@@ -12,47 +13,45 @@ class CyclePredictionService {
     DateTime? referenceDate,
   }) {
     final today = dateOnly(referenceDate ?? DateTime.now());
-    final normalized = periods.toList()
-      ..sort((a, b) => b.startDate.compareTo(a.startDate));
-    final unique = <DateTime, CycleEvent>{};
-    for (final period in normalized) {
-      unique.putIfAbsent(dateOnly(period.startDate), () => period);
-    }
-    final ordered = unique.values.toList();
+    final samples = CycleSamples(periods, through: today);
+    final ordered = samples.ordered;
     if (ordered.isEmpty) {
       return null;
     }
 
-    final cycleLengths = <int>[];
-    for (var i = 0; i < ordered.length - 1; i++) {
-      final current = dateOnly(ordered[i].startDate);
-      final previous = dateOnly(ordered[i + 1].startDate);
-      final days = current.difference(previous).inDays;
-      if (days >= 15 && days <= 90) {
-        cycleLengths.add(days);
-      }
-    }
+    final cycleLengths = samples.included
+        .map((sample) => sample.length)
+        .toList();
 
     final averageCycleLength = _averageCycleLength(
       cycleLengths,
       preferences.averageCycleLength,
     );
     final averagePeriodLength = _averagePeriodLength(
-      ordered,
+      ordered
+          .where(
+            (event) =>
+                !event.excludeFromPredictions &&
+                (event.endDate == null ||
+                    !dateOnly(event.endDate!).isAfter(today)),
+          )
+          .toList(),
       preferences.averagePeriodLength,
     );
 
     final lastStart = dateOnly(ordered.first.startDate);
-    final expectedPeriodStart =
-        lastStart.add(Duration(days: averageCycleLength));
+    final expectedPeriodStart = lastStart.add(
+      Duration(days: averageCycleLength),
+    );
     var nextPeriodStart = expectedPeriodStart;
     final isLate = today.isAfter(expectedPeriodStart);
     if (isLate) {
       nextPeriodStart = expectedPeriodStart;
     } else {
       while (nextPeriodStart.isBefore(today)) {
-        nextPeriodStart =
-            nextPeriodStart.add(Duration(days: averageCycleLength));
+        nextPeriodStart = nextPeriodStart.add(
+          Duration(days: averageCycleLength),
+        );
       }
     }
 
@@ -81,7 +80,9 @@ class CyclePredictionService {
     // when symptoms cluster. Five days is the common clinical framing for
     // PMS onset and it matches what most trackers surface, so a user coming
     // from another app sees the number they expect.
-    final pmsStart = nextPeriodStart.subtract(const Duration(days: _pmsWindowDays));
+    final pmsStart = nextPeriodStart.subtract(
+      const Duration(days: _pmsWindowDays),
+    );
     final pmsEnd = nextPeriodStart.subtract(const Duration(days: 1));
 
     return CyclePrediction(
@@ -105,6 +106,9 @@ class CyclePredictionService {
       pmsWindowEnd: pmsEnd,
       cycleLengthVariation: stdDev,
       cyclesTracked: cycleLengths.length,
+      excludedCycles: samples.completed
+          .where((sample) => sample.event.excludeFromPredictions)
+          .length,
       shortestCycle: cycleLengths.isEmpty
           ? null
           : cycleLengths.reduce((a, b) => a < b ? a : b),
@@ -144,17 +148,20 @@ class CyclePredictionService {
       final nextStart = start.add(Duration(days: cycleLength));
       final ovulation = nextStart.subtract(Duration(days: lutealLength));
 
-      forecasts.add(CycleForecast(
-        cycleNumber: i + 1,
-        periodStart: start,
-        periodEnd: start.add(Duration(days: periodLength - 1)),
-        ovulationDate: ovulation,
-        fertileWindowStart: ovulation.subtract(const Duration(days: 5)),
-        fertileWindowEnd: ovulation.add(const Duration(days: 1)),
-        pmsWindowStart:
-            nextStart.subtract(const Duration(days: _pmsWindowDays)),
-        pmsWindowEnd: nextStart.subtract(const Duration(days: 1)),
-      ));
+      forecasts.add(
+        CycleForecast(
+          cycleNumber: i + 1,
+          periodStart: start,
+          periodEnd: start.add(Duration(days: periodLength - 1)),
+          ovulationDate: ovulation,
+          fertileWindowStart: ovulation.subtract(const Duration(days: 5)),
+          fertileWindowEnd: ovulation.add(const Duration(days: 1)),
+          pmsWindowStart: nextStart.subtract(
+            const Duration(days: _pmsWindowDays),
+          ),
+          pmsWindowEnd: nextStart.subtract(const Duration(days: 1)),
+        ),
+      );
     }
 
     return forecasts;
@@ -176,9 +183,10 @@ class CyclePredictionService {
       return fallback.clamp(21, 45);
     }
     if (lengths.length < 3) {
-      return (lengths.reduce((a, b) => a + b) / lengths.length)
-          .round()
-          .clamp(21, 45);
+      return (lengths.reduce((a, b) => a + b) / lengths.length).round().clamp(
+        21,
+        45,
+      );
     }
     var weight = lengths.length.toDouble();
     var total = 0.0;
@@ -194,19 +202,22 @@ class CyclePredictionService {
   int _averagePeriodLength(List<CycleEvent> periods, int fallback) {
     final lengths = periods
         .where((period) => period.endDate != null)
-        .map((period) =>
-            dateOnly(period.endDate!)
-                .difference(dateOnly(period.startDate))
-                .inDays +
-            1)
+        .map(
+          (period) =>
+              dateOnly(
+                period.endDate!,
+              ).difference(dateOnly(period.startDate)).inDays +
+              1,
+        )
         .where((length) => length >= 1 && length <= 14)
         .toList();
     if (lengths.isEmpty) {
       return fallback.clamp(2, 10);
     }
-    return (lengths.reduce((a, b) => a + b) / lengths.length)
-        .round()
-        .clamp(2, 10);
+    return (lengths.reduce((a, b) => a + b) / lengths.length).round().clamp(
+      2,
+      10,
+    );
   }
 
   double _standardDeviation(List<int> values) {
@@ -216,7 +227,7 @@ class CyclePredictionService {
     final mean = values.reduce((a, b) => a + b) / values.length;
     final variance =
         values.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) /
-            values.length;
+        values.length;
     return sqrt(variance);
   }
 }

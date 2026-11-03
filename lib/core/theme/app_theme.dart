@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'app_accents.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_tokens.dart';
 
+/// The app's Material theme, built from the redesign's measured values.
+///
+/// Every filled or tinted colour comes from [AccentRoles], which carries a
+/// contrast-checked pair for each of the eight palettes in both appearances.
+/// The [ColorScheme]'s primary roles are pointed at those same pairs, so a
+/// widget that still reads `colorScheme.primary` paints the design's accent
+/// rather than `ColorScheme.fromSeed`'s shifted tone.
 class AppTheme {
   AppTheme._();
 
@@ -18,78 +26,144 @@ class AppTheme {
         brightness: Brightness.dark,
       );
 
+  /// `.field` radius in the design. The same rung as a calendar day.
+  static const double _inputRadius = AppRadii.calendarDay;
+
+  /// `.toast` radius.
+  static const double _toastRadius = AppRadii.calendarDay;
+
+  /// Text button height: the design's `.text-button` is shorter than a
+  /// filled control, but still a comfortable target.
+  static const double _textButtonHeight = 44;
+
+  /// Icon buttons are the design's 44 px hairline circle. The padded tap
+  /// target size keeps the hit area at 48.
+  static const double _iconButtonSize = 44;
+
+  /// Inputs: `.field{min-height:49px;padding:15px}`.
+  static const double _inputMinHeight = 49;
+  static const double _inputPadding = 15;
+
   static ThemeData _build({
     required Color seed,
     required Brightness brightness,
   }) {
     final isDark = brightness == Brightness.dark;
-    final canvas = isDark ? AppColors.darkBg : AppColors.cream;
-    final surface = isDark ? AppColors.darkSurface : AppColors.white;
-    final card = isDark ? AppColors.darkCard : AppColors.white;
+    final accent = AccentRoles.resolve(seed, brightness);
+    // The toast sits on ink, which is the opposite appearance's canvas, so its
+    // action takes the opposite appearance's accent text.
+    final inverseAccent = AccentRoles.resolve(
+      seed,
+      isDark ? Brightness.light : Brightness.dark,
+    );
+    final danger = AccentRoles.destructive(brightness);
+
+    final canvas = isDark ? AppColors.darkCanvas : AppColors.canvas;
+    final paper = isDark ? AppColors.darkPaper : AppColors.paper;
     final line = isDark ? AppColors.darkLine : AppColors.line;
     final ink = isDark ? AppColors.darkText : AppColors.ink;
     final muted = isDark ? AppColors.darkMuted : AppColors.muted;
+    final subtle =
+        isDark ? AppColors.darkMuted.withOpacity(0.62) : AppColors.subtle;
+    final sage = isDark ? AppColors.darkSage : AppColors.sage;
 
-    // Let Material derive contrast-safe primary/on-primary tones from every
-    // selectable seed. In particular, dark mode receives a lifted primary
-    // instead of reusing a dark light-mode seed.
     final generated = ColorScheme.fromSeed(
       seedColor: seed,
       brightness: brightness,
     );
     final scheme = generated.copyWith(
-      surface: surface,
+      primary: accent.fill,
+      onPrimary: accent.onFill,
+      primaryContainer: accent.surface,
+      onPrimaryContainer: accent.onSurface,
+      secondaryContainer: accent.surface,
+      onSecondaryContainer: accent.onSurface,
+      error: danger.$1,
+      onError: danger.$2,
+      surface: paper,
       onSurface: ink,
       onSurfaceVariant: muted,
       surfaceContainerLowest: canvas,
-      surfaceContainerLow: surface,
-      surfaceContainer: card,
-      surfaceContainerHigh: isDark ? AppColors.darkLine : AppColors.cream,
+      surfaceContainerLow: paper,
+      surfaceContainer: paper,
+      surfaceContainerHigh: isDark ? AppColors.darkCardElevated : canvas,
+      surfaceContainerHighest: isDark ? AppColors.darkCardElevated : canvas,
       outline: line,
       outlineVariant: line,
-      shadow: Colors.black,
+      inverseSurface: ink,
+      onInverseSurface: canvas,
+      inversePrimary: inverseAccent.text,
+      surfaceTint: Colors.transparent,
+      shadow: AppColors.ink,
     );
 
     final textTheme = AppTextStyles.textTheme.apply(
-      bodyColor: scheme.onSurface,
-      displayColor: scheme.onSurface,
+      bodyColor: ink,
+      displayColor: ink,
     );
     final controlShape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadii.control),
     );
     final cardShape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadii.card),
-      side: BorderSide(
-        color: line.withOpacity(isDark ? 0.82 : 0.72),
-        width: AppStrokes.hairline,
-      ),
+      side: BorderSide(color: line, width: AppStrokes.hairline),
     );
-    final stateOverlay = WidgetStateProperty.resolveWith<Color?>((states) {
+    final buttonLabel = AppTextStyles.body(
+      fontSize: 14,
+      height: 1.25,
+      fontWeight: FontWeight.w600,
+    );
+    const buttonPadding = EdgeInsets.symmetric(
+      horizontal: AppSpacing.xl,
+      vertical: AppSpacing.md,
+    );
+    final disabledFill = ink.withOpacity(0.10);
+    final disabledInk = ink.withOpacity(0.38);
+
+    Color? overlay(Set<WidgetState> states, Color tone) {
       if (states.contains(WidgetState.pressed)) {
-        return scheme.primary.withOpacity(isDark ? 0.18 : 0.11);
+        return tone.withOpacity(isDark ? 0.18 : 0.11);
       }
       if (states.contains(WidgetState.focused)) {
-        return scheme.primary.withOpacity(isDark ? 0.16 : 0.09);
+        return tone.withOpacity(isDark ? 0.16 : 0.09);
       }
       if (states.contains(WidgetState.hovered)) {
-        return scheme.primary.withOpacity(isDark ? 0.11 : 0.06);
+        return tone.withOpacity(isDark ? 0.11 : 0.06);
       }
       return null;
-    });
+    }
+
+    final accentOverlay =
+        WidgetStateProperty.resolveWith((s) => overlay(s, accent.text));
+    final onFillOverlay =
+        WidgetStateProperty.resolveWith((s) => overlay(s, accent.onFill));
+
+    OutlineInputBorder field(Color color, {double width = AppStrokes.hairline}) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_inputRadius),
+          borderSide: BorderSide(color: color, width: width),
+        );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
+      // The design's exact accent pairs, measured for contrast. Without this
+      // the AccentRoles.of fallback derives them from colorScheme.primary.
+      extensions: <ThemeExtension<dynamic>>[accent],
       textTheme: textTheme,
       scaffoldBackgroundColor: canvas,
       canvasColor: canvas,
+      cardColor: paper,
+      dividerColor: line,
+      disabledColor: disabledInk,
       visualDensity: VisualDensity.standard,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      focusColor: scheme.primary.withOpacity(isDark ? 0.16 : 0.09),
-      hoverColor: scheme.primary.withOpacity(isDark ? 0.11 : 0.06),
-      splashColor: scheme.primary.withOpacity(isDark ? 0.18 : 0.12),
-      highlightColor: scheme.primary.withOpacity(isDark ? 0.12 : 0.07),
+      focusColor: accent.text.withOpacity(isDark ? 0.16 : 0.09),
+      hoverColor: accent.text.withOpacity(isDark ? 0.11 : 0.06),
+      splashColor: accent.text.withOpacity(isDark ? 0.18 : 0.12),
+      highlightColor: accent.text.withOpacity(isDark ? 0.12 : 0.07),
+      iconTheme: IconThemeData(color: ink, size: 22),
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -103,28 +177,36 @@ class AppTheme {
             isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         titleTextStyle: textTheme.titleLarge?.copyWith(color: ink),
       ),
+      // Card: paper, 1 px line, radius 22. CardThemeData can only express a
+      // Material elevation, not the design's soft two-layer shade, so the
+      // card stays flat here; AppCard paints AppElevation.low itself.
       cardTheme: CardThemeData(
         elevation: 0,
-        color: card,
+        color: paper,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withOpacity(isDark ? 0.24 : 0.06),
+        shadowColor: Colors.transparent,
         margin: EdgeInsets.zero,
         shape: cardShape,
       ),
       chipTheme: ChipThemeData(
         elevation: 0,
         pressElevation: 0,
-        backgroundColor: card,
-        disabledColor: scheme.onSurface.withOpacity(0.08),
-        selectedColor: scheme.primaryContainer,
-        secondarySelectedColor: scheme.primaryContainer,
+        backgroundColor: paper,
+        disabledColor: ink.withOpacity(0.06),
+        selectedColor: accent.surface,
+        secondarySelectedColor: accent.surface,
         surfaceTintColor: Colors.transparent,
-        checkmarkColor: scheme.onPrimaryContainer,
+        checkmarkColor: accent.onSurface,
         showCheckmark: false,
         labelStyle: textTheme.labelMedium?.copyWith(color: ink),
         secondaryLabelStyle:
-            textTheme.labelMedium?.copyWith(color: scheme.onPrimaryContainer),
-        side: BorderSide(color: line),
+            textTheme.labelMedium?.copyWith(color: accent.onSurface),
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => BorderSide(
+            color: states.contains(WidgetState.selected) ? accent.border : line,
+            width: AppStrokes.hairline,
+          ),
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.pill),
         ),
@@ -133,237 +215,257 @@ class AppTheme {
           vertical: AppSpacing.sm,
         ),
       ),
+      // Inputs: paper, 1 px line, radius 14, padding 15, min-height 49. Focus
+      // is the accent border plus the design's 3 px soft ring.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: card,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.lg,
+        fillColor: paper,
+        isDense: false,
+        constraints: const BoxConstraints(minHeight: _inputMinHeight),
+        contentPadding: const EdgeInsets.all(_inputPadding),
+        border: field(line),
+        enabledBorder: field(line),
+        disabledBorder: field(line.withOpacity(0.55)),
+        focusedBorder: _RingedInputBorder(
+          borderRadius: BorderRadius.circular(_inputRadius),
+          borderSide: BorderSide(color: accent.border),
+          ringColor: accent.border.withOpacity(isDark ? 0.28 : 0.16),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(color: line),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(color: line),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(color: line.withOpacity(0.55)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(
-            color: scheme.primary,
-            width: AppStrokes.selected,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(color: scheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(
-            color: scheme.error,
-            width: AppStrokes.selected,
-          ),
+        errorBorder: field(AccentRoles.dangerText(brightness)),
+        focusedErrorBorder: _RingedInputBorder(
+          borderRadius: BorderRadius.circular(_inputRadius),
+          borderSide: BorderSide(color: AccentRoles.dangerText(brightness)),
+          ringColor: AccentRoles.dangerText(brightness)
+              .withOpacity(isDark ? 0.28 : 0.16),
         ),
         labelStyle: textTheme.bodyMedium?.copyWith(color: muted),
-        hintStyle: textTheme.bodyMedium?.copyWith(
-          color: muted.withOpacity(0.82),
+        floatingLabelStyle: textTheme.bodyMedium?.copyWith(color: accent.text),
+        hintStyle: textTheme.bodyMedium?.copyWith(color: subtle),
+        helperStyle: textTheme.bodySmall?.copyWith(color: muted),
+        errorStyle: textTheme.bodySmall?.copyWith(
+          color: AccentRoles.dangerText(brightness),
         ),
-        errorStyle: textTheme.bodySmall?.copyWith(color: scheme.error),
+        prefixIconColor: muted,
+        suffixIconColor: muted,
       ),
+      // Primary: `.primary` — light plum with white, dark the pale plum with
+      // dark ink. AccentRoles keeps every palette's pair above 4.5:1.
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(
             AppLayout.minTouchTarget,
-            AppLayout.buttonHeight,
+            AppLayout.minTouchTarget,
           ),
-          backgroundColor: scheme.primary,
-          foregroundColor: scheme.onPrimary,
-          disabledBackgroundColor: scheme.onSurface.withOpacity(0.12),
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
+          backgroundColor: accent.fill,
+          foregroundColor: accent.onFill,
+          disabledBackgroundColor: disabledFill,
+          disabledForegroundColor: disabledInk,
           elevation: 0,
           shape: controlShape,
-          textStyle: textTheme.labelLarge,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxl,
-            vertical: AppSpacing.md,
-          ),
-        ).copyWith(overlayColor: stateOverlay),
+          textStyle: buttonLabel,
+          padding: buttonPadding,
+        ).copyWith(overlayColor: onFillOverlay),
       ),
+      // Secondary / tonal: `.secondary` — accent surface with accent text.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(
             AppLayout.minTouchTarget,
-            AppLayout.buttonHeight,
+            AppLayout.minTouchTarget,
           ),
-          backgroundColor: card,
-          foregroundColor: scheme.primary,
-          disabledBackgroundColor: scheme.onSurface.withOpacity(0.08),
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
-          elevation: 1,
-          shadowColor: Colors.black.withOpacity(isDark ? 0.26 : 0.10),
+          backgroundColor: accent.surface,
+          foregroundColor: accent.onSurface,
+          disabledBackgroundColor: disabledFill,
+          disabledForegroundColor: disabledInk,
+          elevation: 0,
+          shadowColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           shape: controlShape,
-          textStyle: textTheme.labelLarge,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxl,
-            vertical: AppSpacing.md,
-          ),
-        ).copyWith(overlayColor: stateOverlay),
+          textStyle: buttonLabel,
+          padding: buttonPadding,
+        ).copyWith(overlayColor: accentOverlay),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(
             AppLayout.minTouchTarget,
-            AppLayout.buttonHeight,
+            AppLayout.minTouchTarget,
           ),
-          foregroundColor: scheme.primary,
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
+          backgroundColor: paper,
+          foregroundColor: accent.text,
+          disabledForegroundColor: disabledInk,
           shape: controlShape,
-          textStyle: textTheme.labelLarge,
-          side: BorderSide(color: scheme.primary),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxl,
-            vertical: AppSpacing.md,
-          ),
+          textStyle: buttonLabel,
+          padding: buttonPadding,
         ).copyWith(
-          overlayColor: stateOverlay,
+          overlayColor: accentOverlay,
           side: WidgetStateProperty.resolveWith((states) {
             final disabled = states.contains(WidgetState.disabled);
             return BorderSide(
-              color: disabled
-                  ? scheme.onSurface.withOpacity(0.18)
-                  : scheme.primary,
+              color: disabled ? ink.withOpacity(0.14) : line,
               width: AppStrokes.hairline,
             );
           }),
         ),
       ),
+      // `.text-button`: accent text, 13 px, 600, 44 tall.
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(
-            AppLayout.minTouchTarget,
-            AppLayout.minTouchTarget,
+            _textButtonHeight,
+            _textButtonHeight,
           ),
-          foregroundColor: scheme.primary,
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
-          textStyle: textTheme.labelLarge,
+          foregroundColor: accent.text,
+          disabledForegroundColor: disabledInk,
+          textStyle: AppTextStyles.body(
+            fontSize: 13,
+            height: 1.25,
+            fontWeight: FontWeight.w600,
+          ),
           shape: controlShape,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
+            horizontal: AppSpacing.md,
             vertical: AppSpacing.sm,
           ),
-        ).copyWith(overlayColor: stateOverlay),
+        ).copyWith(overlayColor: accentOverlay),
       ),
+      // `.icon-button`: 44 px circle with a 1 px line border.
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          minimumSize: const Size.square(AppLayout.minTouchTarget),
-          foregroundColor: scheme.onSurfaceVariant,
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
-          focusColor: scheme.primary.withOpacity(isDark ? 0.16 : 0.09),
-          hoverColor: scheme.primary.withOpacity(isDark ? 0.11 : 0.06),
-          highlightColor: scheme.primary.withOpacity(isDark ? 0.16 : 0.09),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.control),
-          ),
-        ),
+          minimumSize: const Size.square(_iconButtonSize),
+          fixedSize: const Size.square(_iconButtonSize),
+          padding: EdgeInsets.zero,
+          iconSize: 20,
+          backgroundColor: paper,
+          foregroundColor: ink,
+          disabledForegroundColor: disabledInk,
+          shape: const CircleBorder(),
+          side: BorderSide(color: line, width: AppStrokes.hairline),
+        ).copyWith(overlayColor: accentOverlay),
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: AppLayout.navigationBarHeight,
         elevation: 0,
-        backgroundColor: surface,
+        backgroundColor: paper,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
-        indicatorColor: scheme.primaryContainer,
-        indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-        ),
+        indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return textTheme.labelSmall?.copyWith(
-            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-            color: selected ? scheme.primary : muted,
-          );
+          return AppTextStyles.body(
+            fontSize: 11,
+            height: 1.2,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+          ).copyWith(color: selected ? accent.text : muted);
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? scheme.primary : muted,
-            size: selected ? 25 : 24,
+            color: selected ? accent.text : muted,
+            size: 23,
           );
         }),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         elevation: 0,
         modalElevation: 0,
-        backgroundColor: surface,
-        modalBackgroundColor: surface,
+        backgroundColor: paper,
+        modalBackgroundColor: paper,
         surfaceTintColor: Colors.transparent,
+        modalBarrierColor: AppColors.ink.withOpacity(isDark ? 0.56 : 0.32),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadii.sheet),
           ),
         ),
         showDragHandle: true,
-        dragHandleColor: muted.withOpacity(0.48),
+        dragHandleColor: line,
         dragHandleSize: const Size(38, 4),
       ),
+      // Dialog radius 27. The design's `0 15px 60px` shade is approximated by
+      // a high Material elevation with a faint warm shadow colour, because
+      // DialogThemeData takes an elevation rather than a BoxShadow.
       dialogTheme: DialogThemeData(
-        elevation: 1,
-        backgroundColor: surface,
+        elevation: 24,
+        backgroundColor: paper,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withOpacity(isDark ? 0.28 : 0.10),
+        shadowColor: AppColors.ink.withOpacity(isDark ? 0.40 : 0.14),
+        barrierColor: AppColors.ink.withOpacity(isDark ? 0.56 : 0.32),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          side: BorderSide(color: line),
+          borderRadius: BorderRadius.circular(AppRadii.sheet),
+          side: BorderSide(color: line, width: AppStrokes.hairline),
         ),
-        titleTextStyle: textTheme.titleLarge?.copyWith(color: ink),
+        titleTextStyle: AppTextStyles.heading(
+          fontSize: 22,
+          height: 1.2,
+          letterSpacing: -0.5,
+        ).copyWith(color: ink),
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: muted),
       ),
+      // `.toast`: ink background, canvas text, radius 14, floating 24 in.
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        elevation: 1,
-        backgroundColor: isDark ? AppColors.darkCard : AppColors.ink,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: AppColors.white,
-          fontWeight: FontWeight.w700,
-        ),
-        actionTextColor: isDark ? scheme.primary : scheme.primaryContainer,
-        disabledActionTextColor: AppColors.white.withOpacity(0.38),
+        elevation: 0,
+        backgroundColor: ink,
+        contentTextStyle: AppTextStyles.body(
+          fontSize: 13,
+          height: 1.4,
+          fontWeight: FontWeight.w600,
+        ).copyWith(color: canvas),
+        actionTextColor: inverseAccent.text,
+        disabledActionTextColor: canvas.withOpacity(0.38),
+        closeIconColor: canvas,
         insetPadding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
+          AppSpacing.xxl,
           0,
-          AppSpacing.lg,
-          AppSpacing.lg,
+          AppSpacing.xxl,
+          AppSpacing.xxl,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderRadius: BorderRadius.circular(_toastRadius),
         ),
       ),
       tabBarTheme: TabBarThemeData(
         dividerColor: line,
-        indicatorColor: scheme.primary,
-        labelColor: scheme.primary,
+        dividerHeight: AppStrokes.hairline,
+        indicatorColor: accent.fill,
+        labelColor: accent.text,
         unselectedLabelColor: muted,
-        labelStyle: textTheme.labelLarge,
+        labelStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
         unselectedLabelStyle: textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
         ),
-        overlayColor: stateOverlay,
+        overlayColor: accentOverlay,
         indicatorSize: TabBarIndicatorSize.label,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: scheme.primary,
+        color: accent.fill,
         linearTrackColor: line,
         circularTrackColor: line,
-        refreshBackgroundColor: card,
+        refreshBackgroundColor: paper,
         linearMinHeight: AppSpacing.xs,
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: accent.fill,
+        inactiveTrackColor: line,
+        thumbColor: accent.fill,
+        overlayColor: accent.fill.withOpacity(0.12),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? accent.fill : null,
+        ),
+        checkColor: WidgetStatePropertyAll(accent.onFill),
+        side: BorderSide(color: subtle, width: AppStrokes.selected),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.connected),
+        ),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? accent.fill : subtle,
+        ),
       ),
       dividerTheme: DividerThemeData(
         color: line,
@@ -374,35 +476,143 @@ class AppTheme {
         minVerticalPadding: AppSpacing.md,
         iconColor: muted,
         textColor: ink,
+        tileColor: Colors.transparent,
+        selectedColor: accent.text,
+        selectedTileColor: accent.surface,
+        titleTextStyle: AppTextStyles.body(
+          fontSize: 14,
+          height: 1.35,
+          fontWeight: FontWeight.w600,
+        ).copyWith(color: ink),
+        subtitleTextStyle: AppTextStyles.body(
+          fontSize: 12,
+          height: 1.4,
+        ).copyWith(color: muted),
         shape: controlShape,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.xs,
         ),
       ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: paper,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shadowColor: AppColors.ink.withOpacity(isDark ? 0.40 : 0.14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          side: BorderSide(color: line, width: AppStrokes.hairline),
+        ),
+        textStyle: textTheme.bodyMedium?.copyWith(color: ink),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: ink,
+          borderRadius: BorderRadius.circular(AppRadii.compact),
+        ),
+        textStyle: AppTextStyles.body(fontSize: 12, height: 1.35)
+            .copyWith(color: canvas),
+      ),
+      // Matches AppToggle: sage when on, line when off, a white knob (dark
+      // mode's knob is the dark ink, because white on pale sage fails 3:1).
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
-            return scheme.onSurface.withOpacity(0.38);
+            return paper.withOpacity(0.7);
           }
-          return states.contains(WidgetState.selected)
-              ? scheme.onPrimary
-              : (isDark ? AppColors.darkMuted : AppColors.subtle);
+          return states.contains(WidgetState.selected) && isDark
+              ? AppColors.darkOnAccent
+              : AppColors.white;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
-            return scheme.onSurface.withOpacity(0.12);
+            return ink.withOpacity(0.10);
           }
-          return states.contains(WidgetState.selected)
-              ? scheme.primary
-              : line;
+          return states.contains(WidgetState.selected) ? sage : line;
         }),
-        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
-          return states.contains(WidgetState.selected)
-              ? Colors.transparent
-              : line;
-        }),
+        trackOutlineColor:
+            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        thumbIcon: const WidgetStatePropertyAll<Icon?>(null),
       ),
     );
   }
+}
+
+/// An outline border that adds the design's 3 px soft focus ring outside the
+/// accent stroke (`box-shadow: 0 0 0 3px <accent-soft>`).
+///
+/// OutlineInputBorder paints one stroke; the ring is drawn first, just outside
+/// it, so the field's own geometry and label gap are unchanged.
+class _RingedInputBorder extends OutlineInputBorder {
+  const _RingedInputBorder({
+    super.borderSide,
+    super.borderRadius,
+    required this.ringColor,
+  });
+
+  final Color ringColor;
+
+  @override
+  _RingedInputBorder copyWith({
+    BorderSide? borderSide,
+    BorderRadius? borderRadius,
+    double? gapPadding,
+  }) =>
+      _RingedInputBorder(
+        borderSide: borderSide ?? this.borderSide,
+        borderRadius: borderRadius ?? this.borderRadius,
+        ringColor: ringColor,
+      );
+
+  @override
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
+    if (a is OutlineInputBorder) {
+      final from = a is _RingedInputBorder ? a.ringColor : ringColor.withOpacity(0);
+      return _RingedInputBorder(
+        borderSide: BorderSide.lerp(a.borderSide, borderSide, t),
+        borderRadius: BorderRadius.lerp(a.borderRadius, borderRadius, t)!,
+        ringColor: Color.lerp(from, ringColor, t)!,
+      );
+    }
+    return super.lerpFrom(a, t);
+  }
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    double? gapStart,
+    double gapExtent = 0.0,
+    double gapPercentage = 0.0,
+    TextDirection? textDirection,
+  }) {
+    final outer = borderRadius
+        .resolve(textDirection)
+        .toRRect(rect)
+        .inflate(AppStrokes.focus / 2);
+    canvas.drawRRect(
+      outer,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = AppStrokes.focus
+        ..color = ringColor,
+    );
+    super.paint(
+      canvas,
+      rect,
+      gapStart: gapStart,
+      gapExtent: gapExtent,
+      gapPercentage: gapPercentage,
+      textDirection: textDirection,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _RingedInputBorder &&
+      other.ringColor == ringColor &&
+      super == other;
+
+  @override
+  int get hashCode => Object.hash(super.hashCode, ringColor);
 }

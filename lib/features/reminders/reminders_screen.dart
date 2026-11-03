@@ -21,6 +21,14 @@ import 'application/reminders_controller.dart';
 //  • The screen never claims delivery. CycleCare schedules on the device;
 //    Android decides whether anything appears. The only honest way to know is
 //    to send a test, so that action is always one tap away.
+//
+// The layout is a settings screen, not a feed. Six reminders used to arrive as
+// six separate elevated cards, which gave six toggles six equal claims on the
+// eye — the same as none. Now one surface leads (the count), the delivery
+// caveat sits directly under it because it is the one thing the screen cannot
+// promise, and the reminders themselves are two grouped lists with hairline
+// rules and a single leading-icon column, so a row is read by its position
+// rather than by its own border.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Font size used to probe the current text scale. Dense rows swap to a stacked
@@ -34,11 +42,47 @@ double _textScaleOf(BuildContext context) =>
 /// unreadable column. Scaled by text size, so 200% type always stacks.
 const double _minTimingTileWidth = 132;
 
-class RemindersScreen extends ConsumerWidget {
+/// Width of the leading icon column every row shares.
+const double _markerSize = AppSpacing.huge;
+
+/// Where a row's text starts, and therefore where its divider starts. Running
+/// the rule under the icon column instead would hide the one alignment that
+/// makes a list of rows read as a group.
+const double _rowTextInset = AppSpacing.lg + _markerSize + AppSpacing.md;
+
+class RemindersScreen extends ConsumerStatefulWidget {
   const RemindersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RemindersScreen> createState() => _RemindersScreenState();
+}
+
+class _RemindersScreenState extends ConsumerState<RemindersScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref
+          .read(remindersControllerProvider.notifier)
+          .refreshSchedule()
+          .catchError((Object _) {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final remindersAsync = ref.watch(remindersControllerProvider);
 
     return Scaffold(
@@ -60,7 +104,7 @@ class RemindersScreen extends ConsumerWidget {
             ? _PageShell(
                 fillViewport: true,
                 child: EmptyState(
-                  emoji: '🔔',
+                  icon: AppIcons.reminders,
                   title: 'No reminders yet',
                   message:
                       'Add one and CycleCare will nudge you before your period, '
@@ -184,7 +228,8 @@ class _LoadFailure extends ConsumerWidget {
           EmptyState(
             icon: Icons.notifications_off_rounded,
             title: 'We could not load your reminders',
-            message: 'Nothing was lost — your reminders stay on this device. '
+            message:
+                'Nothing was lost — your reminders stay on this device. '
                 'Try again, and they should come back.',
             actionLabel: 'Try again',
             onAction: () => ref.invalidate(remindersControllerProvider),
@@ -221,6 +266,13 @@ class _RemindersBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final active = reminders.where((reminder) => reminder.enabled).length;
 
+    // Cycle reminders fire against a prediction; the rest fire on the clock.
+    // That is the only grouping the user can act on — it is also what decides
+    // whether a row has a notice period at all, so the two lists never carry
+    // mismatched controls.
+    final cycle = reminders.where((r) => _supportsLeadTime(r.type)).toList();
+    final daily = reminders.where((r) => !_supportsLeadTime(r.type)).toList();
+
     return _PageShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -229,30 +281,59 @@ class _RemindersBody extends ConsumerWidget {
             offsetY: AppSpacing.md,
             child: _StatusCard(active: active, total: reminders.length),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          const Reveal(
+
+          // Directly under the lead surface rather than at the foot of the
+          // page: the count says how many are scheduled, and this is the
+          // immediate qualification on that number. Burying it below six cards
+          // means it is read only after a reminder has already failed to
+          // arrive.
+          const SizedBox(height: AppSpacing.md),
+          Reveal(
             index: 1,
             offsetY: AppSpacing.md,
-            child: _SectionTitle(
-              title: 'Your reminders',
-              subtitle: 'Only the ones switched on are scheduled',
-            ),
+            child: _DeliveryNote(onTest: () => _sendTest(context, ref)),
           ),
-          for (var i = 0; i < reminders.length; i++)
-            Reveal(
-              index: (i + 2).clamp(0, 7),
+
+          if (cycle.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xl),
+            const Reveal(
+              index: 2,
               offsetY: AppSpacing.md,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: _ReminderCard(reminder: reminders[i]),
+              child: _SectionTitle(
+                title: 'Around your cycle',
+                subtitle: 'Sent ahead of an estimated date',
               ),
             ),
+            Reveal(
+              index: 3,
+              offsetY: AppSpacing.md,
+              child: _ReminderGroup(reminders: cycle),
+            ),
+          ],
+
+          if (daily.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xl),
+            const Reveal(
+              index: 4,
+              offsetY: AppSpacing.md,
+              child: _SectionTitle(
+                title: 'Every day',
+                subtitle: 'Sent at the same time each day',
+              ),
+            ),
+            Reveal(
+              index: 5,
+              offsetY: AppSpacing.md,
+              child: _ReminderGroup(reminders: daily),
+            ),
+          ],
 
           // A labelled button rather than a small "Add" link beside the section
           // title: at 200% text a link in a header row is the first thing to get
           // squeezed out, and this is the only way to create a reminder.
+          const SizedBox(height: AppSpacing.xl),
           Reveal(
-            index: 7,
+            index: 6,
             offsetY: AppSpacing.md,
             child: PrimaryButton(
               label: 'Add a reminder',
@@ -261,35 +342,161 @@ class _RemindersBody extends ConsumerWidget {
               onPressed: () => _openCustomSheet(context, ref),
             ),
           ),
-
-          const SizedBox(height: AppSpacing.xl),
-          Reveal(
-            index: 8,
-            offsetY: AppSpacing.md,
-            child: InfoBanner(
-              icon: Icons.info_rounded,
-              tone: AppColors.info,
-              title: 'If a reminder never arrives',
-              message: 'CycleCare schedules reminders on this device, so '
-                  'Android has the final say on whether they appear. Open '
-                  'Settings, then Apps, then CycleCare, then Notifications, '
-                  'and allow them. In Battery, choose unrestricted so the app '
-                  'can wake up on time. A test is the only way to see what '
-                  'actually arrives.',
-              actionLabel: 'Send a test notification',
-              onAction: () => _sendTest(context, ref),
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
-/// How many reminders are on, and what that means in words.
+/// One grouped list of reminder rows inside a single surface.
 ///
-/// "Two of six are on" is a count, not a promise, so the second line names who
-/// actually controls delivery instead of implying the app does.
+/// A flat card holding hairline-separated rows rather than one card per
+/// reminder. Six bordered cards down a page is six boxes the eye has to
+/// enter and leave; one box with six rows is a settings list, which is what
+/// this screen is. The rule starts at the text inset so the icon column reads
+/// as one continuous edge.
+class _ReminderGroup extends StatelessWidget {
+  const _ReminderGroup({required this.reminders});
+
+  final List<Reminder> reminders;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppRadii.card);
+
+    return AppCard(
+      emphasis: CardEmphasis.outlined,
+      padding: EdgeInsets.zero,
+      borderRadius: radius,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < reminders.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  height: AppStrokes.hairline,
+                  thickness: AppStrokes.hairline,
+                  indent: _rowTextInset,
+                  endIndent: AppSpacing.lg,
+                  color: context.lineColor,
+                ),
+              _ReminderRow(reminder: reminders[i]),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The delivery caveat, and the only action that can actually test it.
+///
+/// Phrased as a condition the user may already be in rather than a warning:
+/// the app cannot read the system's per-app notification state from here, so
+/// asserting "notifications are blocked" would be a guess. Sending one is the
+/// check, so that is the action — and the route to the OS switch stays on
+/// screen, because a user whose notifications are off cannot be told to go
+/// look for the instructions.
+class _DeliveryNote extends ConsumerWidget {
+  const _DeliveryNote({required this.onTest});
+  final VoidCallback onTest;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final report = ref.watch(reminderScheduleReportProvider);
+    final saveError = ref.watch(reminderSaveErrorProvider);
+    final env = report.environment;
+    final controller = ref.read(remindersControllerProvider.notifier);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (saveError != null) ...[
+          InfoBanner(
+            icon: AppIcons.reminders,
+            tone: AppColors.period,
+            title: 'Change not saved',
+            message: saveError,
+            actionLabel: 'Retry change',
+            onAction: () => _perform(context, controller.retryLastEdit),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+        InfoBanner(
+          icon: AppIcons.reminders,
+          tone: AppColors.info,
+          title: env.canRequest
+              ? 'Allow reminders on this device'
+              : env.blocked
+              ? 'Notifications are blocked'
+              : '${report.accepted} of ${report.requested} accepted by the system',
+          message: env.canRequest
+              ? 'Choose whether CycleCare may show notifications. Tracking works either way.'
+              : env.blocked
+              ? 'Your reminder choices are saved. Allow notifications in system settings, then return here.'
+              : 'System acceptance does not confirm delivery. Battery restrictions and notification settings may delay or hide reminders.'
+                    '${report.approximate ? ' Exact alarms are unavailable; reminders may arrive later than the selected time.' : ''}',
+          actionLabel: env.canRequest
+              ? 'Allow notifications'
+              : env.blocked && env.canOpenSystemSettings
+              ? 'Open system settings'
+              : 'Send a test notification',
+          onAction: env.canRequest
+              ? () => _perform(context, controller.requestPermission)
+              : env.blocked && env.canOpenSystemSettings
+              ? () async {
+                  final opened = await controller.openSystemSettings();
+                  if (!opened && context.mounted) {
+                    showAppToast(
+                      context,
+                      message:
+                          'Open your device settings, then CycleCare notifications.',
+                      kind: ToastKind.info,
+                    );
+                  }
+                }
+              : onTest,
+        ),
+        for (final failure in report.failures) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '${failure.reminderTitle}: ${failure.reason}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        for (final skip in report.skipped) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '${skip.reminderTitle}: ${skip.reason}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        if (report.hasFailures)
+          TextButton(
+            onPressed: () => _perform(context, controller.refreshSchedule),
+            child: const Text('Retry scheduling'),
+          ),
+        if (env.canOpenSystemSettings && !env.blocked)
+          TextButton(
+            onPressed: () => controller.openSystemSettings(),
+            child: const Text('Open system settings'),
+          ),
+      ],
+    );
+  }
+}
+
+/// How many reminders are on — the one surface that leads this screen.
+///
+/// The count gets the page's largest type because "how many of these are
+/// actually going to fire" is the question the screen exists to answer, and a
+/// number read at a glance answers it faster than a sentence. It is the only
+/// lifted surface here; everything below is a flat grouped list, so the
+/// figure-to-ground split does the work a second elevated card would undo.
+///
+/// "Two of six are on" is a count, not a promise. The second line says what
+/// that does and does not mean rather than implying delivery.
 class _StatusCard extends StatelessWidget {
   const _StatusCard({required this.active, required this.total});
 
@@ -303,35 +510,53 @@ class _StatusCard extends StatelessWidget {
     final headline = none
         ? 'All reminders are off'
         : active == 1
-            ? '1 of $total reminders is on'
-            : '$active of $total reminders are on';
+        ? '1 reminder is on'
+        : '$active reminders are on';
     final detail = none
         ? 'Nothing will be sent until you switch one on below.'
-        : 'Scheduled on this device. Android decides whether they appear.';
+        : 'Out of $total. Check system acceptance below.';
+
+    // The count carries its own tone, but the icon and the sentence both say
+    // the same thing, so nothing here depends on reading the colour.
+    final tone = none ? context.mutedColor : context.accentColor;
 
     return MergeSemantics(
       child: AppCard(
-        emphasis: CardEmphasis.tinted,
+        emphasis: CardEmphasis.floating,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ExcludeSemantics(
-              child: Icon(
-                none
-                    ? Icons.notifications_off_rounded
-                    : Icons.notifications_active_rounded,
-                size: AppSpacing.xl,
-                color: none ? context.mutedColor : context.accentColor,
+              child: Container(
+                width: AppSpacing.huge + AppSpacing.md,
+                height: AppSpacing.huge + AppSpacing.md,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: context.isDark ? 0.20 : 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: none
+                    ? Icon(
+                        Icons.notifications_off_rounded,
+                        size: AppSpacing.xxl,
+                        color: tone,
+                      )
+                    : AnimatedCount(
+                        value: active,
+                        style: text.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: tone,
+                        ),
+                      ),
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     headline,
-                    style: text.titleSmall?.copyWith(
+                    style: text.titleMedium?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: context.inkColor,
                     ),
@@ -378,8 +603,15 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _ReminderCard extends ConsumerWidget {
-  const _ReminderCard({required this.reminder});
+/// One reminder, as a row in a grouped list.
+///
+/// The row owns no border and no shadow — the group around it provides both.
+/// What makes it legible instead is alignment: every row's icon sits in the
+/// same column, every title starts at the same inset, and the timing controls
+/// are indented to that inset too, so the whole list has one left edge rather
+/// than six.
+class _ReminderRow extends ConsumerWidget {
+  const _ReminderRow({required this.reminder});
 
   final Reminder reminder;
 
@@ -393,12 +625,13 @@ class _ReminderCard extends ConsumerWidget {
     final stacked = _textScaleOf(context) > 1.3;
 
     final marker = Container(
-      width: AppSpacing.huge,
-      height: AppSpacing.huge,
+      width: _markerSize,
+      height: _markerSize,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: (enabled ? tone : context.subtleColor)
-            .withOpacity(context.isDark ? 0.24 : 0.12),
+        color: (enabled ? tone : context.subtleColor).withValues(
+          alpha: context.isDark ? 0.24 : 0.12,
+        ),
         borderRadius: BorderRadius.circular(AppRadii.compact),
       ),
       child: Icon(
@@ -432,19 +665,28 @@ class _ReminderCard extends ConsumerWidget {
       value: enabled,
       onChanged: (value) async {
         Haptics.selection();
-        await controller.setEnabled(reminder.id, value);
+        if (!await _perform(
+          context,
+          () => controller.setEnabled(reminder.id, value),
+        )) {
+          return;
+        }
         if (!context.mounted) return;
         showAppToast(
           context,
-          message:
-              value ? '${reminder.title} is on' : '${reminder.title} is off',
+          message: value
+              ? '${reminder.title} is on'
+              : '${reminder.title} is off',
           kind: value ? ToastKind.success : ToastKind.info,
         );
       },
     );
 
-    return AppCard(
-      padding: AppInsets.compactCard,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -501,12 +743,36 @@ class _ReminderCard extends ConsumerWidget {
             curve: AppCurves.inOut,
             alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.md),
+              // Hangs off the title's left edge rather than the card's, so the
+              // controls read as belonging to this row. At large text sizes the
+              // indent is dropped — the row has already stacked, and keeping it
+              // would leave the time picker in a column too narrow to read.
+              padding: EdgeInsets.only(
+                top: AppSpacing.md,
+                left: stacked ? 0 : _rowTextInset - AppSpacing.lg,
+              ),
               child: enabled
                   ? _ReminderControls(reminder: reminder, stacked: stacked)
                   : _OffNote(type: reminder.type),
             ),
           ),
+          if (reminder.type == ReminderType.customReminder)
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: [
+                TextButton.icon(
+                  onPressed: () =>
+                      _openCustomSheet(context, ref, reminder: reminder),
+                  icon: const Icon(AppIcons.sliders),
+                  label: const Text('Edit reminder'),
+                ),
+                TextButton.icon(
+                  onPressed: () => _confirmDelete(context, ref, reminder),
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  label: const Text('Delete reminder'),
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -564,7 +830,6 @@ class _ReminderControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final leadTime = _supportsLeadTime(reminder.type);
-    final deletable = reminder.type == ReminderType.customReminder;
 
     final time = _TimingTile(
       icon: Icons.schedule_rounded,
@@ -590,9 +855,8 @@ class _ReminderControls extends ConsumerWidget {
       builder: (context, constraints) {
         final tiles = notice == null ? 1 : 2;
         final scale = _textScaleOf(context);
-        final needed = _minTimingTileWidth * scale * tiles +
-            AppSpacing.sm * (tiles - 1) +
-            (deletable ? AppLayout.minTouchTarget + AppSpacing.sm : 0);
+        final needed =
+            _minTimingTileWidth * scale * tiles + AppSpacing.sm * (tiles - 1);
         final stack = stacked || constraints.maxWidth < needed;
 
         if (stack) {
@@ -604,13 +868,6 @@ class _ReminderControls extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
                 notice,
               ],
-              if (deletable) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _DeleteControl(
-                  reminder: reminder,
-                  compact: false,
-                ),
-              ],
             ],
           );
         }
@@ -621,10 +878,6 @@ class _ReminderControls extends ConsumerWidget {
             if (notice != null) ...[
               const SizedBox(width: AppSpacing.sm),
               Expanded(child: notice),
-            ],
-            if (deletable) ...[
-              const SizedBox(width: AppSpacing.sm),
-              _DeleteControl(reminder: reminder, compact: true),
             ],
           ],
         );
@@ -678,11 +931,13 @@ class _TimingTile extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: context.isDark
-              ? Colors.black.withOpacity(0.20)
-              : context.accentColor.withOpacity(0.06),
+              ? Colors.black.withValues(alpha: 0.20)
+              : context.accentColor.withValues(alpha: 0.06),
           borderRadius: radius,
           border: Border.all(
-            color: context.lineColor.withOpacity(context.isDark ? 0.72 : 0.62),
+            color: context.lineColor.withValues(
+              alpha: context.isDark ? 0.72 : 0.62,
+            ),
             width: AppStrokes.hairline,
           ),
         ),
@@ -729,78 +984,49 @@ class _TimingTile extends StatelessWidget {
   }
 }
 
-/// Delete, as a square beside the timing controls when there is room and as a
-/// labelled row when there is not. Icon-only never means unlabelled — the
-/// reminder's name is in the semantics either way.
-class _DeleteControl extends ConsumerWidget {
-  const _DeleteControl({required this.reminder, required this.compact});
+// ─── Actions ─────────────────────────────────────────────────────────────────
 
-  final Reminder reminder;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-    final radius = BorderRadius.circular(AppRadii.control);
-
-    final icon = Icon(
-      Icons.delete_outline_rounded,
-      size: AppSpacing.xl,
-      color: context.mutedColor,
-    );
-
-    return Pressable(
-      onTap: () => _confirmDelete(context, ref, reminder),
-      scale: 0.94,
-      semanticLabel: 'Delete ${reminder.title}',
-      semanticHint: 'Asks you to confirm first',
-      excludeChildSemantics: true,
-      borderRadius: radius,
-      minimumSize: const Size.square(AppLayout.minTouchTarget),
-      child: Container(
-        height: AppLayout.minTouchTarget,
-        alignment: Alignment.center,
-        padding: compact
-            ? EdgeInsets.zero
-            : const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: context.lineColor.withOpacity(context.isDark ? 0.40 : 0.45),
-          borderRadius: radius,
-        ),
-        child: compact
-            ? icon
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  icon,
-                  const SizedBox(width: AppSpacing.sm),
-                  Flexible(
-                    child: Text(
-                      'Delete this reminder',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.labelLarge?.copyWith(
-                        color: context.mutedColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
+Future<bool> _perform(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+    return true;
+  } catch (_) {
+    if (context.mounted) {
+      showAppToast(
+        context,
+        message: 'Could not complete that change. Please try again.',
+        kind: ToastKind.warning,
+      );
+    }
+    return false;
   }
 }
 
-// ─── Actions ─────────────────────────────────────────────────────────────────
-
 Future<void> _sendTest(BuildContext context, WidgetRef ref) async {
-  await ref.read(remindersControllerProvider.notifier).sendTestNotification();
-  if (!context.mounted) return;
-  showAppToast(
-    context,
-    message: 'Test sent. If nothing appears, Android is blocking CycleCare.',
-    kind: ToastKind.info,
-  );
+  try {
+    final report = await ref
+        .read(remindersControllerProvider.notifier)
+        .sendTestNotification();
+    if (!context.mounted) return;
+    showAppToast(
+      context,
+      message: report.handedToSystem
+          ? 'Test accepted by the system. Check whether it appears.'
+          : report.failureReason ?? 'The test was not accepted. Try again.',
+      kind: report.handedToSystem ? ToastKind.info : ToastKind.warning,
+    );
+  } catch (_) {
+    if (context.mounted) {
+      showAppToast(
+        context,
+        message: 'Could not send a test. Check system settings and retry.',
+        kind: ToastKind.warning,
+      );
+    }
+  }
 }
 
 Future<void> _pickTime(
@@ -813,11 +1039,16 @@ Future<void> _pickTime(
     initialTime: TimeOfDay(hour: reminder.hour, minute: reminder.minute),
     helpText: reminder.title,
   );
-  if (picked == null) return;
+  if (picked == null || !context.mounted) return;
 
-  await ref
-      .read(remindersControllerProvider.notifier)
-      .setTime(reminder.id, picked.hour, picked.minute);
+  if (!await _perform(
+    context,
+    () => ref
+        .read(remindersControllerProvider.notifier)
+        .setTime(reminder.id, picked.hour, picked.minute),
+  )) {
+    return;
+  }
 
   if (!context.mounted) return;
   showAppToast(
@@ -836,11 +1067,16 @@ Future<void> _pickLeadTime(
     title: 'How much notice?',
     child: _LeadTimeOptions(current: reminder.daysBefore ?? 0),
   );
-  if (choice == null) return;
+  if (choice == null || !context.mounted) return;
 
-  await ref
-      .read(remindersControllerProvider.notifier)
-      .setDaysBefore(reminder.id, choice);
+  if (!await _perform(
+    context,
+    () => ref
+        .read(remindersControllerProvider.notifier)
+        .setDaysBefore(reminder.id, choice),
+  )) {
+    return;
+  }
 
   if (!context.mounted) return;
   showAppToast(
@@ -859,9 +1095,14 @@ Future<void> _confirmDelete(
     title: 'Delete this reminder?',
     message: '${reminder.title} will stop sending notifications.',
   );
-  if (!confirmed) return;
+  if (!confirmed || !context.mounted) return;
 
-  await ref.read(remindersControllerProvider.notifier).remove(reminder.id);
+  if (!await _perform(
+    context,
+    () => ref.read(remindersControllerProvider.notifier).remove(reminder.id),
+  )) {
+    return;
+  }
   if (!context.mounted) return;
   showAppToast(context, message: 'Reminder deleted', kind: ToastKind.info);
 }
@@ -904,19 +1145,27 @@ class _LeadTimeOptions extends StatelessWidget {
 
 // ─── Custom reminder sheet ───────────────────────────────────────────────────
 
-Future<void> _openCustomSheet(BuildContext context, WidgetRef ref) async {
+Future<void> _openCustomSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  Reminder? reminder,
+}) async {
   final created = await showAppSheet<bool>(
     context: context,
-    title: 'New reminder',
-    child: const _CustomReminderForm(),
+    title: reminder == null ? 'New reminder' : 'Edit reminder',
+    child: _CustomReminderForm(reminder: reminder),
   );
   if (created == true && context.mounted) {
-    showAppToast(context, message: 'Reminder created');
+    showAppToast(
+      context,
+      message: reminder == null ? 'Reminder created' : 'Reminder updated',
+    );
   }
 }
 
 class _CustomReminderForm extends ConsumerStatefulWidget {
-  const _CustomReminderForm();
+  const _CustomReminderForm({this.reminder});
+  final Reminder? reminder;
 
   @override
   ConsumerState<_CustomReminderForm> createState() =>
@@ -928,6 +1177,17 @@ class _CustomReminderFormState extends ConsumerState<_CustomReminderForm> {
   final _bodyController = TextEditingController();
   TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final reminder = widget.reminder;
+    if (reminder != null) {
+      _titleController.text = reminder.title;
+      _bodyController.text = reminder.body;
+      _time = TimeOfDay(hour: reminder.hour, minute: reminder.minute);
+    }
+  }
 
   static const _presets = <({String title, String body})>[
     (title: 'Take your pill', body: 'Time for your daily pill.'),
@@ -956,14 +1216,33 @@ class _CustomReminderFormState extends ConsumerState<_CustomReminderForm> {
     }
 
     setState(() => _saving = true);
-    await ref.read(remindersControllerProvider.notifier).addCustom(
+    final saved = await _perform(context, () async {
+      final controller = ref.read(remindersControllerProvider.notifier);
+      final body = _bodyController.text.trim().isEmpty
+          ? 'Reminder from CycleCare'
+          : _bodyController.text.trim();
+      if (widget.reminder case final reminder?) {
+        await controller.updateReminder(
+          reminder.copyWith(
+            title: title,
+            body: body,
+            hour: _time.hour,
+            minute: _time.minute,
+          ),
+        );
+      } else {
+        await controller.addCustom(
           title: title,
-          body: _bodyController.text.trim().isEmpty
-              ? 'Reminder from CycleCare'
-              : _bodyController.text.trim(),
+          body: body,
           hour: _time.hour,
           minute: _time.minute,
         );
+      }
+    });
+    if (!saved) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop(true);
@@ -1030,12 +1309,12 @@ class _CustomReminderFormState extends ConsumerState<_CustomReminderForm> {
               context: context,
               initialTime: _time,
             );
-            if (picked != null) setState(() => _time = picked);
+            if (picked != null && mounted) setState(() => _time = picked);
           },
         ),
         const SizedBox(height: AppSpacing.lg),
         PrimaryButton(
-          label: 'Create reminder',
+          label: widget.reminder == null ? 'Create reminder' : 'Save reminder',
           icon: Icons.add_alert_rounded,
           loading: _saving,
           onPressed: _save,
@@ -1050,33 +1329,35 @@ class _CustomReminderFormState extends ConsumerState<_CustomReminderForm> {
 /// Reminders anchored to a predicted date can be sent ahead of it. A daily
 /// reminder cannot — "two days before every day" is meaningless.
 bool _supportsLeadTime(ReminderType type) => switch (type) {
-      ReminderType.periodReminder ||
-      ReminderType.ovulationReminder ||
-      ReminderType.fertileWindowReminder =>
-        true,
-      ReminderType.dailyLogReminder ||
-      ReminderType.pillReminder ||
-      ReminderType.customReminder =>
-        false,
-    };
+  ReminderType.periodReminder ||
+  ReminderType.ovulationReminder ||
+  ReminderType.fertileWindowReminder => true,
+  ReminderType.dailyLogReminder ||
+  ReminderType.pillReminder ||
+  ReminderType.customReminder => false,
+};
 
+/// Resolved through the shared registry rather than picked here. This screen
+/// used its own glyph for ovulation and the fertile window, so the same two
+/// concepts were drawn one way on the home screen and another way here — which
+/// is precisely the inconsistency `app_icons.dart` exists to prevent.
 IconData _iconFor(ReminderType type) => switch (type) {
-      ReminderType.periodReminder => Icons.water_drop_rounded,
-      ReminderType.ovulationReminder => Icons.egg_alt_rounded,
-      ReminderType.fertileWindowReminder => Icons.spa_rounded,
-      ReminderType.dailyLogReminder => Icons.edit_note_rounded,
-      ReminderType.pillReminder => Icons.medication_rounded,
-      ReminderType.customReminder => Icons.notifications_rounded,
-    };
+  ReminderType.periodReminder => AppIcons.period,
+  ReminderType.ovulationReminder => AppIcons.ovulation,
+  ReminderType.fertileWindowReminder => AppIcons.fertile,
+  ReminderType.dailyLogReminder => AppIcons.notes,
+  ReminderType.pillReminder => AppIcons.pill,
+  ReminderType.customReminder => AppIcons.reminders,
+};
 
 Color _toneFor(ReminderType type) => switch (type) {
-      ReminderType.periodReminder => AppColors.period,
-      ReminderType.ovulationReminder => AppColors.ovulation,
-      ReminderType.fertileWindowReminder => AppColors.fertile,
-      ReminderType.dailyLogReminder => AppColors.info,
-      ReminderType.pillReminder => AppColors.luteal,
-      ReminderType.customReminder => AppColors.success,
-    };
+  ReminderType.periodReminder => AppColors.period,
+  ReminderType.ovulationReminder => AppColors.ovulation,
+  ReminderType.fertileWindowReminder => AppColors.fertile,
+  ReminderType.dailyLogReminder => AppColors.info,
+  ReminderType.pillReminder => AppColors.luteal,
+  ReminderType.customReminder => AppColors.success,
+};
 
 /// Follows the device's 12/24-hour setting rather than hardcoding AM and PM.
 String _formatTime(BuildContext context, int hour, int minute) =>

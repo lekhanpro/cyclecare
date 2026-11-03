@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../features/tracking/domain/cycle_models.dart';
+import 'notification_access.dart';
 
 enum ReminderType {
   periodReminder,
@@ -37,33 +37,33 @@ class Reminder {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type.name,
-        'title': title,
-        'body': body,
-        'hour': hour,
-        'minute': minute,
-        'daysBefore': daysBefore,
-        'enabled': enabled,
-        'createdAt': createdAt?.toIso8601String(),
-      };
+    'id': id,
+    'type': type.name,
+    'title': title,
+    'body': body,
+    'hour': hour,
+    'minute': minute,
+    'daysBefore': daysBefore,
+    'enabled': enabled,
+    'createdAt': createdAt?.toIso8601String(),
+  };
 
   factory Reminder.fromJson(Map<String, dynamic> json) => Reminder(
-        id: json['id'] as String,
-        type: ReminderType.values.firstWhere(
-          (e) => e.name == json['type'],
-          orElse: () => ReminderType.customReminder,
-        ),
-        title: json['title'] as String,
-        body: json['body'] as String,
-        hour: json['hour'] as int,
-        minute: json['minute'] as int,
-        daysBefore: json['daysBefore'] as int?,
-        enabled: json['enabled'] as bool? ?? true,
-        createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'] as String)
-            : null,
-      );
+    id: json['id'] as String,
+    type: ReminderType.values.firstWhere(
+      (e) => e.name == json['type'],
+      orElse: () => ReminderType.customReminder,
+    ),
+    title: json['title'] as String,
+    body: json['body'] as String,
+    hour: json['hour'] as int,
+    minute: json['minute'] as int,
+    daysBefore: json['daysBefore'] as int?,
+    enabled: json['enabled'] as bool? ?? true,
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'] as String)
+        : null,
+  );
 
   Reminder copyWith({
     String? id,
@@ -75,117 +75,284 @@ class Reminder {
     int? daysBefore,
     bool? enabled,
     DateTime? createdAt,
-  }) =>
-      Reminder(
-        id: id ?? this.id,
-        type: type ?? this.type,
-        title: title ?? this.title,
-        body: body ?? this.body,
-        hour: hour ?? this.hour,
-        minute: minute ?? this.minute,
-        daysBefore: daysBefore ?? this.daysBefore,
-        enabled: enabled ?? this.enabled,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  }) => Reminder(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    hour: hour ?? this.hour,
+    minute: minute ?? this.minute,
+    daysBefore: daysBefore ?? this.daysBefore,
+    enabled: enabled ?? this.enabled,
+    createdAt: createdAt ?? this.createdAt,
+  );
 }
 
+/// Local preferences are the desired state; reports describe OS acceptance.
 class NotificationService {
   NotificationService({
     FlutterLocalNotificationsPlugin? plugin,
-  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    NotificationGateway? gateway,
+    DateTime Function()? clock,
+  }) : _gateway = gateway ?? PluginNotificationGateway(plugin: plugin),
+       _clock = clock ?? DateTime.now;
 
-  final FlutterLocalNotificationsPlugin _plugin;
-  bool _initialized = false;
-
+  final NotificationGateway _gateway;
+  final DateTime Function() _clock;
   static const _remindersKey = 'cyclecare.reminders.v1';
+  static const _askedKey = 'cyclecare.notifications.asked.v1';
+  static const _stableIdsKey = 'cyclecare.notifications.stable_ids.v1';
+  ReminderScheduleReport lastReport = const ReminderScheduleReport.none();
 
-  Future<void> initialize() async {
-    if (_initialized) return;
-    tz.initializeTimeZones();
+  Future<void> initialize() => _gateway.initialize();
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+  Future<NotificationEnvironment> environment() async {
+    await initialize();
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = await _gateway.notificationsEnabled();
+    return NotificationEnvironment(
+      access: enabled == null
+          ? NotificationAccess.unsupported
+          : enabled
+          ? NotificationAccess.granted
+          : prefs.getBool(_askedKey) == true
+          ? NotificationAccess.denied
+          : NotificationAccess.notRequested,
+      exactAlarms: await _gateway.exactAlarmsAllowed() ?? true,
+      canOpenSystemSettings: _gateway.canOpenSystemSettings,
     );
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _plugin.initialize(initSettings);
-    await _requestAndroidPermission();
-    _initialized = true;
   }
 
-  Future<void> _requestAndroidPermission() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    await android?.requestNotificationsPermission();
+  Future<NotificationEnvironment> requestPermission() async {
+    await initialize();
+    final prefs = await SharedPreferences.getInstance();
+    if (!await prefs.setBool(_askedKey, true)) {
+      throw StateError('Could not save notification permission choice.');
+    }
+    await _gateway.requestNotificationPermission();
+    return environment();
   }
 
-  Future<List<Reminder>> loadReminders() async {
+  Future<bool> openSystemSettings() => _gateway.openSystemSettings();
+
+  Future<List<Reminder>> loadReminders({CyclePreferences? preferences}) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_remindersKey);
-    if (raw == null) return _defaultReminders();
-    final list = jsonDecode(raw) as List<dynamic>;
-    return list
+    if (raw == null) {
+      return [
+        for (final reminder in _defaultReminders())
+          reminder.copyWith(
+            enabled: switch (reminder.type) {
+              ReminderType.periodReminder =>
+                preferences?.periodReminderEnabled ?? reminder.enabled,
+              ReminderType.ovulationReminder =>
+                preferences?.ovulationReminderEnabled ?? reminder.enabled,
+              ReminderType.dailyLogReminder =>
+                preferences?.dailyLogReminderEnabled ?? reminder.enabled,
+              ReminderType.pillReminder =>
+                preferences?.pillReminderEnabled ?? reminder.enabled,
+              _ => reminder.enabled,
+            },
+          ),
+      ];
+    }
+    return (jsonDecode(raw) as List<dynamic>)
         .map((e) => Reminder.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<void> saveReminders(List<Reminder> reminders) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _remindersKey,
-      jsonEncode(reminders.map((r) => r.toJson()).toList()),
-    );
-    await _rescheduleAll(reminders);
-  }
-
-  Future<void> _rescheduleAll(List<Reminder> reminders) async {
-    await _plugin.cancelAll();
+  Future<ReminderScheduleReport> saveReminders(
+    List<Reminder> reminders, {
+    CyclePrediction? prediction,
+  }) async {
     for (final reminder in reminders) {
-      if (reminder.enabled) {
-        await _scheduleReminder(reminder);
+      if (reminder.id.isEmpty ||
+          reminder.title.trim().isEmpty ||
+          reminder.hour < 0 ||
+          reminder.hour > 23 ||
+          reminder.minute < 0 ||
+          reminder.minute > 59 ||
+          (reminder.daysBefore ?? 0) < 0 ||
+          (reminder.daysBefore ?? 0) > 30) {
+        throw ArgumentError('Reminder name, time or notice is invalid.');
       }
     }
+    final previous = await loadReminders();
+    final prefs = await SharedPreferences.getInstance();
+    if (!await prefs.setString(
+      _remindersKey,
+      jsonEncode(reminders.map((r) => r.toJson()).toList()),
+    )) {
+      throw StateError('Could not save reminders. Please try again.');
+    }
+    return reschedule(reminders, prediction: prediction, previous: previous);
   }
 
-  Future<void> _scheduleReminder(Reminder reminder) async {
-    final androidDetails = AndroidNotificationDetails(
-      'cyclecare_${reminder.type.name}',
-      _channelName(reminder.type),
-      channelDescription: _channelDescription(reminder.type),
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const iosDetails = DarwinNotificationDetails();
-    final details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    final now = DateTime.now();
-    var scheduled =
-        DateTime(now.year, now.month, now.day, reminder.hour, reminder.minute);
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
+  Future<ReminderScheduleReport> reschedule(
+    List<Reminder> reminders, {
+    CyclePrediction? prediction,
+    List<Reminder> previous = const [],
+  }) async {
+    NotificationEnvironment env;
+    try {
+      env = await environment();
+    } catch (_) {
+      return lastReport = ReminderScheduleReport(
+        environment: const NotificationEnvironment.unknown(),
+        requested: reminders.where((r) => r.enabled).length,
+        accepted: 0,
+        failures: const [
+          ScheduleFailure(
+            reminderId: 'system',
+            reminderTitle: 'Reminders',
+            reason:
+                'Reminders are saved, but the system scheduler is unavailable. Retry.',
+          ),
+        ],
+        skipped: const [],
+      );
     }
-
-    await _plugin.zonedSchedule(
-      reminder.id.hashCode,
-      reminder.title,
-      reminder.body,
-      tz.TZDateTime.from(scheduled, tz.local),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
+    final failures = <ScheduleFailure>[];
+    final skipped = <ScheduleSkip>[];
+    var accepted = 0;
+    final prefs = await SharedPreferences.getInstance();
+    final clearLegacyIds = prefs.getBool(_stableIdsKey) != true;
+    // Retire alarms created by the former hashCode-based scheduler once.
+    // Cancel only IDs owned by reminders, never unrelated appointment alarms.
+    for (final id in {
+      ...previous.map((r) => r.id),
+      ...reminders.map((r) => r.id),
+    }) {
+      try {
+        await _gateway.cancel(notificationId(id));
+        if (clearLegacyIds) await _gateway.cancel(id.hashCode);
+      } catch (_) {
+        failures.add(
+          ScheduleFailure(
+            reminderId: id,
+            reminderTitle: 'Reminder',
+            reason: 'The system could not cancel the previous schedule. Retry.',
+          ),
+        );
+      }
+    }
+    if (clearLegacyIds && failures.isEmpty) {
+      await prefs.setBool(_stableIdsKey, true);
+    }
+    for (final reminder in reminders.where((r) => r.enabled)) {
+      final when = plannedTime(reminder, prediction: prediction, now: _clock());
+      if (when == null) {
+        skipped.add(
+          ScheduleSkip(
+            reminderId: reminder.id,
+            reminderTitle: reminder.title,
+            reason: prediction == null
+                ? 'Log a period to estimate a reminder date.'
+                : 'The notice date has passed. Waiting for a new period estimate.',
+          ),
+        );
+        continue;
+      }
+      if (env.blocked || env.canRequest) {
+        skipped.add(
+          ScheduleSkip(
+            reminderId: reminder.id,
+            reminderTitle: reminder.title,
+            reason: 'Allow notifications to schedule this reminder.',
+          ),
+        );
+        continue;
+      }
+      try {
+        await _gateway.schedule(
+          ScheduleRequest(
+            id: notificationId(reminder.id),
+            title: reminder.title,
+            body: reminder.body,
+            when: when,
+            channelId: 'cyclecare_${reminder.type.name}',
+            channelName: _channelName(reminder.type),
+            channelDescription: _channelDescription(reminder.type),
+            repeatDaily: !isCycleReminder(reminder.type),
+          ),
+          exact: env.exactAlarms,
+        );
+        accepted++;
+      } catch (_) {
+        failures.add(
+          ScheduleFailure(
+            reminderId: reminder.id,
+            reminderTitle: reminder.title,
+            reason:
+                'The system did not accept this schedule. Retry or check system settings.',
+          ),
+        );
+      }
+    }
+    return lastReport = ReminderScheduleReport(
+      environment: env,
+      requested: reminders.where((r) => r.enabled).length,
+      accepted: accepted,
+      failures: failures,
+      skipped: skipped,
     );
+  }
+
+  static bool isCycleReminder(ReminderType type) => switch (type) {
+    ReminderType.periodReminder ||
+    ReminderType.ovulationReminder ||
+    ReminderType.fertileWindowReminder => true,
+    _ => false,
+  };
+
+  /// No fabricated rollover for a late cycle: wait until its estimate changes.
+  static DateTime? plannedTime(
+    Reminder reminder, {
+    CyclePrediction? prediction,
+    required DateTime now,
+  }) {
+    if (!isCycleReminder(reminder.type)) {
+      var time = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        reminder.hour,
+        reminder.minute,
+      );
+      if (!time.isAfter(now)) {
+        time = DateTime(
+          now.year,
+          now.month,
+          now.day + 1,
+          reminder.hour,
+          reminder.minute,
+        );
+      }
+      return time;
+    }
+    if (prediction == null) return null;
+    final anchor = switch (reminder.type) {
+      ReminderType.periodReminder => prediction.nextPeriodStart,
+      ReminderType.ovulationReminder => prediction.ovulationDate,
+      _ => prediction.fertileWindowStart,
+    };
+    final time = DateTime(
+      anchor.year,
+      anchor.month,
+      anchor.day - (reminder.daysBefore ?? 0),
+      reminder.hour,
+      reminder.minute,
+    );
+    return time.isAfter(now) ? time : null;
+  }
+
+  /// Stable positive 31-bit FNV-1a ID, independent of Dart runtime hash seeds.
+  static int notificationId(String id) {
+    var hash = 0x811c9dc5;
+    for (final byte in utf8.encode('cyclecare.reminder.$id')) {
+      hash = ((hash ^ byte) * 0x01000193) & 0xffffffff;
+    }
+    return hash & 0x7fffffff;
   }
 
   Future<void> scheduleOneTimeNotification({
@@ -194,65 +361,66 @@ class NotificationService {
     required String body,
     required DateTime scheduledDate,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'cyclecare_custom',
-      'Custom Reminders',
-      channelDescription: 'One-time and custom reminders',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const iosDetails = DarwinNotificationDetails();
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+    final env = await environment();
+    await _gateway.schedule(
+      ScheduleRequest(
+        id: id,
+        title: title,
+        body: body,
+        when: scheduledDate,
+        channelId: 'cyclecare_custom',
+        channelName: 'Custom Reminders',
+        channelDescription: 'One-time reminders',
+        repeatDaily: false,
+      ),
+      exact: env.exactAlarms,
     );
   }
 
-  Future<void> cancelReminder(String id) async {
-    await _plugin.cancel(id.hashCode);
-  }
-
+  Future<void> cancelReminder(String id) => _gateway.cancel(notificationId(id));
   Future<void> cancelAll() async {
-    await _plugin.cancelAll();
+    final reminders = await loadReminders();
+    for (final reminder in reminders) {
+      await cancelReminder(reminder.id);
+    }
   }
 
-  /// Show an immediate notification — used for FCM foreground messages
+  Future<TestNotificationReport> sendTest() async {
+    final env = await environment();
+    if (env.blocked || env.canRequest) {
+      return TestNotificationReport(
+        handedToSystem: false,
+        environment: env,
+        failureReason: 'Allow notifications first, then send another test.',
+      );
+    }
+    try {
+      await showInstantNotification(
+        title: 'CycleCare test reminder',
+        body: 'If you can read this, your test notification appeared.',
+      );
+      return TestNotificationReport(handedToSystem: true, environment: env);
+    } catch (_) {
+      return TestNotificationReport(
+        handedToSystem: false,
+        environment: env,
+        failureReason: 'The system did not accept the test. Try again.',
+      );
+    }
+  }
+
   Future<void> showInstantNotification({
     required String title,
     required String body,
     String? payload,
   }) async {
-    if (!_initialized) await initialize();
-    const androidDetails = AndroidNotificationDetails(
-      'cyclecare_fcm',
-      'Push Notifications',
-      channelDescription: 'Server-sent push notifications from CycleCare',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-    );
-    const iosDetails = DarwinNotificationDetails();
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-    await _plugin.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      details,
-      payload: payload,
+    await initialize();
+    await _gateway.showNow(
+      id: 2147483646,
+      title: title,
+      body: body,
+      channelId: 'cyclecare_test',
+      channelName: 'CycleCare notifications',
     );
   }
 

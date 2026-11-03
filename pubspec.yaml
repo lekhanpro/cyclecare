@@ -1,7 +1,7 @@
 name: cyclecare
 description: CycleCare – privacy-first menstrual health, fertility, wellness & AI companion app.
 publish_to: 'none'
-version: 2.1.0+2
+version: 2.2.0+3
 
 environment:
   # Floors match the resolved lockfile. Flutter 3.38+ is required for the
@@ -49,6 +49,7 @@ dependencies:
   # ── Notifications ─────────────────────────────────────────────────────────
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
+  flutter_timezone: ^5.0.1
 
   # ── Security ──────────────────────────────────────────────────────────────
   local_auth: ^2.3.0
@@ -78,8 +79,34 @@ flutter:
     - assets/images/
     - assets/lottie/
     - assets/education/
+    - assets/pets/
 
-  # Fonts served via google_fonts package at runtime (no bundled assets needed)
+  # Bundled rather than fetched at runtime. The approved design is built on
+  # Fraunces and DM Sans, and google_fonts downloads a family on first use —
+  # which fails on a device that is offline, and offline tracking without an
+  # account is a product invariant. Only the weights the design uses ship.
+  fonts:
+    - family: DM Sans
+      fonts:
+        - asset: assets/fonts/DMSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DMSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/DMSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/DMSans-Bold.ttf
+          weight: 700
+    - family: Fraunces
+      fonts:
+        - asset: assets/fonts/Fraunces-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Fraunces-Medium.ttf
+          weight: 500
+    # The redesign's 168 semantic icons, compiled from tool/icons/svg by
+    # tool/icons/build_icon_font.py. Read through AppIcons, never directly.
+    - family: CycleCareIcons
+      fonts:
+        - asset: assets/fonts/CycleCareIcons.ttf
 
 flutter_launcher_icons:
   android: true

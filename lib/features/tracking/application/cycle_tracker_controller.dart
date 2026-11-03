@@ -6,6 +6,7 @@ import '../data/cycle_repository.dart';
 import '../domain/cycle_analytics.dart';
 import '../domain/cycle_models.dart';
 import '../domain/cycle_prediction_service.dart';
+import '../domain/daily_log_validator.dart';
 
 final cycleRepositoryProvider = FutureProvider<CycleRepository>((ref) async {
   final preferences = await SharedPreferences.getInstance();
@@ -14,8 +15,8 @@ final cycleRepositoryProvider = FutureProvider<CycleRepository>((ref) async {
 
 final cycleTrackerControllerProvider =
     AsyncNotifierProvider<CycleTrackerController, CycleTrackerState>(
-  CycleTrackerController.new,
-);
+      CycleTrackerController.new,
+    );
 
 /// Derived analytics for the current data set.
 ///
@@ -56,9 +57,7 @@ class CycleTrackerState {
   CycleEvent? periodFor(DateTime date) {
     final target = dateOnly(date);
     for (final period in periods) {
-      final end = period.endDate ??
-          period.startDate
-              .add(Duration(days: preferences.averagePeriodLength - 1));
+      final end = period.endDate ?? period.startDate;
       if (!target.isBefore(dateOnly(period.startDate)) &&
           !target.isAfter(dateOnly(end))) {
         return period;
@@ -70,9 +69,7 @@ class CycleTrackerState {
   DayStatus statusFor(DateTime day) {
     final target = dateOnly(day);
     for (final period in periods) {
-      final end = period.endDate ??
-          period.startDate
-              .add(Duration(days: preferences.averagePeriodLength - 1));
+      final end = period.endDate ?? period.startDate;
       if (!target.isBefore(dateOnly(period.startDate)) &&
           !target.isAfter(dateOnly(end))) {
         return DayStatus.period;
@@ -135,11 +132,8 @@ class CycleTrackerState {
   /// Built on demand rather than stored on the state: it is pure, cheap, and
   /// keeping it out of the state object means a log edit can't leave a stale
   /// copy of the analytics behind.
-  CycleAnalytics get analytics => CycleAnalytics(
-        periods: periods,
-        logs: logs,
-        preferences: preferences,
-      );
+  CycleAnalytics get analytics =>
+      CycleAnalytics(periods: periods, logs: logs, preferences: preferences);
 
   CycleTrackerState copyWith({
     List<CycleEvent>? periods,
@@ -180,7 +174,14 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
     state = AsyncData(current.copyWith(selectedDate: dateOnly(date)));
   }
 
+  /// Saves [log], replacing any log for the same day.
+  ///
+  /// Throws [InvalidDailyLogException] without writing anything when the log
+  /// fails [DailyLogValidator], so storage never holds a value a backup
+  /// restore would reject.
   Future<void> saveLog(DailyLog log) async {
+    final issues = DailyLogValidator.validate(log);
+    if (issues.isNotEmpty) throw InvalidDailyLogException(issues);
     final current = await future;
     final repository = await ref.read(cycleRepositoryProvider.future);
     final target = dateOnly(log.date);
@@ -212,39 +213,51 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
     final event = CycleEvent(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       startDate: start,
-      endDate: start
-          .add(Duration(days: current.preferences.averagePeriodLength - 1)),
     );
     final periods = [event, ...current.periods]
       ..sort((a, b) => b.startDate.compareTo(a.startDate));
     await repository.savePeriods(periods);
-    state = AsyncData(_buildState(
-      periods: periods,
-      logs: current.logs,
-      preferences: current.preferences,
-      selectedDate: start,
-    ));
+    state = AsyncData(
+      _buildState(
+        periods: periods,
+        logs: current.logs,
+        preferences: current.preferences,
+        selectedDate: start,
+      ),
+    );
   }
 
   Future<void> upsertPeriod({
     required DateTime startDate,
-    required DateTime endDate,
+    required DateTime? endDate,
     FlowIntensity flow = FlowIntensity.medium,
     List<String> symptoms = const [],
     String notes = '',
     String? existingId,
+    bool? excludeFromPredictions,
+    String? predictionExclusionReason,
   }) async {
     final current = await future;
     final repository = await ref.read(cycleRepositoryProvider.future);
     final start = dateOnly(startDate);
-    final end = dateOnly(endDate);
+    final end = endDate == null ? null : dateOnly(endDate);
+    final previous = current.periods
+        .where((event) => event.id == existingId)
+        .firstOrNull;
     final event = CycleEvent(
       id: existingId ?? DateTime.now().microsecondsSinceEpoch.toString(),
       startDate: start,
-      endDate: end.isBefore(start) ? start : end,
+      endDate: end != null && end.isBefore(start) ? start : end,
       flow: flow,
       symptoms: symptoms,
       notes: notes,
+      excludeFromPredictions:
+          excludeFromPredictions ?? previous?.excludeFromPredictions ?? false,
+      predictionExclusionReason: excludeFromPredictions == false
+          ? null
+          : excludeFromPredictions != null
+          ? predictionExclusionReason
+          : previous?.predictionExclusionReason,
     );
     final periods = [
       for (final existing in current.periods)
@@ -252,12 +265,14 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
       event,
     ]..sort((a, b) => b.startDate.compareTo(a.startDate));
     await repository.savePeriods(periods);
-    state = AsyncData(_buildState(
-      periods: periods,
-      logs: current.logs,
-      preferences: current.preferences,
-      selectedDate: start,
-    ));
+    state = AsyncData(
+      _buildState(
+        periods: periods,
+        logs: current.logs,
+        preferences: current.preferences,
+        selectedDate: start,
+      ),
+    );
   }
 
   Future<void> deletePeriod(String id) async {
@@ -268,45 +283,55 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
         if (period.id != id) period,
     ];
     await repository.savePeriods(periods);
-    state = AsyncData(_buildState(
-      periods: periods,
-      logs: current.logs,
-      preferences: current.preferences,
-      selectedDate: current.selectedDate,
-    ));
+    state = AsyncData(
+      _buildState(
+        periods: periods,
+        logs: current.logs,
+        preferences: current.preferences,
+        selectedDate: current.selectedDate,
+      ),
+    );
   }
 
   Future<void> updatePreferences(CyclePreferences preferences) async {
     final current = await future;
     final repository = await ref.read(cycleRepositoryProvider.future);
     await repository.savePreferences(preferences);
-    state = AsyncData(_buildState(
-      periods: current.periods,
-      logs: current.logs,
-      preferences: preferences,
-      selectedDate: current.selectedDate,
-    ));
+    state = AsyncData(
+      _buildState(
+        periods: current.periods,
+        logs: current.logs,
+        preferences: preferences,
+        selectedDate: current.selectedDate,
+      ),
+    );
   }
 
   Future<void> completeOnboarding({
-    required DateTime lastPeriodStart,
+    required DateTime? lastPeriodStart,
     required int cycleLength,
     required int periodLength,
-    TrackingGoal goal = TrackingGoal.trackPeriods,
-    String profileName = '',
+    TrackingGoal? goal,
+    String? profileName,
     int? profileBirthYear,
-    bool periodReminderEnabled = true,
-    bool ovulationReminderEnabled = false,
-    bool dailyLogReminderEnabled = false,
-    bool pillReminderEnabled = false,
+    bool? periodReminderEnabled,
+    bool? ovulationReminderEnabled,
+    bool? dailyLogReminderEnabled,
+    bool? pillReminderEnabled,
   }) async {
+    final current = await future;
     final repository = await ref.read(cycleRepositoryProvider.future);
-    final start = dateOnly(lastPeriodStart);
-    final preferences = CyclePreferences(
+    final submittedName = profileName?.trim();
+    final preferences = current.preferences.copyWith(
       averageCycleLength: cycleLength,
       averagePeriodLength: periodLength,
       goal: goal,
-      profileName: profileName,
+      profileName:
+          submittedName == null ||
+              (submittedName.isEmpty &&
+                  current.preferences.profileName.isNotEmpty)
+          ? current.preferences.profileName
+          : submittedName,
       profileBirthYear: profileBirthYear,
       periodReminderEnabled: periodReminderEnabled,
       ovulationReminderEnabled: ovulationReminderEnabled,
@@ -314,19 +339,41 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
       pillReminderEnabled: pillReminderEnabled,
       onboardingCompleted: true,
     );
-    final period = CycleEvent(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      startDate: start,
-      endDate: start.add(Duration(days: periodLength - 1)),
-    );
+
+    final periods = current.periods.toList();
+    DateTime? selectedDate;
+    var addedPeriod = false;
+    if (lastPeriodStart != null) {
+      final start = dateOnly(lastPeriodStart);
+      selectedDate = start;
+      final alreadyRecorded = periods.any(
+        (period) => dateOnly(period.startDate) == start,
+      );
+      if (!alreadyRecorded) {
+        periods.add(
+          CycleEvent(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            startDate: start,
+          ),
+        );
+        periods.sort((a, b) => b.startDate.compareTo(a.startDate));
+        addedPeriod = true;
+      }
+    }
+
+    // Existing health records remain authoritative. When a date was supplied,
+    // save the additive period first and the onboarding completion flag last,
+    // so a retry never replaces history or creates a duplicate day.
+    if (addedPeriod) await repository.savePeriods(periods);
     await repository.savePreferences(preferences);
-    await repository.savePeriods([period]);
-    state = AsyncData(_buildState(
-      periods: [period],
-      logs: const [],
-      preferences: preferences,
-      selectedDate: DateTime.now(),
-    ));
+    state = AsyncData(
+      _buildState(
+        periods: periods,
+        logs: current.logs,
+        preferences: preferences,
+        selectedDate: selectedDate ?? current.selectedDate,
+      ),
+    );
   }
 
   Future<String> exportJson() async {
@@ -337,12 +384,14 @@ class CycleTrackerController extends AsyncNotifier<CycleTrackerState> {
   Future<void> deleteAllData() async {
     final repository = await ref.read(cycleRepositoryProvider.future);
     await repository.deleteAll();
-    state = AsyncData(_buildState(
-      periods: const [],
-      logs: const [],
-      preferences: const CyclePreferences(),
-      selectedDate: DateTime.now(),
-    ));
+    state = AsyncData(
+      _buildState(
+        periods: const [],
+        logs: const [],
+        preferences: const CyclePreferences(),
+        selectedDate: DateTime.now(),
+      ),
+    );
   }
 
   CycleTrackerState _buildState({

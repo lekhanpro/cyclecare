@@ -20,31 +20,43 @@ import 'application/backup_service.dart';
 // Settings
 //
 // A settings screen is scanned, never read, so the whole page is built from one
-// shape repeated: a titled group, a calm card, hairline-separated rows. Every
-// row on this screen — a switch, a link, a stepper, a read-only value — is the
-// same primitive with a different trailing slot, which is why the eye can move
-// down eight groups without re-learning anything.
+// shape repeated: a quiet group heading, a calm card, hairline-separated rows.
+// Every row on this screen — a switch, a link, a stepper, a read-only value —
+// is the same primitive with a different trailing slot, which is why the eye
+// can move down eight groups without re-learning anything.
 //
-// Three rules hold it together:
+// Four rules hold it together:
 //
 //  • One row primitive. [_RowShell] owns the leading tile, the label column,
-//    the trailing slot, the 48dp floor, and the decision about whether the
-//    control sits beside the label or underneath it. Nothing else measures or
-//    pads a row.
-//  • Restraint over decoration. Groups are flat outlined cards, not stacked
-//    shadows: eight elevated cards down a page reads as eight priorities,
-//    which is the same as none.
+//    the trailing slot, the row height floor, and the decision about whether
+//    the control sits beside the label or underneath it. Nothing else measures
+//    or pads a row.
+//  • Figure and ground. A list of near-white cards on a near-white page has no
+//    figure, so the eye reads the whole screen as one field and the headings
+//    end up doing all the separating. [_ProfileLead] fixes that by being the
+//    one saturated surface here: it carries the identity, the one coloured
+//    treatment, and the only glass on the screen. Everything under it stays a
+//    flat grouped list.
+//  • Rows read as a list, not as boxes. Inside a group the full-strength
+//    hairlines are the dividers *between* rows, inset to where the labels
+//    start; the group's own edge is deliberately weaker than they are. The
+//    structure the eye follows is the row rhythm, not an outline.
 //  • Rows bend before they break. Type at 200% and a 320dp screen are the two
 //    conditions that snap a settings list, so the trailing control moves below
 //    its label rather than squeezing it into a two-word column, and no label
 //    is ever truncated to keep a control in place.
+//
+// Depth is three rungs and no more: the lead's tinted glow, one low shadow on
+// Appearance (the only group that is a set of visual controls rather than a
+// list of facts), and flat for the remaining six. Eight elevated cards down a
+// page reads as eight priorities, which is the same as none.
 //
 // Reminders remain a link rather than a copy: they own a whole screen with
 // per-reminder times, and two places to switch the same notification on is how
 // they end up disagreeing.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const String _appVersion = '1.0.0';
+const String _appVersion = '2.2.0';
 
 /// Nominal body size, used only as a probe for the platform's text scaling.
 const double _scaleProbe = 14;
@@ -66,6 +78,40 @@ const EdgeInsets _rowPadding = EdgeInsets.symmetric(
   horizontal: AppSpacing.lg,
   vertical: AppSpacing.md,
 );
+
+/// Floor for a row's height, above the 48dp touch-target minimum.
+///
+/// The touch target is the accessibility floor, not the layout one. At 48 a
+/// single-line row and a two-line row differ by enough that a group reads as a
+/// ragged stack; giving every row the same larger floor is what turns eight
+/// groups into one rhythm the eye can follow without re-measuring.
+const double _rowMinHeight = AppLayout.minTouchTarget + AppSpacing.sm;
+
+// ── The lead surface ────────────────────────────────────────────────────────
+//
+// Gradient stops for [_ProfileLead], expressed as a distance from the palette
+// primary toward the page's own extreme rather than as fixed colours, so all
+// eight palettes and both modes resolve through the same two numbers.
+//
+// These four values are contrast-critical, not taste. White body text on the
+// *lightest* point of this surface — the top stop with the highlight wash
+// applied — measures 5.8:1 in dark mode and 6.4:1 in light across all eight
+// palettes, and the secondary tier of [HeroInk] lands at 5.1:1. Lifting either
+// top stop toward its palette hue is what would quietly break AA, so treat
+// them as a floor.
+const double _leadTopLight = 0.30;
+const double _leadBottomLight = 0.52;
+const double _leadTopDark = 0.62;
+const double _leadBottomDark = 0.76;
+
+/// Scrim behind an unselected chip on the lead's glass shelf.
+///
+/// The shelf is the one glass surface on this screen, and glass *lightens*
+/// what it sits on — white text directly on it measures 2.8–4.3:1 over this
+/// gradient, which is a fail in every palette. So a chip on the shelf carries
+/// its own ink scrim rather than relying on the glass, which brings the label
+/// back to 4.7:1 in light mode and 5.6:1 in dark.
+const double _chipScrimOnLead = 0.34;
 
 /// True once type is scaled far enough that side-by-side rows stop working.
 bool _typeIsLarge(BuildContext context) =>
@@ -406,6 +452,22 @@ class _AppearanceSection extends ConsumerWidget {
             selected: settings.palette,
             onSelected: notifier.setPalette,
           ),
+        ),
+        // Three states, because two cannot say "follow the phone". The root
+        // applies this to every screen through MotionScope, so Motion.of
+        // honours it even where the platform setting says otherwise.
+        _ChoiceRow<AppMotionPreference>(
+          label: 'Motion',
+          description: 'System follows your phone\u2019s reduce-motion '
+              'setting. Play allows CycleCare\u2019s gentle movement. Pause '
+              'removes it.',
+          segments: const {
+            AppMotionPreference.system: 'System',
+            AppMotionPreference.play: 'Play',
+            AppMotionPreference.pause: 'Pause',
+          },
+          value: settings.motionPreference,
+          onChanged: notifier.setMotionPreference,
         ),
       ],
     );
@@ -1037,6 +1099,12 @@ class _DataSectionState extends ConsumerState<_DataSection> {
       title: 'Data',
       subtitle: 'Everything is stored on this device only',
       children: [
+        _NavRow(
+          icon: AppIcons.chart,
+          title: 'Cycle-health report',
+          subtitle: 'Choose records, preview, then share with your care team',
+          onTap: () => context.push(AppRoutes.healthReport),
+        ),
         _NavRow(
           icon: Icons.ios_share_rounded,
           title: 'Export my data',
@@ -2025,10 +2093,15 @@ class _StepButton extends StatelessWidget {
 /// A labelled slot for controls that are not rows — a chip wrap, the palette
 /// picker.
 class _BlockRow extends StatelessWidget {
-  const _BlockRow({required this.label, required this.child});
+  const _BlockRow({
+    required this.label,
+    required this.child,
+    this.description,
+  });
 
   final String label;
   final Widget child;
+  final String? description;
 
   @override
   Widget build(BuildContext context) {
@@ -2050,6 +2123,13 @@ class _BlockRow extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           child,
+          if (description != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              description!,
+              style: text.bodySmall?.copyWith(color: context.mutedColor),
+            ),
+          ],
         ],
       ),
     );
@@ -2068,6 +2148,7 @@ class _ChoiceRow<T> extends StatelessWidget {
     required this.segments,
     required this.value,
     required this.onChanged,
+    this.description,
   });
 
   final String label;
@@ -2075,10 +2156,14 @@ class _ChoiceRow<T> extends StatelessWidget {
   final T value;
   final ValueChanged<T> onChanged;
 
+  /// Optional line under the control, for a choice whose options need saying.
+  final String? description;
+
   @override
   Widget build(BuildContext context) {
     return _BlockRow(
       label: label,
+      description: description,
       child: _typeIsLarge(context)
           ? Wrap(
               spacing: AppSpacing.sm,

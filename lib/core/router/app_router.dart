@@ -19,8 +19,11 @@ import '../../features/partner/partner_screen.dart';
 import '../../features/health/health_screen.dart';
 import '../../features/education/education_screen.dart';
 import '../../features/reminders/reminders_screen.dart';
+import '../../features/tracking/presentation/health_report_screen.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/tracking/application/cycle_tracker_controller.dart';
+import '../theme/cyclecare_theme.dart';
+import '../../widgets/widgets.dart';
 import 'app_transitions.dart';
 
 // ─── Route names ─────────────────────────────────────────────────────────────
@@ -42,6 +45,7 @@ class AppRoutes {
   static const health = '/health';
   static const education = '/education';
   static const reminders = '/reminders';
+  static const healthReport = '/health-report';
 }
 
 // ─── Router notifier — drives GoRouter refresh ────────────────────────────────
@@ -55,20 +59,20 @@ class _RouterNotifier extends ChangeNotifier {
 
   final Ref _ref;
 
-  bool get _isLoading =>
-      _ref.read(cycleTrackerControllerProvider).isLoading;
-
-  bool get _onboarded =>
-      _ref.read(cycleTrackerControllerProvider).valueOrNull
-          ?.preferences.onboardingCompleted ??
-      false;
-
   String? redirect(BuildContext context, GoRouterState state) {
-    if (_isLoading) return AppRoutes.splash;
-
+    final tracker = _ref.read(cycleTrackerControllerProvider);
+    final data = tracker.valueOrNull;
     final loc = state.matchedLocation;
 
-    if (!_onboarded) {
+    // Loading and failure are both unknown startup states. Neither is evidence
+    // of a first run, so stay on Splash until real preferences are available.
+    // A refresh error that retains previous data can keep the current route.
+    if (data == null) {
+      return loc == AppRoutes.splash ? null : AppRoutes.splash;
+    }
+
+    final onboarded = data.preferences.onboardingCompleted;
+    if (!onboarded) {
       // Note: splash is deliberately NOT allowed here. Once loading finishes,
       // an un-onboarded user sitting on splash must be moved to landing —
       // returning null would leave them on the spinner indefinitely.
@@ -183,9 +187,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.reminders,
         pageBuilder: (_, __) => pushPage(child: const RemindersScreen()),
       ),
+      GoRoute(
+        path: AppRoutes.healthReport,
+        pageBuilder: (_, __) => pushPage(child: const HealthReportScreen()),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.error}')),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final gutter = AppLayout.pageGutterFor(constraints.maxWidth);
+            return SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: gutter,
+                vertical: AppSpacing.xxl,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: (constraints.maxHeight - AppSpacing.xxl * 2)
+                      .clamp(0.0, double.infinity),
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: AppLayout.maxContentWidth,
+                    ),
+                    child: EmptyState(
+                      icon: Icons.explore_off_rounded,
+                      title: 'We could not open that page',
+                      message: 'The link may be old or incomplete. Return to '
+                          'CycleCare to keep using your saved data.',
+                      actionLabel: 'Back to CycleCare',
+                      onAction: () => context.go(AppRoutes.home),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     ),
   );
 });

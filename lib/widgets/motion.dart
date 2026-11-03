@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/services/haptics.dart';
+import '../core/theme/app_accents.dart';
 import '../core/theme/app_motion.dart';
 import '../core/theme/app_tokens.dart';
 
@@ -102,25 +103,20 @@ class _PressableState extends State<Pressable> {
   @override
   Widget build(BuildContext context) {
     final motion = Motion.of(context);
-    final scheme = Theme.of(context).colorScheme;
+    final roles = AccentRoles.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final radius = widget.borderRadius ?? BorderRadius.zero;
 
     final overlay = WidgetStateProperty.resolveWith<Color?>((states) {
       if (!_enabled) return Colors.transparent;
       if (states.contains(WidgetState.pressed)) {
-        return scheme.primary.withOpacity(
-          Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.11,
-        );
+        return roles.text.withOpacity(dark ? 0.18 : 0.11);
       }
       if (states.contains(WidgetState.focused)) {
-        return scheme.primary.withOpacity(
-          Theme.of(context).brightness == Brightness.dark ? 0.16 : 0.09,
-        );
+        return roles.text.withOpacity(dark ? 0.16 : 0.09);
       }
       if (states.contains(WidgetState.hovered)) {
-        return scheme.primary.withOpacity(
-          Theme.of(context).brightness == Brightness.dark ? 0.11 : 0.06,
-        );
+        return roles.text.withOpacity(dark ? 0.11 : 0.06);
       }
       return null;
     });
@@ -160,7 +156,7 @@ class _PressableState extends State<Pressable> {
                   ? BoxDecoration(
                       borderRadius: radius,
                       border: Border.all(
-                        color: scheme.primary,
+                        color: roles.border,
                         width: AppStrokes.focus,
                       ),
                     )

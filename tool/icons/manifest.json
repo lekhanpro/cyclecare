@@ -1,0 +1,1346 @@
+[
+  {
+    "name": "flow",
+    "shape": "drop",
+    "file": "assets/icons/flow.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "period",
+    "shape": "drop",
+    "file": "assets/icons/period.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "spotting",
+    "shape": "spot",
+    "file": "assets/icons/spotting.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "cycle",
+    "shape": "cycle",
+    "file": "assets/icons/cycle.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "calendar",
+    "shape": "calendar",
+    "file": "assets/icons/calendar.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "calendarRange",
+    "shape": "calendar",
+    "file": "assets/icons/calendarRange.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "fertile",
+    "shape": "leaf",
+    "file": "assets/icons/fertile.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "ovulation",
+    "shape": "sun",
+    "file": "assets/icons/ovulation.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "luteal",
+    "shape": "moon",
+    "file": "assets/icons/luteal.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pms",
+    "shape": "moon",
+    "file": "assets/icons/pms.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "temperature",
+    "shape": "thermometer",
+    "file": "assets/icons/temperature.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "notes",
+    "shape": "note",
+    "file": "assets/icons/notes.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "log",
+    "shape": "plus",
+    "file": "assets/icons/log.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pain",
+    "shape": "pain",
+    "file": "assets/icons/pain.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "cramps",
+    "shape": "bolt",
+    "file": "assets/icons/cramps.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "headache",
+    "shape": "head",
+    "file": "assets/icons/headache.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "bloating",
+    "shape": "bloating",
+    "file": "assets/icons/bloating.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "sleep",
+    "shape": "moon",
+    "file": "assets/icons/sleep.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "energy",
+    "shape": "bolt",
+    "file": "assets/icons/energy.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "water",
+    "shape": "water",
+    "file": "assets/icons/water.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "nutrition",
+    "shape": "food",
+    "file": "assets/icons/nutrition.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "weight",
+    "shape": "weight",
+    "file": "assets/icons/weight.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "exercise",
+    "shape": "exercise",
+    "file": "assets/icons/exercise.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "discharge",
+    "shape": "drop",
+    "file": "assets/icons/discharge.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "medicine",
+    "shape": "pill",
+    "file": "assets/icons/medicine.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodHappy",
+    "shape": "mood-happy",
+    "file": "assets/icons/moodHappy.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodCalm",
+    "shape": "mood-calm",
+    "file": "assets/icons/moodCalm.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodNeutral",
+    "shape": "mood-neutral",
+    "file": "assets/icons/moodNeutral.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodFocused",
+    "shape": "mood-focused",
+    "file": "assets/icons/moodFocused.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodIrritable",
+    "shape": "mood-irritable",
+    "file": "assets/icons/moodIrritable.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodSad",
+    "shape": "mood-sad",
+    "file": "assets/icons/moodSad.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodAnxious",
+    "shape": "mood-anxious",
+    "file": "assets/icons/moodAnxious.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodEnergetic",
+    "shape": "mood-energetic",
+    "file": "assets/icons/moodEnergetic.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodSleepy",
+    "shape": "mood-sleepy",
+    "file": "assets/icons/moodSleepy.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moodExcited",
+    "shape": "mood-excited",
+    "file": "assets/icons/moodExcited.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pill",
+    "shape": "pill",
+    "file": "assets/icons/pill.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "progestinPill",
+    "shape": "pill",
+    "file": "assets/icons/progestinPill.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "patch",
+    "shape": "pain",
+    "file": "assets/icons/patch.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "ring",
+    "shape": "ring",
+    "file": "assets/icons/ring.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "iud",
+    "shape": "iud",
+    "file": "assets/icons/iud.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "copperIud",
+    "shape": "iud",
+    "file": "assets/icons/copperIud.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "implant",
+    "shape": "implant",
+    "file": "assets/icons/implant.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "injection",
+    "shape": "injection",
+    "file": "assets/icons/injection.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "condom",
+    "shape": "condom",
+    "file": "assets/icons/condom.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "naturalFamily",
+    "shape": "thermometer",
+    "file": "assets/icons/naturalFamily.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "methodOther",
+    "shape": "grid",
+    "file": "assets/icons/methodOther.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "methodNone",
+    "shape": "minus",
+    "file": "assets/icons/methodNone.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "basics",
+    "shape": "flower",
+    "file": "assets/icons/basics.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "symptoms",
+    "shape": "pulse",
+    "file": "assets/icons/symptoms.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "conditions",
+    "shape": "medical",
+    "file": "assets/icons/conditions.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "wellbeing",
+    "shape": "flower",
+    "file": "assets/icons/wellbeing.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "article",
+    "shape": "book",
+    "file": "assets/icons/article.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "science",
+    "shape": "flask",
+    "file": "assets/icons/science.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "microscope",
+    "shape": "microscope",
+    "file": "assets/icons/microscope.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "library",
+    "shape": "book",
+    "file": "assets/icons/library.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "document",
+    "shape": "document",
+    "file": "assets/icons/document.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "clinician",
+    "shape": "medical",
+    "file": "assets/icons/clinician.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pregnancy",
+    "shape": "pregnancy",
+    "file": "assets/icons/pregnancy.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "kicks",
+    "shape": "baby",
+    "file": "assets/icons/kicks.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "appointment",
+    "shape": "calendar",
+    "file": "assets/icons/appointment.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "weekByWeek",
+    "shape": "book",
+    "file": "assets/icons/weekByWeek.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "petBunny",
+    "shape": "bunny",
+    "file": "assets/icons/petBunny.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "petCat",
+    "shape": "cat",
+    "file": "assets/icons/petCat.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "petBear",
+    "shape": "bear",
+    "file": "assets/icons/petBear.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "petFox",
+    "shape": "fox",
+    "file": "assets/icons/petFox.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "streak",
+    "shape": "flame",
+    "file": "assets/icons/streak.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "trophy",
+    "shape": "trophy",
+    "file": "assets/icons/trophy.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "locked",
+    "shape": "lock",
+    "file": "assets/icons/locked.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "star",
+    "shape": "star",
+    "file": "assets/icons/star.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "sparkle",
+    "shape": "sparkle",
+    "file": "assets/icons/sparkle.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "feed",
+    "shape": "food",
+    "file": "assets/icons/feed.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "cuddle",
+    "shape": "heart",
+    "file": "assets/icons/cuddle.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "goalTrack",
+    "shape": "target",
+    "file": "assets/icons/goalTrack.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "goalConceive",
+    "shape": "leaf",
+    "file": "assets/icons/goalConceive.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "goalPregnancy",
+    "shape": "pregnancy",
+    "file": "assets/icons/goalPregnancy.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "goalPerimenopause",
+    "shape": "moon",
+    "file": "assets/icons/goalPerimenopause.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "goalWellness",
+    "shape": "heart",
+    "file": "assets/icons/goalWellness.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "home",
+    "shape": "home",
+    "file": "assets/icons/home.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "insights",
+    "shape": "chart",
+    "file": "assets/icons/insights.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "settings",
+    "shape": "settings",
+    "file": "assets/icons/settings.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "reminders",
+    "shape": "bell",
+    "file": "assets/icons/reminders.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "partner",
+    "shape": "heart",
+    "file": "assets/icons/partner.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "partnerPair",
+    "shape": "people",
+    "file": "assets/icons/partnerPair.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "privacy",
+    "shape": "lock",
+    "file": "assets/icons/privacy.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "shield",
+    "shape": "shield",
+    "file": "assets/icons/shield.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "help",
+    "shape": "help",
+    "file": "assets/icons/help.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "blocked",
+    "shape": "blocked",
+    "file": "assets/icons/blocked.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "success",
+    "shape": "check",
+    "file": "assets/icons/success.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "chart",
+    "shape": "chart",
+    "file": "assets/icons/chart.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "compass",
+    "shape": "compass",
+    "file": "assets/icons/compass.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "ai",
+    "shape": "sparkle",
+    "file": "assets/icons/ai.svg",
+    "semantic_alias": true,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "chat",
+    "shape": "chat",
+    "file": "assets/icons/chat.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "back",
+    "shape": "back",
+    "file": "assets/icons/back.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "forward",
+    "shape": "forward",
+    "file": "assets/icons/forward.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "up",
+    "shape": "up",
+    "file": "assets/icons/up.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "down",
+    "shape": "down",
+    "file": "assets/icons/down.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "close",
+    "shape": "close",
+    "file": "assets/icons/close.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "search",
+    "shape": "search",
+    "file": "assets/icons/search.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "share",
+    "shape": "share",
+    "file": "assets/icons/share.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "copy",
+    "shape": "copy",
+    "file": "assets/icons/copy.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "trash",
+    "shape": "trash",
+    "file": "assets/icons/trash.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "eye",
+    "shape": "eye",
+    "file": "assets/icons/eye.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "download",
+    "shape": "download",
+    "file": "assets/icons/download.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "upload",
+    "shape": "upload",
+    "file": "assets/icons/upload.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "undo",
+    "shape": "undo",
+    "file": "assets/icons/undo.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "filter",
+    "shape": "filter",
+    "file": "assets/icons/filter.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "clock",
+    "shape": "clock",
+    "file": "assets/icons/clock.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "bookmark",
+    "shape": "bookmark",
+    "file": "assets/icons/bookmark.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "fingerprint",
+    "shape": "fingerprint",
+    "file": "assets/icons/fingerprint.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "palette",
+    "shape": "palette",
+    "file": "assets/icons/palette.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "paw",
+    "shape": "paw",
+    "file": "assets/icons/paw.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "check",
+    "shape": "check",
+    "file": "assets/icons/check.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "plus",
+    "shape": "plus",
+    "file": "assets/icons/plus.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "circle",
+    "shape": "circle",
+    "file": "assets/icons/circle.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "arrowForward",
+    "shape": "arrowForward",
+    "file": "assets/icons/arrowForward.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "arrowUp",
+    "shape": "arrowUp",
+    "file": "assets/icons/arrowUp.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "external",
+    "shape": "external",
+    "file": "assets/icons/external.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "cloudOff",
+    "shape": "cloudOff",
+    "file": "assets/icons/cloudOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "compare",
+    "shape": "compare",
+    "file": "assets/icons/compare.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "cookie",
+    "shape": "cookie",
+    "file": "assets/icons/cookie.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "egg",
+    "shape": "egg",
+    "file": "assets/icons/egg.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "warning",
+    "shape": "warning",
+    "file": "assets/icons/warning.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "calendarOff",
+    "shape": "calendarOff",
+    "file": "assets/icons/calendarOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "filterOff",
+    "shape": "filterOff",
+    "file": "assets/icons/filterOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "face",
+    "shape": "face",
+    "file": "assets/icons/face.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "flag",
+    "shape": "flag",
+    "file": "assets/icons/flag.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "quote",
+    "shape": "quote",
+    "file": "assets/icons/quote.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "gavel",
+    "shape": "gavel",
+    "file": "assets/icons/gavel.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "hourglass",
+    "shape": "hourglass",
+    "file": "assets/icons/hourglass.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "hub",
+    "shape": "hub",
+    "file": "assets/icons/hub.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "info",
+    "shape": "info",
+    "file": "assets/icons/info.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "box",
+    "shape": "box",
+    "file": "assets/icons/box.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "key",
+    "shape": "key",
+    "file": "assets/icons/key.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "tag",
+    "shape": "tag",
+    "file": "assets/icons/tag.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "bulb",
+    "shape": "bulb",
+    "file": "assets/icons/bulb.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "linkOff",
+    "shape": "linkOff",
+    "file": "assets/icons/linkOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "list",
+    "shape": "list",
+    "file": "assets/icons/list.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "unlock",
+    "shape": "unlock",
+    "file": "assets/icons/unlock.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "logout",
+    "shape": "logout",
+    "file": "assets/icons/logout.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "mail",
+    "shape": "mail",
+    "file": "assets/icons/mail.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "person",
+    "shape": "person",
+    "file": "assets/icons/person.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pdf",
+    "shape": "pdf",
+    "file": "assets/icons/pdf.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pin",
+    "shape": "pin",
+    "file": "assets/icons/pin.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "qr",
+    "shape": "qr",
+    "file": "assets/icons/qr.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "school",
+    "shape": "school",
+    "file": "assets/icons/school.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "sick",
+    "shape": "sick",
+    "file": "assets/icons/sick.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "gauge",
+    "shape": "gauge",
+    "file": "assets/icons/gauge.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "ruler",
+    "shape": "ruler",
+    "file": "assets/icons/ruler.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "sliders",
+    "shape": "sliders",
+    "file": "assets/icons/sliders.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "vibrate",
+    "shape": "vibrate",
+    "file": "assets/icons/vibrate.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "eyeOff",
+    "shape": "eyeOff",
+    "file": "assets/icons/eyeOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "waves",
+    "shape": "waves",
+    "file": "assets/icons/waves.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "medal",
+    "shape": "medal",
+    "file": "assets/icons/medal.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "battery",
+    "shape": "battery",
+    "file": "assets/icons/battery.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "moonOff",
+    "shape": "moonOff",
+    "file": "assets/icons/moonOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "bellOff",
+    "shape": "bellOff",
+    "file": "assets/icons/bellOff.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "bellPause",
+    "shape": "bellPause",
+    "file": "assets/icons/bellPause.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "bloodTest",
+    "shape": "bloodTest",
+    "file": "assets/icons/bloodTest.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "acne",
+    "shape": "acne",
+    "file": "assets/icons/acne.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "backPain",
+    "shape": "backPain",
+    "file": "assets/icons/backPain.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "nausea",
+    "shape": "nausea",
+    "file": "assets/icons/nausea.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "breast",
+    "shape": "breast",
+    "file": "assets/icons/breast.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "dizzy",
+    "shape": "dizzy",
+    "file": "assets/icons/dizzy.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "digestion",
+    "shape": "digestion",
+    "file": "assets/icons/digestion.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "hotFlash",
+    "shape": "hotFlash",
+    "file": "assets/icons/hotFlash.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "nightSweat",
+    "shape": "nightSweat",
+    "file": "assets/icons/nightSweat.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "pelvis",
+    "shape": "pelvis",
+    "file": "assets/icons/pelvis.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  },
+  {
+    "name": "insomnia",
+    "shape": "insomnia",
+    "file": "assets/icons/insomnia.svg",
+    "semantic_alias": false,
+    "grid": 24,
+    "stroke": 1.7
+  }
+]

@@ -1,5 +1,15 @@
+import 'package:flutter/material.dart';
+
+import '../../core/theme/app_icons.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Pet System Models
+//
+// Each of the three things this screen draws — the pet, its mood, a badge —
+// now carries an `icon` alongside its old `emoji`. The emoji getters are kept
+// deliberately: onboarding's pet picker still renders `PetType.emoji`, and
+// deleting it here would break a file this feature does not own. Nothing in
+// this folder reads them any more.
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum PetType {
@@ -8,11 +18,21 @@ enum PetType {
   bear,
   fox;
 
+  /// Retained for `onboarding_screen.dart`. Prefer [icon] in new code.
   String get emoji => switch (this) {
         PetType.bunny => '🐰',
         PetType.cat => '🐱',
         PetType.bear => '🐻',
         PetType.fox => '🦊',
+      };
+
+  /// The pet's face, resolved through the shared registry so it picks up the
+  /// palette, text scale, and semantics an emoji glyph cannot.
+  IconData get icon => switch (this) {
+        PetType.bunny => AppIcons.petBunny,
+        PetType.cat => AppIcons.petCat,
+        PetType.bear => AppIcons.petBear,
+        PetType.fox => AppIcons.petFox,
       };
 
   String get name => switch (this) {
@@ -23,7 +43,24 @@ enum PetType {
       };
 }
 
-enum PetMood { happy, neutral, sad, excited, sleepy }
+enum PetMood {
+  happy,
+  neutral,
+  sad,
+  excited,
+  sleepy;
+
+  /// Material's sentiment faces carry the expression in the glyph itself, so
+  /// mood survives without colour — which is why the mood badge on the hero
+  /// can be a single icon rather than a tinted dot.
+  IconData get icon => switch (this) {
+        PetMood.happy => AppIcons.moodHappy,
+        PetMood.excited => AppIcons.moodExcited,
+        PetMood.neutral => AppIcons.moodNeutral,
+        PetMood.sleepy => AppIcons.moodSleepy,
+        PetMood.sad => AppIcons.moodSad,
+      };
+}
 
 class PetState {
   const PetState({
@@ -58,6 +95,7 @@ class PetState {
     return PetMood.sad;
   }
 
+  /// Superseded by `mood.icon`. Kept so no caller outside this folder breaks.
   String get moodEmoji => switch (mood) {
         PetMood.happy => '😊',
         PetMood.excited => '🤩',
@@ -65,6 +103,10 @@ class PetState {
         PetMood.sleepy => '😴',
         PetMood.sad => '😢',
       };
+
+  /// The mood face, already resolved — call sites should never re-derive the
+  /// happiness thresholds to pick an icon.
+  IconData get moodIcon => mood.icon;
 
   PetState copyWith({
     PetType? type,
@@ -143,13 +185,21 @@ class Achievement {
     required this.title,
     required this.description,
     required this.emoji,
+    required this.icon,
     required this.xpReward,
   });
 
   final String id;
   final String title;
   final String description;
+
+  /// Superseded by [icon] and retained only so the field stays available to
+  /// any caller outside this feature.
   final String emoji;
+
+  /// What the badge actually renders.
+  final IconData icon;
+
   final int xpReward;
 }
 
@@ -159,6 +209,7 @@ const kAchievements = [
     title: 'First Log',
     description: 'Logged your first daily entry',
     emoji: '📝',
+    icon: AppIcons.notes,
     xpReward: 60,
   ),
   Achievement(
@@ -166,6 +217,7 @@ const kAchievements = [
     title: '7-Day Streak',
     description: 'Logged 7 days in a row',
     emoji: '🔥',
+    icon: AppIcons.streak,
     xpReward: 100,
   ),
   Achievement(
@@ -173,6 +225,7 @@ const kAchievements = [
     title: 'Monthly Champion',
     description: 'Logged 30 days in a row',
     emoji: '🏆',
+    icon: AppIcons.trophy,
     xpReward: 300,
   ),
   Achievement(
@@ -180,6 +233,7 @@ const kAchievements = [
     title: 'Cycle Starter',
     description: 'Logged your first period',
     emoji: '💧',
+    icon: AppIcons.period,
     xpReward: 60,
   ),
   Achievement(
@@ -187,6 +241,7 @@ const kAchievements = [
     title: 'Temp Tracker',
     description: 'Logged your first BBT reading',
     emoji: '🌡️',
+    icon: AppIcons.temperature,
     xpReward: 60,
   ),
   Achievement(
@@ -194,6 +249,7 @@ const kAchievements = [
     title: 'AI Explorer',
     description: 'Had your first AI chat session',
     emoji: '✨',
+    icon: AppIcons.ai,
     xpReward: 60,
   ),
   Achievement(
@@ -201,6 +257,7 @@ const kAchievements = [
     title: 'Together',
     description: 'Invited a partner',
     emoji: '💑',
+    icon: AppIcons.partnerPair,
     xpReward: 60,
   ),
   Achievement(
@@ -208,6 +265,7 @@ const kAchievements = [
     title: 'Level 5',
     description: 'Reached level 5',
     emoji: '⭐',
+    icon: AppIcons.star,
     xpReward: 0,
   ),
   Achievement(
@@ -215,6 +273,7 @@ const kAchievements = [
     title: 'Level 10',
     description: 'Reached level 10',
     emoji: '🌟',
+    icon: Icons.workspace_premium_rounded,
     xpReward: 0,
   ),
 ];

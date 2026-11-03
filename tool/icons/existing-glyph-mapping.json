@@ -1,0 +1,952 @@
+[
+  {
+    "existing_glyph": "accessibility_new_rounded",
+    "new_semantic_name": "wellbeing",
+    "asset": "assets/icons/wellbeing.svg"
+  },
+  {
+    "existing_glyph": "add_alert_rounded",
+    "new_semantic_name": "reminders",
+    "asset": "assets/icons/reminders.svg"
+  },
+  {
+    "existing_glyph": "add_circle_outline_rounded",
+    "new_semantic_name": "plus",
+    "asset": "assets/icons/plus.svg"
+  },
+  {
+    "existing_glyph": "add_circle_rounded",
+    "new_semantic_name": "log",
+    "asset": "assets/icons/log.svg"
+  },
+  {
+    "existing_glyph": "add_rounded",
+    "new_semantic_name": "plus",
+    "asset": "assets/icons/plus.svg"
+  },
+  {
+    "existing_glyph": "arrow_forward_rounded",
+    "new_semantic_name": "arrowForward",
+    "asset": "assets/icons/arrowForward.svg"
+  },
+  {
+    "existing_glyph": "arrow_upward_rounded",
+    "new_semantic_name": "arrowUp",
+    "asset": "assets/icons/arrowUp.svg"
+  },
+  {
+    "existing_glyph": "auto_awesome_rounded",
+    "new_semantic_name": "ai",
+    "asset": "assets/icons/ai.svg"
+  },
+  {
+    "existing_glyph": "auto_stories_rounded",
+    "new_semantic_name": "weekByWeek",
+    "asset": "assets/icons/weekByWeek.svg"
+  },
+  {
+    "existing_glyph": "autorenew_rounded",
+    "new_semantic_name": "cycle",
+    "asset": "assets/icons/cycle.svg"
+  },
+  {
+    "existing_glyph": "bar_chart_rounded",
+    "new_semantic_name": "chart",
+    "asset": "assets/icons/chart.svg"
+  },
+  {
+    "existing_glyph": "battery_2_bar_rounded",
+    "new_semantic_name": "battery",
+    "asset": "assets/icons/battery.svg"
+  },
+  {
+    "existing_glyph": "bedtime_off_outlined",
+    "new_semantic_name": "moonOff",
+    "asset": "assets/icons/moonOff.svg"
+  },
+  {
+    "existing_glyph": "bedtime_rounded",
+    "new_semantic_name": "moodSleepy",
+    "asset": "assets/icons/moodSleepy.svg"
+  },
+  {
+    "existing_glyph": "biotech_rounded",
+    "new_semantic_name": "microscope",
+    "asset": "assets/icons/microscope.svg"
+  },
+  {
+    "existing_glyph": "block_rounded",
+    "new_semantic_name": "blocked",
+    "asset": "assets/icons/blocked.svg"
+  },
+  {
+    "existing_glyph": "bloodtype_rounded",
+    "new_semantic_name": "bloodTest",
+    "asset": "assets/icons/bloodTest.svg"
+  },
+  {
+    "existing_glyph": "blur_circular_rounded",
+    "new_semantic_name": "spotting",
+    "asset": "assets/icons/spotting.svg"
+  },
+  {
+    "existing_glyph": "blur_on_rounded",
+    "new_semantic_name": "spotting",
+    "asset": "assets/icons/spotting.svg"
+  },
+  {
+    "existing_glyph": "bolt_rounded",
+    "new_semantic_name": "energy",
+    "asset": "assets/icons/energy.svg"
+  },
+  {
+    "existing_glyph": "bookmark_add_rounded",
+    "new_semantic_name": "bookmark",
+    "asset": "assets/icons/bookmark.svg"
+  },
+  {
+    "existing_glyph": "bookmark_border_rounded",
+    "new_semantic_name": "bookmark",
+    "asset": "assets/icons/bookmark.svg"
+  },
+  {
+    "existing_glyph": "bookmark_remove_rounded",
+    "new_semantic_name": "bookmark",
+    "asset": "assets/icons/bookmark.svg"
+  },
+  {
+    "existing_glyph": "bookmark_rounded",
+    "new_semantic_name": "bookmark",
+    "asset": "assets/icons/bookmark.svg"
+  },
+  {
+    "existing_glyph": "bubble_chart_rounded",
+    "new_semantic_name": "bloating",
+    "asset": "assets/icons/bloating.svg"
+  },
+  {
+    "existing_glyph": "calendar_month_outlined",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "calendar_month_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "calendar_today_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "calendar_view_month_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "calendar_view_week_rounded",
+    "new_semantic_name": "calendarRange",
+    "asset": "assets/icons/calendarRange.svg"
+  },
+  {
+    "existing_glyph": "cancel_rounded",
+    "new_semantic_name": "close",
+    "asset": "assets/icons/close.svg"
+  },
+  {
+    "existing_glyph": "celebration_rounded",
+    "new_semantic_name": "moodExcited",
+    "asset": "assets/icons/moodExcited.svg"
+  },
+  {
+    "existing_glyph": "center_focus_strong_rounded",
+    "new_semantic_name": "moodFocused",
+    "asset": "assets/icons/moodFocused.svg"
+  },
+  {
+    "existing_glyph": "check_circle_rounded",
+    "new_semantic_name": "success",
+    "asset": "assets/icons/success.svg"
+  },
+  {
+    "existing_glyph": "check_rounded",
+    "new_semantic_name": "check",
+    "asset": "assets/icons/check.svg"
+  },
+  {
+    "existing_glyph": "chevron_left_rounded",
+    "new_semantic_name": "back",
+    "asset": "assets/icons/back.svg"
+  },
+  {
+    "existing_glyph": "chevron_right_rounded",
+    "new_semantic_name": "forward",
+    "asset": "assets/icons/forward.svg"
+  },
+  {
+    "existing_glyph": "child_care_rounded",
+    "new_semantic_name": "kicks",
+    "asset": "assets/icons/kicks.svg"
+  },
+  {
+    "existing_glyph": "circle_outlined",
+    "new_semantic_name": "circle",
+    "asset": "assets/icons/circle.svg"
+  },
+  {
+    "existing_glyph": "close_rounded",
+    "new_semantic_name": "close",
+    "asset": "assets/icons/close.svg"
+  },
+  {
+    "existing_glyph": "cloud_off_rounded",
+    "new_semantic_name": "cloudOff",
+    "asset": "assets/icons/cloudOff.svg"
+  },
+  {
+    "existing_glyph": "compare_arrows_rounded",
+    "new_semantic_name": "compare",
+    "asset": "assets/icons/compare.svg"
+  },
+  {
+    "existing_glyph": "content_paste_rounded",
+    "new_semantic_name": "copy",
+    "asset": "assets/icons/copy.svg"
+  },
+  {
+    "existing_glyph": "cookie_outlined",
+    "new_semantic_name": "cookie",
+    "asset": "assets/icons/cookie.svg"
+  },
+  {
+    "existing_glyph": "copy_rounded",
+    "new_semantic_name": "copy",
+    "asset": "assets/icons/copy.svg"
+  },
+  {
+    "existing_glyph": "cruelty_free_rounded",
+    "new_semantic_name": "petBunny",
+    "asset": "assets/icons/petBunny.svg"
+  },
+  {
+    "existing_glyph": "cyclone_rounded",
+    "new_semantic_name": "moodAnxious",
+    "asset": "assets/icons/moodAnxious.svg"
+  },
+  {
+    "existing_glyph": "date_range_rounded",
+    "new_semantic_name": "calendarRange",
+    "asset": "assets/icons/calendarRange.svg"
+  },
+  {
+    "existing_glyph": "delete_forever_rounded",
+    "new_semantic_name": "trash",
+    "asset": "assets/icons/trash.svg"
+  },
+  {
+    "existing_glyph": "delete_outline_rounded",
+    "new_semantic_name": "trash",
+    "asset": "assets/icons/trash.svg"
+  },
+  {
+    "existing_glyph": "description_rounded",
+    "new_semantic_name": "document",
+    "asset": "assets/icons/document.svg"
+  },
+  {
+    "existing_glyph": "do_not_disturb_on_outlined",
+    "new_semantic_name": "methodNone",
+    "asset": "assets/icons/methodNone.svg"
+  },
+  {
+    "existing_glyph": "donut_large_rounded",
+    "new_semantic_name": "cycle",
+    "asset": "assets/icons/cycle.svg"
+  },
+  {
+    "existing_glyph": "eco_rounded",
+    "new_semantic_name": "goalConceive",
+    "asset": "assets/icons/goalConceive.svg"
+  },
+  {
+    "existing_glyph": "edit_calendar_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "edit_note_rounded",
+    "new_semantic_name": "notes",
+    "asset": "assets/icons/notes.svg"
+  },
+  {
+    "existing_glyph": "edit_rounded",
+    "new_semantic_name": "notes",
+    "asset": "assets/icons/notes.svg"
+  },
+  {
+    "existing_glyph": "egg_alt_rounded",
+    "new_semantic_name": "egg",
+    "asset": "assets/icons/egg.svg"
+  },
+  {
+    "existing_glyph": "emoji_events_rounded",
+    "new_semantic_name": "trophy",
+    "asset": "assets/icons/trophy.svg"
+  },
+  {
+    "existing_glyph": "emoji_nature_rounded",
+    "new_semantic_name": "petBear",
+    "asset": "assets/icons/petBear.svg"
+  },
+  {
+    "existing_glyph": "error_outline_rounded",
+    "new_semantic_name": "warning",
+    "asset": "assets/icons/warning.svg"
+  },
+  {
+    "existing_glyph": "error_rounded",
+    "new_semantic_name": "warning",
+    "asset": "assets/icons/warning.svg"
+  },
+  {
+    "existing_glyph": "event_available_rounded",
+    "new_semantic_name": "appointment",
+    "asset": "assets/icons/appointment.svg"
+  },
+  {
+    "existing_glyph": "event_busy_rounded",
+    "new_semantic_name": "calendarOff",
+    "asset": "assets/icons/calendarOff.svg"
+  },
+  {
+    "existing_glyph": "event_note_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "event_repeat_rounded",
+    "new_semantic_name": "calendarRange",
+    "asset": "assets/icons/calendarRange.svg"
+  },
+  {
+    "existing_glyph": "event_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "expand_less_rounded",
+    "new_semantic_name": "up",
+    "asset": "assets/icons/up.svg"
+  },
+  {
+    "existing_glyph": "expand_more_rounded",
+    "new_semantic_name": "down",
+    "asset": "assets/icons/down.svg"
+  },
+  {
+    "existing_glyph": "explore_outlined",
+    "new_semantic_name": "compass",
+    "asset": "assets/icons/compass.svg"
+  },
+  {
+    "existing_glyph": "explore_rounded",
+    "new_semantic_name": "compass",
+    "asset": "assets/icons/compass.svg"
+  },
+  {
+    "existing_glyph": "extension_rounded",
+    "new_semantic_name": "methodOther",
+    "asset": "assets/icons/methodOther.svg"
+  },
+  {
+    "existing_glyph": "face_retouching_natural_rounded",
+    "new_semantic_name": "face",
+    "asset": "assets/icons/face.svg"
+  },
+  {
+    "existing_glyph": "favorite_border_rounded",
+    "new_semantic_name": "partner",
+    "asset": "assets/icons/partner.svg"
+  },
+  {
+    "existing_glyph": "favorite_rounded",
+    "new_semantic_name": "home",
+    "asset": "assets/icons/home.svg"
+  },
+  {
+    "existing_glyph": "filter_alt_off_rounded",
+    "new_semantic_name": "filterOff",
+    "asset": "assets/icons/filterOff.svg"
+  },
+  {
+    "existing_glyph": "fingerprint_rounded",
+    "new_semantic_name": "fingerprint",
+    "asset": "assets/icons/fingerprint.svg"
+  },
+  {
+    "existing_glyph": "fitness_center_rounded",
+    "new_semantic_name": "exercise",
+    "asset": "assets/icons/exercise.svg"
+  },
+  {
+    "existing_glyph": "flag_rounded",
+    "new_semantic_name": "flag",
+    "asset": "assets/icons/flag.svg"
+  },
+  {
+    "existing_glyph": "format_quote_rounded",
+    "new_semantic_name": "quote",
+    "asset": "assets/icons/quote.svg"
+  },
+  {
+    "existing_glyph": "forum_rounded",
+    "new_semantic_name": "chat",
+    "asset": "assets/icons/chat.svg"
+  },
+  {
+    "existing_glyph": "gavel_rounded",
+    "new_semantic_name": "gavel",
+    "asset": "assets/icons/gavel.svg"
+  },
+  {
+    "existing_glyph": "grid_view_rounded",
+    "new_semantic_name": "methodOther",
+    "asset": "assets/icons/methodOther.svg"
+  },
+  {
+    "existing_glyph": "healing_rounded",
+    "new_semantic_name": "patch",
+    "asset": "assets/icons/patch.svg"
+  },
+  {
+    "existing_glyph": "health_and_safety_outlined",
+    "new_semantic_name": "shield",
+    "asset": "assets/icons/shield.svg"
+  },
+  {
+    "existing_glyph": "health_and_safety_rounded",
+    "new_semantic_name": "shield",
+    "asset": "assets/icons/shield.svg"
+  },
+  {
+    "existing_glyph": "heart_fill",
+    "new_semantic_name": "cuddle",
+    "asset": "assets/icons/cuddle.svg"
+  },
+  {
+    "existing_glyph": "help_outline_rounded",
+    "new_semantic_name": "help",
+    "asset": "assets/icons/help.svg"
+  },
+  {
+    "existing_glyph": "hexagon_rounded",
+    "new_semantic_name": "copperIud",
+    "asset": "assets/icons/copperIud.svg"
+  },
+  {
+    "existing_glyph": "hourglass_bottom_rounded",
+    "new_semantic_name": "hourglass",
+    "asset": "assets/icons/hourglass.svg"
+  },
+  {
+    "existing_glyph": "hub_rounded",
+    "new_semantic_name": "hub",
+    "asset": "assets/icons/hub.svg"
+  },
+  {
+    "existing_glyph": "info_outline_rounded",
+    "new_semantic_name": "info",
+    "asset": "assets/icons/info.svg"
+  },
+  {
+    "existing_glyph": "info_rounded",
+    "new_semantic_name": "info",
+    "asset": "assets/icons/info.svg"
+  },
+  {
+    "existing_glyph": "insights_outlined",
+    "new_semantic_name": "insights",
+    "asset": "assets/icons/insights.svg"
+  },
+  {
+    "existing_glyph": "insights_rounded",
+    "new_semantic_name": "insights",
+    "asset": "assets/icons/insights.svg"
+  },
+  {
+    "existing_glyph": "inventory_2_rounded",
+    "new_semantic_name": "box",
+    "asset": "assets/icons/box.svg"
+  },
+  {
+    "existing_glyph": "ios_share_rounded",
+    "new_semantic_name": "share",
+    "asset": "assets/icons/share.svg"
+  },
+  {
+    "existing_glyph": "key_rounded",
+    "new_semantic_name": "key",
+    "asset": "assets/icons/key.svg"
+  },
+  {
+    "existing_glyph": "label_outline_rounded",
+    "new_semantic_name": "tag",
+    "asset": "assets/icons/tag.svg"
+  },
+  {
+    "existing_glyph": "lightbulb_rounded",
+    "new_semantic_name": "bulb",
+    "asset": "assets/icons/bulb.svg"
+  },
+  {
+    "existing_glyph": "linear_scale_rounded",
+    "new_semantic_name": "implant",
+    "asset": "assets/icons/implant.svg"
+  },
+  {
+    "existing_glyph": "link_off_rounded",
+    "new_semantic_name": "linkOff",
+    "asset": "assets/icons/linkOff.svg"
+  },
+  {
+    "existing_glyph": "list_alt_rounded",
+    "new_semantic_name": "list",
+    "asset": "assets/icons/list.svg"
+  },
+  {
+    "existing_glyph": "local_drink_rounded",
+    "new_semantic_name": "water",
+    "asset": "assets/icons/water.svg"
+  },
+  {
+    "existing_glyph": "local_fire_department_outlined",
+    "new_semantic_name": "streak",
+    "asset": "assets/icons/streak.svg"
+  },
+  {
+    "existing_glyph": "local_fire_department_rounded",
+    "new_semantic_name": "streak",
+    "asset": "assets/icons/streak.svg"
+  },
+  {
+    "existing_glyph": "local_library_rounded",
+    "new_semantic_name": "library",
+    "asset": "assets/icons/library.svg"
+  },
+  {
+    "existing_glyph": "lock_open_rounded",
+    "new_semantic_name": "unlock",
+    "asset": "assets/icons/unlock.svg"
+  },
+  {
+    "existing_glyph": "lock_outline_rounded",
+    "new_semantic_name": "privacy",
+    "asset": "assets/icons/privacy.svg"
+  },
+  {
+    "existing_glyph": "lock_rounded",
+    "new_semantic_name": "privacy",
+    "asset": "assets/icons/privacy.svg"
+  },
+  {
+    "existing_glyph": "logout_rounded",
+    "new_semantic_name": "logout",
+    "asset": "assets/icons/logout.svg"
+  },
+  {
+    "existing_glyph": "loop_rounded",
+    "new_semantic_name": "cycle",
+    "asset": "assets/icons/cycle.svg"
+  },
+  {
+    "existing_glyph": "mail_outline_rounded",
+    "new_semantic_name": "mail",
+    "asset": "assets/icons/mail.svg"
+  },
+  {
+    "existing_glyph": "medical_information_rounded",
+    "new_semantic_name": "conditions",
+    "asset": "assets/icons/conditions.svg"
+  },
+  {
+    "existing_glyph": "medical_services_rounded",
+    "new_semantic_name": "clinician",
+    "asset": "assets/icons/clinician.svg"
+  },
+  {
+    "existing_glyph": "medication_liquid_rounded",
+    "new_semantic_name": "progestinPill",
+    "asset": "assets/icons/progestinPill.svg"
+  },
+  {
+    "existing_glyph": "medication_rounded",
+    "new_semantic_name": "pill",
+    "asset": "assets/icons/pill.svg"
+  },
+  {
+    "existing_glyph": "menu_book_rounded",
+    "new_semantic_name": "article",
+    "asset": "assets/icons/article.svg"
+  },
+  {
+    "existing_glyph": "monitor_heart_rounded",
+    "new_semantic_name": "symptoms",
+    "asset": "assets/icons/symptoms.svg"
+  },
+  {
+    "existing_glyph": "monitor_weight_rounded",
+    "new_semantic_name": "weight",
+    "asset": "assets/icons/weight.svg"
+  },
+  {
+    "existing_glyph": "mood_rounded",
+    "new_semantic_name": "moodEnergetic",
+    "asset": "assets/icons/moodEnergetic.svg"
+  },
+  {
+    "existing_glyph": "my_location_rounded",
+    "new_semantic_name": "goalTrack",
+    "asset": "assets/icons/goalTrack.svg"
+  },
+  {
+    "existing_glyph": "nightlight_round",
+    "new_semantic_name": "sleep",
+    "asset": "assets/icons/sleep.svg"
+  },
+  {
+    "existing_glyph": "nights_stay_rounded",
+    "new_semantic_name": "goalPerimenopause",
+    "asset": "assets/icons/goalPerimenopause.svg"
+  },
+  {
+    "existing_glyph": "north_east_rounded",
+    "new_semantic_name": "external",
+    "asset": "assets/icons/external.svg"
+  },
+  {
+    "existing_glyph": "notifications_active_rounded",
+    "new_semantic_name": "reminders",
+    "asset": "assets/icons/reminders.svg"
+  },
+  {
+    "existing_glyph": "notifications_off_rounded",
+    "new_semantic_name": "bellOff",
+    "asset": "assets/icons/bellOff.svg"
+  },
+  {
+    "existing_glyph": "notifications_paused_rounded",
+    "new_semantic_name": "bellPause",
+    "asset": "assets/icons/bellPause.svg"
+  },
+  {
+    "existing_glyph": "opacity_rounded",
+    "new_semantic_name": "discharge",
+    "asset": "assets/icons/discharge.svg"
+  },
+  {
+    "existing_glyph": "open_in_new_rounded",
+    "new_semantic_name": "external",
+    "asset": "assets/icons/external.svg"
+  },
+  {
+    "existing_glyph": "people_alt_rounded",
+    "new_semantic_name": "partnerPair",
+    "asset": "assets/icons/partnerPair.svg"
+  },
+  {
+    "existing_glyph": "people_rounded",
+    "new_semantic_name": "partnerPair",
+    "asset": "assets/icons/partnerPair.svg"
+  },
+  {
+    "existing_glyph": "person_outline_rounded",
+    "new_semantic_name": "person",
+    "asset": "assets/icons/person.svg"
+  },
+  {
+    "existing_glyph": "person_rounded",
+    "new_semantic_name": "person",
+    "asset": "assets/icons/person.svg"
+  },
+  {
+    "existing_glyph": "pets_outlined",
+    "new_semantic_name": "paw",
+    "asset": "assets/icons/paw.svg"
+  },
+  {
+    "existing_glyph": "pets_rounded",
+    "new_semantic_name": "paw",
+    "asset": "assets/icons/paw.svg"
+  },
+  {
+    "existing_glyph": "picture_as_pdf_rounded",
+    "new_semantic_name": "pdf",
+    "asset": "assets/icons/pdf.svg"
+  },
+  {
+    "existing_glyph": "pin_rounded",
+    "new_semantic_name": "pin",
+    "asset": "assets/icons/pin.svg"
+  },
+  {
+    "existing_glyph": "pregnant_woman_rounded",
+    "new_semantic_name": "goalPregnancy",
+    "asset": "assets/icons/goalPregnancy.svg"
+  },
+  {
+    "existing_glyph": "psychology_rounded",
+    "new_semantic_name": "headache",
+    "asset": "assets/icons/headache.svg"
+  },
+  {
+    "existing_glyph": "qr_code_2_rounded",
+    "new_semantic_name": "qr",
+    "asset": "assets/icons/qr.svg"
+  },
+  {
+    "existing_glyph": "radio_button_unchecked_rounded",
+    "new_semantic_name": "ring",
+    "asset": "assets/icons/ring.svg"
+  },
+  {
+    "existing_glyph": "refresh_rounded",
+    "new_semantic_name": "cycle",
+    "asset": "assets/icons/cycle.svg"
+  },
+  {
+    "existing_glyph": "remove_circle_outline_rounded",
+    "new_semantic_name": "methodNone",
+    "asset": "assets/icons/methodNone.svg"
+  },
+  {
+    "existing_glyph": "remove_rounded",
+    "new_semantic_name": "methodNone",
+    "asset": "assets/icons/methodNone.svg"
+  },
+  {
+    "existing_glyph": "repeat_rounded",
+    "new_semantic_name": "cycle",
+    "asset": "assets/icons/cycle.svg"
+  },
+  {
+    "existing_glyph": "report_gmailerrorred_rounded",
+    "new_semantic_name": "warning",
+    "asset": "assets/icons/warning.svg"
+  },
+  {
+    "existing_glyph": "restaurant_rounded",
+    "new_semantic_name": "feed",
+    "asset": "assets/icons/feed.svg"
+  },
+  {
+    "existing_glyph": "restore_rounded",
+    "new_semantic_name": "undo",
+    "asset": "assets/icons/undo.svg"
+  },
+  {
+    "existing_glyph": "schedule_rounded",
+    "new_semantic_name": "clock",
+    "asset": "assets/icons/clock.svg"
+  },
+  {
+    "existing_glyph": "school_rounded",
+    "new_semantic_name": "school",
+    "asset": "assets/icons/school.svg"
+  },
+  {
+    "existing_glyph": "science_rounded",
+    "new_semantic_name": "science",
+    "asset": "assets/icons/science.svg"
+  },
+  {
+    "existing_glyph": "search_rounded",
+    "new_semantic_name": "search",
+    "asset": "assets/icons/search.svg"
+  },
+  {
+    "existing_glyph": "self_improvement_rounded",
+    "new_semantic_name": "wellbeing",
+    "asset": "assets/icons/wellbeing.svg"
+  },
+  {
+    "existing_glyph": "sentiment_dissatisfied_rounded",
+    "new_semantic_name": "moodIrritable",
+    "asset": "assets/icons/moodIrritable.svg"
+  },
+  {
+    "existing_glyph": "sentiment_neutral_rounded",
+    "new_semantic_name": "moodNeutral",
+    "asset": "assets/icons/moodNeutral.svg"
+  },
+  {
+    "existing_glyph": "sentiment_satisfied_rounded",
+    "new_semantic_name": "moodCalm",
+    "asset": "assets/icons/moodCalm.svg"
+  },
+  {
+    "existing_glyph": "sentiment_very_dissatisfied_rounded",
+    "new_semantic_name": "moodSad",
+    "asset": "assets/icons/moodSad.svg"
+  },
+  {
+    "existing_glyph": "sentiment_very_satisfied_rounded",
+    "new_semantic_name": "moodHappy",
+    "asset": "assets/icons/moodHappy.svg"
+  },
+  {
+    "existing_glyph": "settings_rounded",
+    "new_semantic_name": "settings",
+    "asset": "assets/icons/settings.svg"
+  },
+  {
+    "existing_glyph": "shield_rounded",
+    "new_semantic_name": "condom",
+    "asset": "assets/icons/condom.svg"
+  },
+  {
+    "existing_glyph": "show_chart_rounded",
+    "new_semantic_name": "insights",
+    "asset": "assets/icons/insights.svg"
+  },
+  {
+    "existing_glyph": "sick_outlined",
+    "new_semantic_name": "sick",
+    "asset": "assets/icons/sick.svg"
+  },
+  {
+    "existing_glyph": "spa_outlined",
+    "new_semantic_name": "basics",
+    "asset": "assets/icons/basics.svg"
+  },
+  {
+    "existing_glyph": "spa_rounded",
+    "new_semantic_name": "basics",
+    "asset": "assets/icons/basics.svg"
+  },
+  {
+    "existing_glyph": "speed_rounded",
+    "new_semantic_name": "gauge",
+    "asset": "assets/icons/gauge.svg"
+  },
+  {
+    "existing_glyph": "star_rounded",
+    "new_semantic_name": "star",
+    "asset": "assets/icons/star.svg"
+  },
+  {
+    "existing_glyph": "sticky_note_2_rounded",
+    "new_semantic_name": "notes",
+    "asset": "assets/icons/notes.svg"
+  },
+  {
+    "existing_glyph": "straighten_rounded",
+    "new_semantic_name": "ruler",
+    "asset": "assets/icons/ruler.svg"
+  },
+  {
+    "existing_glyph": "sync_rounded",
+    "new_semantic_name": "cycle",
+    "asset": "assets/icons/cycle.svg"
+  },
+  {
+    "existing_glyph": "thermostat_rounded",
+    "new_semantic_name": "naturalFamily",
+    "asset": "assets/icons/naturalFamily.svg"
+  },
+  {
+    "existing_glyph": "timeline_rounded",
+    "new_semantic_name": "insights",
+    "asset": "assets/icons/insights.svg"
+  },
+  {
+    "existing_glyph": "today_rounded",
+    "new_semantic_name": "calendar",
+    "asset": "assets/icons/calendar.svg"
+  },
+  {
+    "existing_glyph": "track_changes_rounded",
+    "new_semantic_name": "goalTrack",
+    "asset": "assets/icons/goalTrack.svg"
+  },
+  {
+    "existing_glyph": "tune_rounded",
+    "new_semantic_name": "sliders",
+    "asset": "assets/icons/sliders.svg"
+  },
+  {
+    "existing_glyph": "undo_rounded",
+    "new_semantic_name": "undo",
+    "asset": "assets/icons/undo.svg"
+  },
+  {
+    "existing_glyph": "vaccines_rounded",
+    "new_semantic_name": "injection",
+    "asset": "assets/icons/injection.svg"
+  },
+  {
+    "existing_glyph": "verified_user_rounded",
+    "new_semantic_name": "shield",
+    "asset": "assets/icons/shield.svg"
+  },
+  {
+    "existing_glyph": "vibration_rounded",
+    "new_semantic_name": "vibrate",
+    "asset": "assets/icons/vibrate.svg"
+  },
+  {
+    "existing_glyph": "visibility_off_outlined",
+    "new_semantic_name": "eyeOff",
+    "asset": "assets/icons/eyeOff.svg"
+  },
+  {
+    "existing_glyph": "visibility_off_rounded",
+    "new_semantic_name": "eyeOff",
+    "asset": "assets/icons/eyeOff.svg"
+  },
+  {
+    "existing_glyph": "visibility_outlined",
+    "new_semantic_name": "eye",
+    "asset": "assets/icons/eye.svg"
+  },
+  {
+    "existing_glyph": "visibility_rounded",
+    "new_semantic_name": "eye",
+    "asset": "assets/icons/eye.svg"
+  },
+  {
+    "existing_glyph": "warning_amber_rounded",
+    "new_semantic_name": "warning",
+    "asset": "assets/icons/warning.svg"
+  },
+  {
+    "existing_glyph": "warning_rounded",
+    "new_semantic_name": "warning",
+    "asset": "assets/icons/warning.svg"
+  },
+  {
+    "existing_glyph": "water_drop_outlined",
+    "new_semantic_name": "flow",
+    "asset": "assets/icons/flow.svg"
+  },
+  {
+    "existing_glyph": "water_drop_rounded",
+    "new_semantic_name": "flow",
+    "asset": "assets/icons/flow.svg"
+  },
+  {
+    "existing_glyph": "waves_rounded",
+    "new_semantic_name": "waves",
+    "asset": "assets/icons/waves.svg"
+  },
+  {
+    "existing_glyph": "wb_sunny_rounded",
+    "new_semantic_name": "ovulation",
+    "asset": "assets/icons/ovulation.svg"
+  },
+  {
+    "existing_glyph": "workspace_premium_rounded",
+    "new_semantic_name": "medal",
+    "asset": "assets/icons/medal.svg"
+  }
+]

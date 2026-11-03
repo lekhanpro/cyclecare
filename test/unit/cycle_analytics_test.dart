@@ -25,7 +25,9 @@ void main() {
     int daysBeforeAnchor, {
     List<String> symptoms = const [],
     String? mood,
-    int pain = 0,
+    // Null = no rating recorded. Schema 1 used 0 for that; 0 now means an
+    // explicit "no pain", so the helper default changes with the model.
+    int? pain,
     double? temperature,
     double? weight,
   }) {
@@ -211,7 +213,8 @@ void main() {
         periods: [period(14)],
         logs: [
           for (final entry in temperatures.entries)
-            log(entry.key, temperature: entry.value),
+            log(entry.key, temperature: entry.value)
+                .copyWith(temperatureContext: const ['Usual conditions']),
         ],
         preferences: prefs,
       );
@@ -243,7 +246,8 @@ void main() {
         periods: [period(14)],
         logs: [
           for (final entry in temperatures.entries)
-            log(entry.key, temperature: entry.value),
+            log(entry.key, temperature: entry.value)
+                .copyWith(temperatureContext: const ['Usual conditions']),
         ],
         preferences: prefs,
       );

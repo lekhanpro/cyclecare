@@ -287,6 +287,11 @@ class _AppLockScreenState extends ConsumerState<AppLockScreen>
   Widget _lockSurface(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
+    // Deliberately *not* given the saturated hero treatment the rest of the
+    // app now uses. This surface is a door, not a dashboard: it should read as
+    // the app withholding itself, and a lock screen that looks as inviting as
+    // the home screen undercuts the one thing it exists to communicate. The
+    // craft here goes into the badge, the type and the field instead.
     return Scaffold(
       backgroundColor: context.canvasColor,
       body: SafeArea(
@@ -319,6 +324,9 @@ class _AppLockScreenState extends ConsumerState<AppLockScreen>
                           offsetY: AppSpacing.md,
                           child: Column(
                             children: [
+                              // The badge is the one piece of depth on the
+                              // screen: a tinted disc lifted off the page, so
+                              // the eye lands on the lock before the field.
                               Container(
                                 width: _badgeSize,
                                 height: _badgeSize,
@@ -328,9 +336,18 @@ class _AppLockScreenState extends ConsumerState<AppLockScreen>
                                     context.isDark ? 0.22 : 0.12,
                                   ),
                                   shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: context.accentColor.withOpacity(
+                                      context.isDark ? 0.30 : 0.18,
+                                    ),
+                                    width: AppStrokes.hairline,
+                                  ),
+                                  boxShadow: AppElevation.low(context.isDark),
                                 ),
                                 child: Icon(
-                                  Icons.lock_rounded,
+                                  _biometricPath
+                                      ? Icons.fingerprint_rounded
+                                      : AppIcons.privacy,
                                   size: AppSpacing.xxxl,
                                   color: context.accentColor,
                                 ),
