@@ -71,6 +71,10 @@ Future<LineChartData> _chart(WidgetTester tester, {bool single = false}) async {
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
+  await tester.ensureVisible(find.text('Body signals'));
+  await tester.tap(find.text('Body signals'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 800));
   return tester
       .widgetList<LineChart>(find.byType(LineChart))
       .singleWhere(

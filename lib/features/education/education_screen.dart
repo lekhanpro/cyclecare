@@ -393,7 +393,9 @@ class _ArticleCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   article.summary,
-                  maxLines: 2,
+                  maxLines: MediaQuery.textScalerOf(context).scale(14) > 20
+                      ? 2
+                      : 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12.5,

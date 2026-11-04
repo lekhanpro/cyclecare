@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'ai_connection.dart';
 
 import '../../core/services/ai_service.dart';
 import '../../core/services/haptics.dart';
@@ -55,7 +57,11 @@ class ChatMessage {
 // ─── AI service provider ──────────────────────────────────────────────────────
 final aiServiceProvider = Provider<AIService>((ref) {
   return AIService(
-    client: const UnavailableAIClient(),
+    client: switch (ref.watch(aiConnectionProvider).valueOrNull?.provider) {
+      AssistantProvider.gemini || AssistantProvider.compatible =>
+        ConnectedAIClient(ref.watch(aiConnectionProvider).requireValue),
+      _ => const LibraryAIClient(),
+    },
     contextBuilder: const AIContextBuilder(),
   );
 });
@@ -155,7 +161,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
       // Withheld at the call site, not just behind the service's own flag.
       // Cycle history and daily logs do not leave this widget unless the switch
       // above is on, so there is no path where a future refactor leaks them.
-      final sharing = _shareCycleData;
+      final sharing = _shareCycleData && aiService.client is! LibraryAIClient;
 
       final response = await aiService.ask(
         question: question,
@@ -218,8 +224,12 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   Widget build(BuildContext context) {
     final accent = context.accentColor;
     final available = _isConfigured(ref.watch(aiServiceProvider));
+    final offline = ref.watch(aiServiceProvider).client is LibraryAIClient;
 
-    final header = _ChatHeader(
+    final header = offline ? const Padding(
+      padding: EdgeInsets.only(bottom: 16),
+      child: Text('Offline article excerpts · not generative AI. Your question and records stay on this phone.'),
+    ) : _ChatHeader(
       sharing: _shareCycleData,
       // A null callback is what switches the control off, so the card never has
       // to be told twice that the assistant is unavailable.
@@ -247,15 +257,19 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            const Flexible(
+            Flexible(
               child: Text(
-                'CycleCare AI',
+                ref.watch(aiServiceProvider).client is LibraryAIClient
+                    ? 'Learning helper' : 'CycleCare AI',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
+        actions: [IconButton(tooltip: 'Assistant connection',
+          onPressed: () => context.push('/ai-connection'),
+          icon: const Icon(Icons.settings_outlined))],
       ),
       // The bar overlays the conversation rather than sitting in a column
       // beside it, and that is what makes it glass rather than a grey strip.
@@ -283,6 +297,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                             header: header,
                             suggestions: _suggestions,
                             available: available,
+                            offline: offline,
                             gutter: gutter,
                             bottomInset: bottom,
                             onPick: _send,
@@ -595,11 +610,13 @@ class _ChatIntro extends StatelessWidget {
     required this.gutter,
     required this.bottomInset,
     required this.onPick,
+    this.offline = false,
   });
 
   final Widget header;
   final List<(IconData, String)> suggestions;
   final bool available;
+  final bool offline;
   final double gutter;
 
   /// Clearance for the floating input bar, which overlays this list.
@@ -619,11 +636,11 @@ class _ChatIntro extends StatelessWidget {
       children: [
         header,
         if (available)
-          const EmptyState(
+          EmptyState(
             icon: AppIcons.ai,
-            title: 'Ask me anything about your cycle',
-            message: 'Periods, hormones, fertility, symptoms, sleep — plain '
-                'answers, no jargon. I explain things; I do not diagnose them.',
+            title: offline ? 'Find an answer in Learn' : 'Ask about your cycle',
+            message: offline ? 'Search the sourced articles on your device, or connect your own AI provider in the toolbar.'
+              : 'Periods, fertility, symptoms and sleep — educational explanations, not diagnoses.',
           )
         else
           const _NotSetUpCard(),

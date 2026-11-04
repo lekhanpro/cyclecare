@@ -7,6 +7,8 @@ import '../../core/theme/cyclecare_theme.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
 import 'app_lock_screen.dart';
 import '../reminders/application/reminders_controller.dart';
+import '../tour/feature_tour.dart';
+import '../partner/application/partner_live_controller.dart';
 
 class CycleCareApp extends ConsumerWidget {
   const CycleCareApp({super.key});
@@ -41,7 +43,8 @@ class CycleCareApp extends ConsumerWidget {
 
         Widget app = MotionScope(
           reduced: reduced,
-          child: AppLockScreen(child: child ?? const SizedBox.shrink()),
+          child: AppLockScreen(child: PartnerSyncBoundary(child: FeatureTourHost(
+            router: router, child: child ?? const SizedBox.shrink()))),
         );
         if (media != null && media.disableAnimations != reduced) {
           app = MediaQuery(
@@ -49,7 +52,17 @@ class CycleCareApp extends ConsumerWidget {
             child: app,
           );
         }
-        return app;
+        // One horizontal viewport contract for every route, including pushed
+        // settings/readers and dialogs. SafeArea removes the consumed insets
+        // from descendants, so page gutters cannot count a cutout twice.
+        return SafeArea(
+          top: false,
+          bottom: false,
+          child: SizedBox.expand(
+            key: const ValueKey('app-safe-viewport'),
+            child: app,
+          ),
+        );
       },
     );
   }

@@ -180,7 +180,7 @@ class _Condition {
 
   final _Tone tone;
 
-  /// Always visible. The original leaflet copy, tightened.
+  /// Full overview, shown when the condition is opened.
   final String summary;
 
   /// Commonly reported signs. Deliberately phrased as "often", "may" — these
@@ -1074,10 +1074,8 @@ class _PinnedDisclaimer extends StatelessWidget {
                     icon: Icons.medical_information_rounded,
                     tone: AppColors.info,
                     message:
-                        'Educational information only. Nothing here is a '
-                        'diagnosis or a treatment recommendation — please talk '
-                        'to a qualified clinician about anything that concerns '
-                        'you.',
+                        'Educational only, not diagnosis or treatment. Talk to '
+                        'a clinician about concerns.',
                   ),
                 ),
               ),
@@ -1154,8 +1152,7 @@ class _ConditionsTab extends ConsumerWidget {
                       icon: Icons.edit_note_rounded,
                       title: 'Keep a pain diary',
                       subtitle:
-                          'Dated levels and locations you can hand to a '
-                          'clinician instead of describing pain from memory',
+                          'Record dates, levels and locations for your care team',
                       onTap: onOpenDiary,
                     ),
                   ),
@@ -1222,7 +1219,8 @@ class _ConditionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(condition.summary, style: _readingStyle(context)),
+                if (open)
+                  Text(condition.summary, style: _readingStyle(context)),
 
                 // Revealed with a fade and lift rather than an animated height:
                 // a card growing under its own rounded corners clips its border
@@ -1237,7 +1235,7 @@ class _ConditionCard extends StatelessWidget {
                       swatch: swatch,
                     ),
                   ),
-                const SizedBox(height: AppSpacing.lg),
+                if (open) const SizedBox(height: AppSpacing.lg),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: SelectableChip(

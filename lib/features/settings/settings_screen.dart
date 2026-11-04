@@ -13,6 +13,8 @@ import '../../core/theme/cyclecare_theme.dart';
 import '../../widgets/widgets.dart';
 import '../tracking/application/cycle_tracker_controller.dart';
 import '../tracking/domain/cycle_models.dart';
+import '../modes/mode_screens.dart';
+import '../partner/application/partner_live_controller.dart';
 import 'application/app_lock_controller.dart';
 import 'application/backup_service.dart';
 
@@ -56,7 +58,7 @@ import 'application/backup_service.dart';
 // they end up disagreeing.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const String _appVersion = '2.2.0';
+const String _appVersion = '2.3.0';
 
 /// Nominal body size, used only as a probe for the platform's text scaling.
 const double _scaleProbe = 14;
@@ -245,7 +247,7 @@ class _ProfileSection extends ConsumerWidget {
                     // A goal is never "unset" — tapping the active chip is a
                     // no-op rather than a write that clears it.
                     if (goal == preferences.goal) return;
-                    _savePreferences(ref, preferences.copyWith(goal: goal));
+                    showModeChange(context, ref, goal);
                   },
                 ),
             ],
@@ -458,9 +460,7 @@ class _AppearanceSection extends ConsumerWidget {
         // honours it even where the platform setting says otherwise.
         _ChoiceRow<AppMotionPreference>(
           label: 'Motion',
-          description: 'System follows your phone\u2019s reduce-motion '
-              'setting. Play allows CycleCare\u2019s gentle movement. Pause '
-              'removes it.',
+          description: 'Follow your phone, play, or pause animations.',
           segments: const {
             AppMotionPreference.system: 'System',
             AppMotionPreference.play: 'Play',
@@ -613,7 +613,7 @@ class _CalendarSection extends ConsumerWidget {
 
     return _SettingsGroup(
       title: 'Calendar & predictions',
-      subtitle: 'What the calendar draws, and the numbers behind it',
+      subtitle: 'Display & cycle settings',
       children: [
         _ChoiceRow<WeekStart>(
           label: 'Week starts on',
@@ -627,7 +627,7 @@ class _CalendarSection extends ConsumerWidget {
           icon: Icons.spa_rounded,
           accent: AppColors.fertile,
           title: 'Fertile window',
-          subtitle: 'Shade the days around predicted ovulation',
+          subtitle: 'Show estimated fertile days',
           value: settings.showFertileWindow,
           onChanged: notifier.setShowFertileWindow,
         ),
@@ -635,7 +635,7 @@ class _CalendarSection extends ConsumerWidget {
           icon: Icons.egg_alt_rounded,
           accent: AppColors.ovulation,
           title: 'Ovulation day',
-          subtitle: 'Mark the single most likely day',
+          subtitle: 'Show the estimated day',
           value: settings.showOvulation,
           onChanged: notifier.setShowOvulation,
         ),
@@ -703,9 +703,7 @@ class _NotificationsSection extends StatelessWidget {
         _NavRow(
           icon: Icons.notifications_active_rounded,
           title: 'Reminders',
-          subtitle:
-              'Period and ovulation nudges, pill time, daily check-ins, and '
-              'anything else you add',
+          subtitle: 'Cycle, pill & daily reminders',
           hint: 'Opens your reminders',
           onTap: () => context.push(AppRoutes.reminders),
         ),
@@ -750,7 +748,7 @@ class _SecuritySection extends ConsumerWidget {
         _SwitchRow(
           icon: Icons.vibration_rounded,
           title: 'Haptics',
-          subtitle: 'A small tap when something actually changes',
+          subtitle: 'Touch feedback',
           value: settings.hapticsEnabled,
           onChanged: notifier.setHaptics,
         ),
@@ -1070,25 +1068,43 @@ class _DataSectionState extends ConsumerState<_DataSection> {
     );
   }
 
-  /// The one irreversible action on this screen, so the dialog says so in as
-  /// many words: permanent, no undo, no server copy, nobody can restore it.
+  /// Revoke live access before deleting local tracking records.
   Future<void> _deleteEverything() async {
     final confirmed = await confirmAction(
       context,
-      title: 'Delete everything permanently?',
-      message: 'Every period, log, and setting on this device is erased for '
-          'good. This cannot be undone, there is no copy on a server, and '
-          'nobody — including support — can bring it back. Export a backup '
-          'first if you might want any of it later.',
+      title: 'Delete tracking records?',
+      message: 'This permanently deletes period dates, daily logs and cycle '
+          'preferences from this device. Active online partner access will be '
+          'revoked first. Copies already shared with someone cannot be recalled. '
+          'Other app data, such as the pain diary and companion, is retained. '
+          'Export a backup first if needed.',
       confirmLabel: 'Delete permanently',
     );
     if (!confirmed || !mounted) return;
 
-    await ref.read(cycleTrackerControllerProvider.notifier).deleteAllData();
+    try {
+      await ref.read(partnerLiveProvider.future);
+      final revoked = await ref.read(partnerLiveProvider.notifier)
+          .prepareForTrackingDeletion();
+      if (!mounted) return;
+      if (!revoked) {
+        showAppToast(context,
+          message: ref.read(partnerLiveProvider).valueOrNull?.error ??
+              'Could not stop partner sharing. Connect and retry; your records remain.',
+          kind: ToastKind.error);
+        return;
+      }
+      await ref.read(cycleTrackerControllerProvider.notifier).deleteAllData();
+    } catch (_) {
+      if (mounted) showAppToast(context,
+        message: 'Could not delete tracking records. Please retry.',
+        kind: ToastKind.error);
+      return;
+    }
     if (!mounted) return;
     showAppToast(
       context,
-      message: 'All data deleted',
+      message: 'Tracking records deleted',
       kind: ToastKind.info,
     );
   }
@@ -1097,18 +1113,18 @@ class _DataSectionState extends ConsumerState<_DataSection> {
   Widget build(BuildContext context) {
     return _SettingsGroup(
       title: 'Data',
-      subtitle: 'Everything is stored on this device only',
+      subtitle: 'Tracking is local; sharing is optional',
       children: [
         _NavRow(
           icon: AppIcons.chart,
           title: 'Cycle-health report',
-          subtitle: 'Choose records, preview, then share with your care team',
+          subtitle: 'Choose, preview & share records',
           onTap: () => context.push(AppRoutes.healthReport),
         ),
         _NavRow(
           icon: Icons.ios_share_rounded,
           title: 'Export my data',
-          subtitle: 'Share a full JSON copy — periods, logs and settings',
+          subtitle: 'Back up periods, daily logs & cycle settings',
           hint: 'Opens the share sheet',
           onTap: _exporting ? null : _export,
           accessory: _exporting
@@ -1130,10 +1146,10 @@ class _DataSectionState extends ConsumerState<_DataSection> {
         ),
         _NavRow(
           icon: Icons.delete_forever_rounded,
-          title: 'Delete all data',
-          subtitle: 'Erases every period, log and setting. Permanent.',
+          title: 'Delete tracking records',
+          subtitle: 'Permanently erases periods, daily logs and cycle preferences.',
           destructive: true,
-          hint: 'Asks you to confirm, then erases everything permanently',
+          hint: 'Asks you to confirm and stops online partner sharing first',
           onTap: _deleteEverything,
         ),
       ],
@@ -1358,6 +1374,23 @@ class _MoreSection extends StatelessWidget {
     return _SettingsGroup(
       title: 'More',
       children: [
+        _NavRow(
+          icon: AppIcons.compass,
+          title: 'My mode dashboard',
+          subtitle: 'Your current focus and tools',
+          onTap: () => context.push('/mode'),
+        ),
+        _NavRow(
+          icon: Icons.explore_outlined,
+          title: 'Feature tour',
+          subtitle: 'Start, resume or replay 10 steps',
+          onTap: () => context.push('/tour'),
+        ),
+        _NavRow(
+          icon: Icons.chat_bubble_outline_rounded,
+          title: 'Assistant connection',
+          onTap: () => context.push('/ai-connection'),
+        ),
         _NavRow(
           icon: Icons.pregnant_woman_rounded,
           title: 'Pregnancy',

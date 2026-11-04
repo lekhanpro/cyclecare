@@ -1,0 +1,6 @@
+{
+  "name": "cyclecare-partner-db-validation",
+  "private": true,
+  "scripts": { "test": "node validate.mjs" },
+  "devDependencies": { "@electric-sql/pglite": "0.5.15" }
+}

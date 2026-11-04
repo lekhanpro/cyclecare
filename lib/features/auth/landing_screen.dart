@@ -163,6 +163,11 @@ class LandingScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xl),
+                          TextButton.icon(
+                            onPressed: () => context.go('/partner-dashboard'),
+                            icon: const Icon(Icons.people_outline_rounded),
+                            label: const Text('I’m here as a partner'),
+                          ),
                           const Reveal(index: 6, child: _AccountFootnote()),
                         ],
                       ),

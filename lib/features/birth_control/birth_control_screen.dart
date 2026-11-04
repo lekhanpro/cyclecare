@@ -204,8 +204,11 @@ class _Body extends ConsumerWidget {
         const SizedBox(height: 22),
 
         if (method != BirthControlMethod.none) ...[
-          SectionHeader(title: 'About ${method.label.toLowerCase()}'),
-          Reveal(index: index++, child: _MethodDetailCard(method: method)),
+          ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+            title: Text('About ${method.label.toLowerCase()}'),
+            children: [_MethodDetailCard(method: method)],
+          ),
           const SizedBox(height: 14),
         ],
 
@@ -226,11 +229,9 @@ class _Body extends ConsumerWidget {
             icon: Icons.health_and_safety_rounded,
             title: 'Educational information only',
             message:
-                'CycleCare tracks what you record and describes methods in general '
-                'terms. It does not give medical advice, and nothing here replaces '
-                'the leaflet supplied with your medication or a conversation with a '
-                'pharmacist or clinician.',
-            actionLabel: 'What this screen will not do',
+                'For missed doses, follow your product leaflet or ask a pharmacist '
+                'or clinician. CycleCare does not give treatment advice.',
+            actionLabel: 'About this tracker',
             onAction: () => _showAboutSheet(context),
           ),
         ),

@@ -73,6 +73,22 @@ Future<void> _settle(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 800));
 }
 
+Future<void> _openAnalysisGroups(WidgetTester tester) async {
+  for (final title in [
+    'Your cycle, measured',
+    'Patterns',
+    'Through your cycle',
+  ]) {
+    final header = find.descendant(
+      of: find.byKey(PageStorageKey('insight-group-$title')),
+      matching: find.text(title),
+    ).first;
+    await tester.ensureVisible(header);
+    await tester.tap(header);
+    await _settle(tester);
+  }
+}
+
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
   setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
@@ -89,6 +105,7 @@ void main() {
     size(tester, const Size(430, 12000));
     await tester.pumpWidget(_app());
     await _settle(tester);
+    await _openAnalysisGroups(tester);
 
     for (final type in [
       RegularityCard,
@@ -111,6 +128,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpWidget(_app());
     await _settle(tester);
+    await _openAnalysisGroups(tester);
     expect(tester.takeException(), isNull);
   });
 }

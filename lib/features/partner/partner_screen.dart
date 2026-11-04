@@ -27,8 +27,8 @@ import 'partner_flows.dart';
 // screen says so rather than implying sync.
 //
 // Three principles govern what may be shared:
-//  • Nothing leaves the device without an explicit tap on Share or Copy. There
-//    is no automatic or background path, and none may be added.
+//  • This one-off snapshot leaves the device only through Share or Copy.
+//    Separately configured live sharing follows its own explicit consent.
 //  • Every field is a switch, and the sensitive ones start off. Cycle data is
 //    used to coerce and control people, so over-sharing is never the path of
 //    least resistance.
@@ -248,10 +248,11 @@ class _PartnerBody extends StatelessWidget {
           // the first switch is touched rather than after the text has already
           // been sent.
           const SizedBox(height: AppSpacing.md),
-          const Reveal(
-            index: 1,
-            offsetY: AppSpacing.md,
-            child: _PrivacyTerms(),
+          const ExpansionTile(
+            tilePadding: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            title: Text('How sharing works'),
+            subtitle: Text('Manual snapshot · no live access'),
+            children: [_PrivacyTerms()],
           ),
 
           const SizedBox(height: AppSpacing.xl),
@@ -323,8 +324,8 @@ class _PrivacyTerms extends StatelessWidget {
     (
       icon: AppIcons.privacy,
       title: 'Nothing is sent until you tap Share or Copy',
-      detail: 'There is no background sync and no automatic path out of this '
-          'device.',
+      detail: 'This one-off snapshot is sent only when you choose Share or '
+          'Copy. Live connections have separate permissions.',
     ),
     (
       icon: Icons.link_off_rounded,
@@ -336,8 +337,8 @@ class _PrivacyTerms extends StatelessWidget {
     (
       icon: AppIcons.notes,
       title: 'Only what you switch on',
-      detail: 'The text and the share code carry exactly the items switched '
-          'on below, and nothing else. Use Preview to see it as they will.',
+      detail: 'The text and code carry only the selected items. Anyone with '
+          'the code can read them; use Preview before sharing.',
     ),
   ];
 
@@ -510,8 +511,7 @@ class _Intro extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'CycleCare builds a short summary here on your phone, from '
-                    'only the things you switch on. Nothing leaves the device '
+                    'Choose what to include, then preview. Nothing is sent '
                     'until you tap Share or Copy.',
                     style: text.bodyMedium?.copyWith(
                       // 0.88 rather than full strength: the headline above has

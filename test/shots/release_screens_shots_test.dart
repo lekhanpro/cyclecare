@@ -37,6 +37,9 @@ void main() {
           'release-$route-${dark ? 'dark' : 'light'}-320-large',
         );
         if (route == 'home') {
+          await tester.ensureVisible(find.text('Explore hormone patterns'));
+          await tester.tap(find.text('Explore hormone patterns'));
+          await settleShot(tester);
           await tester.ensureVisible(
             find.byKey(const ValueKey('hormone-range')),
           );
