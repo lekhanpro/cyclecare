@@ -24,6 +24,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Setup Node for partner database checks
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Verify partner database permissions
+        run: |
+          npm ci --prefix test/backend/partner-db
+          node test/backend/partner-db/validate.mjs
+
       - name: Setup Flutter 3.41.6
         uses: subosito/flutter-action@v2
         with:

@@ -87,7 +87,8 @@ class GlassSurface extends StatelessWidget {
     // Fill opacity per tone. Chrome carries arbitrary scrolling content behind
     // it, so it needs the heaviest veil to keep labels legible; onColor sits on
     // a known surface and can stay light.
-    final fill = switch (tone) {
+    final highContrast = MediaQuery.highContrastOf(context);
+    final fill = highContrast ? 1.0 : switch (tone) {
       GlassTone.onColor => dark ? 0.16 : 0.20,
       GlassTone.chrome => dark ? 0.72 : 0.78,
       GlassTone.sheet => dark ? 0.80 : 0.86,
@@ -100,7 +101,7 @@ class GlassSurface extends StatelessWidget {
             dark ? AppColors.darkSurface : Colors.white,
         };
 
-    final sigma = blur ??
+    final sigma = highContrast ? 0.0 : blur ??
         switch (tone) {
           GlassTone.onColor => 14.0,
           GlassTone.chrome => 24.0,

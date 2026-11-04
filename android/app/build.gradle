@@ -57,6 +57,7 @@ android {
 
     defaultConfig {
         applicationId "com.lekhanpro.cyclecare"
+        manifestPlaceholders.appLabel = 'CycleCare'
         minSdkVersion flutter.minSdkVersion
         targetSdk 35
         versionCode flutterVersionCode.toInteger()
@@ -67,6 +68,14 @@ android {
     buildTypes {
         release {
             signingConfig keyPropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            // Installable beside the public release for a review build. The
+            // default release keeps its production application ID and signing.
+            if (project.findProperty('cyclecareSideBySide') == 'true') {
+                applicationIdSuffix '.debug'
+                versionNameSuffix '-preview'
+                manifestPlaceholders.appLabel = 'CycleCare Preview'
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

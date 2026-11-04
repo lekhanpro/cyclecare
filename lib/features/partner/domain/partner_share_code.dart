@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // Partner share code
 //
-// The app has no server, so sharing is a code the owner sends and the partner
+// This optional one-off snapshot is a code the owner sends and the partner
 // pastes in. The code *is* the data: compact JSON, base64url, with a checksum.
 //
 //   CC1-<payload>-<check>

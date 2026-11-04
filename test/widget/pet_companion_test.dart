@@ -189,7 +189,10 @@ void main() {
       final storage = await SharedPreferences.getInstance();
       expect(storage.getString('cc.pet.v1'), stored);
       expect(find.text('320 / 700 XP'), findsOneWidget);
+      ScaffoldMessenger.of(tester.element(find.byType(PetScreen))).hideCurrentSnackBar();
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.ensureVisible(find.text('Care & growth'));
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.text('Care & growth'));
       await tester.pump(const Duration(milliseconds: 400));
       expect(

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/router/app_router.dart';
 import '../../core/services/haptics.dart';
 import '../../core/theme/cyclecare_theme.dart';
 import '../../widgets/widgets.dart';
@@ -152,7 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           );
       if (!mounted) return;
       Haptics.celebrate();
-      context.go(AppRoutes.home);
+      context.go('/mode-introduction?tour=1');
     } catch (_) {
       // Saving to local storage should not fail, but if it does the user must
       // not be left staring at a spinner with no way back.

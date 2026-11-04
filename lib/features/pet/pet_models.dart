@@ -20,27 +20,27 @@ enum PetType {
 
   /// Retained for `onboarding_screen.dart`. Prefer [icon] in new code.
   String get emoji => switch (this) {
-        PetType.bunny => '🐰',
-        PetType.cat => '🐱',
-        PetType.bear => '🐻',
-        PetType.fox => '🦊',
-      };
+    PetType.bunny => '🐰',
+    PetType.cat => '🐱',
+    PetType.bear => '🐻',
+    PetType.fox => '🦊',
+  };
 
   /// The pet's face, resolved through the shared registry so it picks up the
   /// palette, text scale, and semantics an emoji glyph cannot.
   IconData get icon => switch (this) {
-        PetType.bunny => AppIcons.petBunny,
-        PetType.cat => AppIcons.petCat,
-        PetType.bear => AppIcons.petBear,
-        PetType.fox => AppIcons.petFox,
-      };
+    PetType.bunny => AppIcons.petBunny,
+    PetType.cat => AppIcons.petCat,
+    PetType.bear => AppIcons.petBear,
+    PetType.fox => AppIcons.petFox,
+  };
 
   String get name => switch (this) {
-        PetType.bunny => 'Bunny',
-        PetType.cat => 'Kitty',
-        PetType.bear => 'Bear',
-        PetType.fox => 'Foxy',
-      };
+    PetType.bunny => 'Bunny',
+    PetType.cat => 'Kitty',
+    PetType.bear => 'Bear',
+    PetType.fox => 'Foxy',
+  };
 }
 
 enum PetMood {
@@ -54,12 +54,12 @@ enum PetMood {
   /// mood survives without colour — which is why the mood badge on the hero
   /// can be a single icon rather than a tinted dot.
   IconData get icon => switch (this) {
-        PetMood.happy => AppIcons.moodHappy,
-        PetMood.excited => AppIcons.moodExcited,
-        PetMood.neutral => AppIcons.moodNeutral,
-        PetMood.sleepy => AppIcons.moodSleepy,
-        PetMood.sad => AppIcons.moodSad,
-      };
+    PetMood.happy => AppIcons.moodHappy,
+    PetMood.excited => AppIcons.moodExcited,
+    PetMood.neutral => AppIcons.moodNeutral,
+    PetMood.sleepy => AppIcons.moodSleepy,
+    PetMood.sad => AppIcons.moodSad,
+  };
 }
 
 class PetState {
@@ -73,6 +73,7 @@ class PetState {
     this.lastFed,
     this.lastPetted,
     this.achievements = const [],
+    this.careClaims = const [],
   });
 
   final PetType type;
@@ -84,6 +85,9 @@ class PetState {
   final DateTime? lastFed;
   final DateTime? lastPetted;
   final List<String> achievements;
+
+  /// Local day + care task IDs, saved atomically with their XP reward.
+  final List<String> careClaims;
 
   int get xpForNextLevel => level * 100;
   double get xpProgress => (xp % xpForNextLevel) / xpForNextLevel;
@@ -97,12 +101,12 @@ class PetState {
 
   /// Superseded by `mood.icon`. Kept so no caller outside this folder breaks.
   String get moodEmoji => switch (mood) {
-        PetMood.happy => '😊',
-        PetMood.excited => '🤩',
-        PetMood.neutral => '😐',
-        PetMood.sleepy => '😴',
-        PetMood.sad => '😢',
-      };
+    PetMood.happy => '😊',
+    PetMood.excited => '🤩',
+    PetMood.neutral => '😐',
+    PetMood.sleepy => '😴',
+    PetMood.sad => '😢',
+  };
 
   /// The mood face, already resolved — call sites should never re-derive the
   /// happiness thresholds to pick an icon.
@@ -118,51 +122,55 @@ class PetState {
     DateTime? lastFed,
     DateTime? lastPetted,
     List<String>? achievements,
-  }) =>
-      PetState(
-        type: type ?? this.type,
-        name: name ?? this.name,
-        xp: xp ?? this.xp,
-        level: level ?? this.level,
-        happiness: happiness ?? this.happiness,
-        streak: streak ?? this.streak,
-        lastFed: lastFed ?? this.lastFed,
-        lastPetted: lastPetted ?? this.lastPetted,
-        achievements: achievements ?? this.achievements,
-      );
+    List<String>? careClaims,
+  }) => PetState(
+    type: type ?? this.type,
+    name: name ?? this.name,
+    xp: xp ?? this.xp,
+    level: level ?? this.level,
+    happiness: happiness ?? this.happiness,
+    streak: streak ?? this.streak,
+    lastFed: lastFed ?? this.lastFed,
+    lastPetted: lastPetted ?? this.lastPetted,
+    achievements: achievements ?? this.achievements,
+    careClaims: careClaims ?? this.careClaims,
+  );
 
   Map<String, dynamic> toJson() => {
-        'type': type.name,
-        'name': name,
-        'xp': xp,
-        'level': level,
-        'happiness': happiness,
-        'streak': streak,
-        'lastFed': lastFed?.toIso8601String(),
-        'lastPetted': lastPetted?.toIso8601String(),
-        'achievements': achievements,
-      };
+    'type': type.name,
+    'name': name,
+    'xp': xp,
+    'level': level,
+    'happiness': happiness,
+    'streak': streak,
+    'lastFed': lastFed?.toIso8601String(),
+    'lastPetted': lastPetted?.toIso8601String(),
+    'achievements': achievements,
+    'careClaims': careClaims,
+  };
 
   factory PetState.fromJson(Map<String, dynamic> json) => PetState(
-        type: PetType.values.firstWhere(
-          (t) => t.name == json['type'],
-          orElse: () => PetType.bunny,
-        ),
-        name: json['name'] as String? ?? 'Luna',
-        xp: json['xp'] as int? ?? 0,
-        level: json['level'] as int? ?? 1,
-        happiness: json['happiness'] as int? ?? 80,
-        streak: json['streak'] as int? ?? 0,
-        lastFed: json['lastFed'] != null
-            ? DateTime.tryParse(json['lastFed'] as String)
-            : null,
-        lastPetted: json['lastPetted'] != null
-            ? DateTime.tryParse(json['lastPetted'] as String)
-            : null,
-        achievements:
-            (json['achievements'] as List<dynamic>?)?.cast<String>() ??
-                const [],
-      );
+    type: PetType.values.firstWhere(
+      (t) => t.name == json['type'],
+      orElse: () => PetType.bunny,
+    ),
+    name: json['name'] as String? ?? 'Luna',
+    xp: json['xp'] as int? ?? 0,
+    level: json['level'] as int? ?? 1,
+    happiness: json['happiness'] as int? ?? 80,
+    streak: json['streak'] as int? ?? 0,
+    lastFed: json['lastFed'] != null
+        ? DateTime.tryParse(json['lastFed'] as String)
+        : null,
+    lastPetted: json['lastPetted'] != null
+        ? DateTime.tryParse(json['lastPetted'] as String)
+        : null,
+    achievements:
+        (json['achievements'] as List<dynamic>?)?.cast<String>() ?? const [],
+    careClaims:
+        (json['careClaims'] as List<dynamic>?)?.whereType<String>().toList() ??
+        const [],
+  );
 }
 
 // ─── XP rewards ──────────────────────────────────────────────────────────────

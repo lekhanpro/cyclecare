@@ -69,8 +69,8 @@ List<PetNeed> petNeeds({
       nextStep: water >= waterGoalMl
           ? 'Goal reached'
           : water == 0
-              ? 'Log the water you have had today'
-              : '${((waterGoalMl - water) / 250).ceil()} more glasses to go',
+          ? 'Log the water you have had today'
+          : '${((waterGoalMl - water) / 250).ceil()} more glasses to go',
     ),
     PetNeed(
       kind: PetNeedKind.rest,
@@ -117,12 +117,7 @@ List<PetGoal> dailyGoals({
 }) {
   final menstrual = phase == CyclePhase.menstrual;
   return [
-    PetGoal(
-      id: 'log',
-      title: 'Check in today',
-      done: today != null,
-      xp: 20,
-    ),
+    PetGoal(id: 'log', title: 'Check in today', done: today != null, xp: 20),
     PetGoal(
       id: 'water',
       title: 'Log your water',
@@ -133,7 +128,8 @@ List<PetGoal> dailyGoals({
         ? PetGoal(
             id: 'flow',
             title: 'Note your flow or symptoms',
-            done: today != null &&
+            done:
+                today != null &&
                 ((today.flow != null && today.flow != FlowIntensity.none) ||
                     today.symptoms.isNotEmpty),
             xp: 15,
@@ -153,34 +149,56 @@ String goalClaimKey(String goalId, DateTime day) {
   return '${d.year}-${d.month}-${d.day}:$goalId';
 }
 
+/// Optional recording tasks, with no intake or sleep-duration target. Explicit
+/// zero remains an observation; missing information never completes a task.
+List<PetGoal> recordedCareGoals(DailyLog? today) => [
+  dailyGoals(today: today, phase: null).first,
+  PetGoal(
+    id: 'water',
+    title: 'Record your water',
+    done: today?.waterMl != null,
+    xp: 15,
+  ),
+  PetGoal(
+    id: 'reflection',
+    title: 'Record mood or sleep',
+    done:
+        (today?.mood?.trim().isNotEmpty ?? false) || today?.sleepHours != null,
+    xp: 15,
+  ),
+];
+
 enum PetStage { baby, young, grown }
 
 PetStage stageForLevel(int level) => level >= 6
     ? PetStage.grown
     : level >= 3
-        ? PetStage.young
-        : PetStage.baby;
+    ? PetStage.young
+    : PetStage.baby;
 
 extension PetStageLabel on PetStage {
   String get label => switch (this) {
-        PetStage.baby => 'Baby',
-        PetStage.young => 'Young',
-        PetStage.grown => 'Grown',
-      };
+    PetStage.baby => 'Baby',
+    PetStage.young => 'Young',
+    PetStage.grown => 'Grown',
+  };
 
   /// Level the next stage starts at, or null when fully grown.
   int? get nextAt => switch (this) {
-        PetStage.baby => 3,
-        PetStage.young => 6,
-        PetStage.grown => null,
-      };
+    PetStage.baby => 3,
+    PetStage.young => 6,
+    PetStage.grown => null,
+  };
 }
 
 /// A phase-aware line for the pet, gentle on period days and never shaming.
-String petMoodLine(String name, CyclePhase? phase, {required bool loggedToday}) {
+String petMoodLine(
+  String name,
+  CyclePhase? phase, {
+  required bool loggedToday,
+}) {
   final base = switch (phase) {
-    CyclePhase.menstrual =>
-      '$name is keeping things cosy today. Rest counts.',
+    CyclePhase.menstrual => '$name is keeping things cosy today. Rest counts.',
     CyclePhase.follicular => '$name is feeling bright and curious.',
     CyclePhase.ovulation => '$name is full of energy today.',
     CyclePhase.luteal => '$name is slowing down a little. Go easy.',
@@ -191,13 +209,12 @@ String petMoodLine(String name, CyclePhase? phase, {required bool loggedToday}) 
 
 /// A small care tip for the phase, for you rather than the pet.
 String petCareTip(CyclePhase? phase) => switch (phase) {
-      CyclePhase.menstrual =>
-        'Warmth and an easier schedule tend to help more than pushing through.',
-      CyclePhase.follicular =>
-        'Energy often climbs now, which suits plans and new things.',
-      CyclePhase.ovulation =>
-        'Many people feel most social around now.',
-      CyclePhase.luteal =>
-        'Regular meals and an earlier night can soften the last few days.',
-      null => 'Logging a little every day makes your patterns clearer.',
-    };
+  CyclePhase.menstrual =>
+    'Warmth and an easier schedule tend to help more than pushing through.',
+  CyclePhase.follicular =>
+    'Energy often climbs now, which suits plans and new things.',
+  CyclePhase.ovulation => 'Many people feel most social around now.',
+  CyclePhase.luteal =>
+    'Regular meals and an earlier night can soften the last few days.',
+  null => 'Logging a little every day makes your patterns clearer.',
+};

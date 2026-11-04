@@ -10,6 +10,7 @@ import 'pet_care.dart';
 import 'pet_companion.dart';
 import 'pet_models.dart';
 import 'pet_provider.dart';
+import 'pet_tasks.dart';
 
 class PetScreen extends ConsumerWidget {
   const PetScreen({super.key});
@@ -322,6 +323,8 @@ class _PetViewState extends ConsumerState<_PetView> {
                         semanticsLabel: 'Saving companion',
                       ),
                     _PetProgress(pet: pet),
+                    const SizedBox(height: 12),
+                    PetCareTasks(pet: pet, onReward: _moment),
                     const SizedBox(height: 12),
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,

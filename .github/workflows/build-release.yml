@@ -49,6 +49,17 @@ jobs:
             fi
           done
 
+      - name: Setup Node for partner database checks
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Verify partner database permissions
+        run: |
+          npm ci --prefix test/backend/partner-db
+          node test/backend/partner-db/validate.mjs
+
       - name: Setup Java 17
         uses: actions/setup-java@v6
         with:

@@ -8,7 +8,7 @@ import '../core/theme/app_tokens.dart';
 import '../core/theme/phase_colors.dart';
 import 'motion.dart';
 
-/// CycleCare's stable-height primary action.
+/// A primary action with a minimum target height that grows for enlarged text.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     super.key,
@@ -60,8 +60,7 @@ class PrimaryButton extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: AppTextStyles.body(
               fontSize: 15,
               height: 1.25,
@@ -110,8 +109,11 @@ class PrimaryButton extends StatelessWidget {
     final surface = AnimatedContainer(
       duration: motion(AppDurations.fast),
       curve: AppCurves.out,
-      height: AppLayout.buttonHeight,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      constraints: const BoxConstraints(minHeight: AppLayout.buttonHeight),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: background,
         borderRadius: radius,
@@ -124,7 +126,7 @@ class PrimaryButton extends StatelessWidget {
         // The design's `.primary` is flat; depth comes from the fill alone.
         boxShadow: null,
       ),
-      child: Center(child: content),
+      child: Center(heightFactor: 1, child: content),
     );
 
     final button = Pressable(

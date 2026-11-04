@@ -1,7 +1,7 @@
 name: cyclecare
 description: CycleCare – privacy-first menstrual health, fertility, wellness & AI companion app.
 publish_to: 'none'
-version: 2.2.1+4
+version: 2.3.0+5
 
 environment:
   # Floors match the resolved lockfile. Flutter 3.38+ is required for the

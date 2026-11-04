@@ -36,6 +36,16 @@ This app-first release includes the Flutter implementation, tests and design
 contracts. The bulky browser prototype and research-media archive, together with
 its original local commit history, remain queued for a separate upload.
 
+## 2.3.0 review preview
+
+The unreleased preview adds adaptive safe-area layouts and a floating navigation
+bar, five tracking-mode dashboards, a ten-feature tour, record-based companion
+tasks, a separate partner dashboard and optional assistant connections. See the
+[preview scope and verification limits](docs/preview-2.3.0.md),
+[assistant model research](docs/assistant-models.md), and
+[partner setup](docs/partner/connection-setup.md). A final release awaits review;
+online partner sync requires backend setup and two-device verification.
+
 ## What ships in v2.2.0
 
 | Area | Behavior |
@@ -73,6 +83,8 @@ flutter pub get --enforce-lockfile
 flutter analyze lib test --no-pub --no-fatal-infos --no-fatal-warnings
 flutter test --no-pub
 flutter test --no-pub --dart-define=SHOTS=true test/shots/release_screens_shots_test.dart
+npm ci --prefix test/backend/partner-db
+node test/backend/partner-db/validate.mjs
 flutter build apk --release --no-pub
 ```
 

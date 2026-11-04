@@ -107,8 +107,8 @@ class ListRow extends StatelessWidget {
     final titleColor = !enabled
         ? context.subtleColor
         : danger
-            ? dangerColor
-            : context.inkColor;
+        ? dangerColor
+        : context.inkColor;
 
     Widget? leadingWidget = leading;
     if (leadingWidget == null && icon != null) {
@@ -116,7 +116,8 @@ class ListRow extends StatelessWidget {
         width: iconTileSize,
         height: iconTileSize,
         decoration: BoxDecoration(
-          color: iconBackground ??
+          color:
+              iconBackground ??
               (danger ? dangerColor.withOpacity(0.12) : accent.surface),
           borderRadius: BorderRadius.circular(AppRadii.calendarDay),
         ),
@@ -132,15 +133,13 @@ class ListRow extends StatelessWidget {
 
     Widget? trailingWidget = trailing;
     if (trailingWidget == null && value != null) {
-      trailingWidget = Flexible(
-        child: Text(
-          value!,
-          textAlign: TextAlign.end,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.body(fontSize: 12, height: 1.35)
-              .copyWith(color: muted),
-        ),
+      trailingWidget = Text(
+        value!,
+        textAlign: TextAlign.end,
+        style: AppTextStyles.body(
+          fontSize: 12,
+          height: 1.35,
+        ).copyWith(color: muted),
       );
     }
 
@@ -148,50 +147,71 @@ class ListRow extends StatelessWidget {
 
     final row = Padding(
       padding: EdgeInsets.symmetric(vertical: verticalPadding),
-      child: Row(
-        children: [
-          if (leadingWidget != null) ...[
-            leadingWidget,
-            const SizedBox(width: AppSpacing.md),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.body(
-                    fontSize: 14,
-                    height: 1.3,
-                    fontWeight: FontWeight.w600,
-                  ).copyWith(color: titleColor),
-                ),
-                if (subtitle != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.xs),
-                    child: Text(
-                      subtitle!,
-                      style: AppTextStyles.body(fontSize: 11, height: 1.4)
-                          .copyWith(color: muted),
-                    ),
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+          final stackTrailing =
+              trailingWidget != null &&
+              (constraints.maxWidth < 280 ||
+                  (scale > 1.3 && constraints.maxWidth < 420));
+          return Row(
+            children: [
+              if (leadingWidget != null) ...[
+                leadingWidget,
+                const SizedBox(width: AppSpacing.md),
               ],
-            ),
-          ),
-          if (trailingWidget != null) ...[
-            const SizedBox(width: AppSpacing.md),
-            trailingWidget,
-          ],
-          if (chevron) ...[
-            const SizedBox(width: AppSpacing.sm),
-            Icon(
-              AppIcons.forward,
-              size: 16,
-              color: enabled ? muted : context.subtleColor,
-            ),
-          ],
-        ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.body(
+                        fontSize: 14,
+                        height: 1.3,
+                        fontWeight: FontWeight.w600,
+                      ).copyWith(color: titleColor),
+                    ),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: Text(
+                          subtitle!,
+                          style: AppTextStyles.body(
+                            fontSize: 11,
+                            height: 1.4,
+                          ).copyWith(color: muted),
+                        ),
+                      ),
+                    if (stackTrailing) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                      child: trailingWidget,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailingWidget != null && !stackTrailing) ...[
+                const SizedBox(width: AppSpacing.md),
+                if (trailing == null && value != null)
+                Flexible(child: trailingWidget)
+                else
+                trailingWidget,
+              ],
+              if (chevron) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Icon(
+                  AppIcons.forward,
+                  size: 16,
+                  color: enabled ? muted : context.subtleColor,
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
 
@@ -227,8 +247,8 @@ class ListRow extends StatelessWidget {
       scale: 0.99,
       haptic: false,
       enabled: enabled,
-      semanticLabel: semanticLabel ??
-          [title, if (subtitle != null) subtitle!].join(', '),
+      semanticLabel:
+          semanticLabel ?? [title, if (subtitle != null) subtitle!].join(', '),
       semanticValue: semanticValue ?? value,
       excludeChildSemantics: true,
       child: bordered,

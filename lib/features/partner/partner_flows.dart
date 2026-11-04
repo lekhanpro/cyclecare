@@ -100,6 +100,9 @@ class PartnerShareCodeScreen extends ConsumerWidget {
                       fontWeight: FontWeight.w800,
                     )),
                 const SizedBox(height: AppSpacing.md),
+                const Text('This code contains the selected health details. '
+                    'Anyone who receives it can read them.'),
+                const SizedBox(height: AppSpacing.md),
                 SelectableText(
                   group(code),
                   style: text.bodyMedium?.copyWith(
